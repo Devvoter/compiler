@@ -1,0 +1,127 @@
+/**
+ * @file grammar_LL1
+ * @author Mariia Sydorenko (xsydorm00)
+ * @brief Popis gramatiky v formatu LL(1)
+ * 
+ * @date 2024-10-09
+ * 
+ */
+
+START ::= CODE NEXT_CODE
+
+CODE ::= VARIABLE_DEFINITION
+       | VARIABLE_ASSIGN
+       | IF
+       | WHILE
+       | FUNCTION_DEFINITION
+       | FUNCTION_CALL ";"
+       | STANDARD_FUNCTION_CALL
+       | RETURN
+       | IMPORT
+
+NEXT_CODE ::= CODE NEXT_CODE 
+            | ε
+
+IMPORT ::= "const" "ifj" "=" "@import(" "\"ifj24.zig\"" ")" ";"
+
+VARIABLE_DEFINITION ::= ( "var" | "const" ) ID_TOKEN ":" DATA_TYPE_TOKEN VARIABLE_DEFINITION_TAIL ";"
+
+VARIABLE_DEFINITION_TAIL ::= "=" EXPRESSION
+                           | ε
+
+VARIABLE_ASSIGN ::= ID_TOKEN "=" EXPRESSION ";"
+
+IF ::= "if" IF_CONDITION "{" CODE "}" IF_TAIL
+
+IF_CONDITION ::= "(" LOGICAL_EXPRESSION ")"
+               | "(" LOGICAL_EXPRESSION ")" "|" ID_TOKEN "|"
+
+IF_TAIL ::= "else" "{" CODE "}"
+          | ε
+
+WHILE ::= "while" WHILE_CONDITION "{" CODE "}"
+
+WHILE_CONDITION ::= "(" LOGICAL_EXPRESSION ")"
+                  | "(" LOGICAL_EXPRESSION ")" "|" ID_TOKEN "|"
+
+FUNCTION_DEFINITION ::= "pub" "fn" ID_TOKEN "(" ARGUMENTS ")" FUNCTION_RETURN_TYPE "{" CODE "}"
+
+FUNCTION_RETURN_TYPE ::= DATA_TYPE_TOKEN 
+                       | "void"
+
+FUNCTION_CALL ::= ID_TOKEN "(" ARGUMENTS ")"
+
+STANDARD_FUNCTION_CALL ::= "ifj." STANDARD_FUNCTION_CALL_TAIL ";"
+
+STANDARD_FUNCTION_CALL_TAIL ::= "readstr()"
+                              | "readi32()"
+                              | "readf64()"
+                              | "write(" TERM ")"
+                              | "i2f(" TERM ")"
+                              | "f2i(" TERM ")"
+                              | "string(" TERM ")"
+                              | "length(" TERM ")"
+                              | "concat(" TERM "," TERM ")"
+                              | "substring(" TERM "," TERM ")"
+                              | "strcmp(" TERM "," TERM ")"
+                              | "ord(" TERM ")"
+                              | "chr(" TERM ")"
+
+ARGUMENTS ::= ID_TOKEN ":" DATA_TYPE_TOKEN ARGUMENTS_TAIL
+            | ε
+
+ARGUMENTS_TAIL ::= "," ARGUMENTS
+                 | ε
+
+RETURN ::= "return" RETURN_TAIL ";"
+
+RETURN_TAIL ::= EXPRESSION 
+              | ε
+
+TERM ::= ID_TOKEN 
+       | NUMBER 
+       | FP_NUMBER 
+       | STRING 
+       | "null"
+
+EXPRESSION ::= TERM EXPRESSION_TAIL
+             | FUNCTION_CALL
+             | "(" EXPRESSION ")"
+
+EXPRESSION_TAIL ::= OPERATOR EXPRESSION
+                  | ε
+
+LOGICAL_EXPRESSION ::= EXPRESSION LOGICAL_EXPRESSION_TAIL
+
+LOGICAL_EXPRESSION_TAIL ::= LOGICAL_OPERATOR EXPRESSION
+                          | ε
+
+DATA_TYPE_TOKEN ::= "i32" 
+                  | "f64" 
+                  | "[]u8" 
+                  | "?i32" 
+                  | "?f64" 
+                  | "?[]u8"
+
+OPERATOR ::= "+" 
+           | "-" 
+           | "*" 
+           | "/"
+
+LOGICAL_OPERATOR ::= "==" 
+                   | "!=" 
+                   | "<" 
+                   | ">" 
+                   | "<=" 
+                   | ">="
+
+ID_TOKEN ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+NUMBER ::= [0-9]+
+
+FP_NUMBER ::= [0-9]+ "." [0-9]+
+
+BOOL ::= "true" 
+       | "false"
+
+STRING ::= "\"" [a-zA-Z0-9_]* "\"" # rewrite later to match specification
