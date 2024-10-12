@@ -12,6 +12,56 @@
 #define _SCANNER_H_
 
 #include "buffer.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+enum automat_state {
+    S_ERROR = 0,
+    S_START,
+    S_PROLOG,
+    //
+
+    S_MUL,                  // *
+    S_DIV,                  // /
+    S_ADD,                  // +
+    S_SUB,                  // -
+
+    // Relační operátory
+    S_ASSIGN,               // =
+    S_EQUALS,               // == 
+    S_NOT_EQUALS,           // !=
+    S_GREATER_THAN,         // >
+    S_GREATER_OR_EQUAL,     // >=
+    S_LESS_THAN,            // <
+    S_LESS_OR_EQUAL,        // <=
+
+    //
+    S_AT,                   // @
+    S_COLON,                // :
+    S_DOT,                  // .
+    S_COMMA,                // ,
+    S_SEMICOLON,            // ;
+    S_CLOSE_BRACKET,        // }
+    S_OPEN_BRACKET,         // {
+    S_CLOSE_PARENTHESES,    // )
+    S_OPEN_PARANTHESES,     // (
+
+    //
+    S_LINE_COMMENT,         // //
+    S_SLASH,                // /
+    S_EXCLA,                // !
+    //  
+    S_QUOTE,                // "
+    S_ID,                   // _a-zA-Z 
+    S_QUESTIONER,           // ?
+    S_TYPE_ID,              // ?i32 | ?[]u8 | ?f64
+    S_LETTER,
+    S_INT_NUM,
+    S_FLOAT_NUM,
+    S_EXP_NUM,
+
+};
+
 
 /**
  * @brief Možné typy tokenu
@@ -20,43 +70,52 @@
 typedef enum {
 
     // klíčová slova
-    TOKEN_CONST = 0, TOKEN_ELSE, TOKEN_FN,
-    TOKEN_IF,        TOKEN_I32,  TOKEN_F64,
-    TOKEN_NULL,      TOKEN_PUB,  TOKEN_RETURN,
-    TOKEN_U8,        TOKEN_VAR,  TOKEN_VOID,
-    TOKEN_WHILE,
+    T_CONST = 0,   T_ELSE,        T_FN,
+    T_IF,        T_I32_ID,    T_F64_ID,
+    T_NULL,         T_PUB,    T_RETURN,
+    T_U8_ID,        T_VAR,      T_VOID,
+    T_WHILE,
+
+    // typy
+    T_STRING_TYPE,
+
+
+    T_FUN_ID,
+
+    // s přeponou ?
+    T_I32_NULLABLE, T_F64_NULLABLE, T_U8_NULLABLE,
 
     // Aritmetické operátory
-    TOKEN_MUL,                  // *
-    TOKEN_DIV,                  // /
-    TOKEN_ADD,                  // +
-    TOKEN_SUB,                  // -
+    T_MUL,                  // *
+    T_DIV,                  // /
+    T_ADD,                  // +
+    T_SUB,                  // -
 
     // Relační operátory
-    TOKEN_ASSIGN,               // =
-    TOKEN_EQUALS,               // == 
-    TTOKEN_NOT_EQUALS,          // !=
-    TOKEN_GREATER_THAN,         // >
-    TTOKEN_GREATER_OR_EQUAL,    // >=
-    TOKEN_LESS_THAN,            // <
-    TOKEN_LESS_OR_EQUAL,        // <=
+    T_ASSIGN,               // =
+    T_EQUALS,               // == 
+    T_NOT_EQUALS,           // !=
+    T_GREATER_THAN,         // >
+    T_GREATER_OR_EQUAL,     // >=
+    T_LESS_THAN,            // <
+    T_LESS_OR_EQUAL,        // <=
 
     //
-    TOKEN_AT,                   // @
-    TOKEN_COLON,                // :
-    TOKEN_DOT,                  // .
-    TOKEN_COMMA,                // ,
-    TOKEN_SEMICOLON,            // ;
-    TOKEN_CLOSE_BRACKET,        // }
-    TOKEN_OPEN_BRACKET,         // {
-    TOKEN_CLOSE_PARENTHESES,    // )
-    TOKEN_OPEN_PARANTHESES,     // (
+    T_AT,                   // @
+    T_COLON,                // :
+    T_DOT,                  // .
+    T_COMMA,                // ,
+    T_SEMICOLON,            // ;
+    T_CLOSE_BRACKET,        // }
+    T_OPEN_BRACKET,         // {
+    T_CLOSE_PARENTHESES,    // )
+    T_OPEN_PARANTHESES,     // (
 
     // Ostatní
-    TOKEN_IFJ,
-    TOKEN_EOF,
-    TOKEN_UNKNOW,
-    TOKEN_ERROR,
+    T_IFJ,
+    T_EOF,
+    T_UNKNOW,
+    T_ERROR,
 } TokenType;
 
 
@@ -80,8 +139,20 @@ typedef struct {
     TokenValue     data;    // hodnota tokena
     unsigned long  line;    // řádek odkud býl token. just for debuging
     
-    int isNullable;         // příznak označující typ s možnou hodnotou Null
 } Token;
 
+/**
+ * @brief 
+ * 
+ */
+
+Token scanner_get_next_token();
+
+/**
+ * @brief 
+ * 
+ */
+
+void scanner_init(FILE* sourse);
 
 #endif // _SCANNER_H_
