@@ -7,7 +7,7 @@
  * 
  */
 
-START ::= CODE NEXT_CODE
+START ::= PROLOG CODE NEXT_CODE
 
 CODE ::= VARIABLE_DEFINITION
        | VARIABLE_ASSIGN
@@ -17,12 +17,11 @@ CODE ::= VARIABLE_DEFINITION
        | FUNCTION_CALL ";"
        | STANDARD_FUNCTION_CALL
        | RETURN
-       | IMPORT
 
 NEXT_CODE ::= CODE NEXT_CODE 
             | ε
 
-IMPORT ::= "const" "ifj" "=" "@import(" "\"ifj24.zig\"" ")" ";"
+PROLOG ::= "const" "ifj" "=" "@import(" "\"ifj24.zig\"" ")" ";"
 
 VARIABLE_DEFINITION ::= ( "var" | "const" ) ID_TOKEN ":" DATA_TYPE_TOKEN VARIABLE_DEFINITION_TAIL ";"
 
@@ -33,16 +32,16 @@ VARIABLE_ASSIGN ::= ID_TOKEN "=" EXPRESSION ";"
 
 IF ::= "if" IF_CONDITION "{" CODE "}" IF_TAIL
 
-IF_CONDITION ::= "(" LOGICAL_EXPRESSION ")"
-               | "(" LOGICAL_EXPRESSION ")" "|" ID_TOKEN "|"
+IF_CONDITION ::= "(" EXPRESSION ")"
+               | "(" EXPRESSION ")" "|" ID_TOKEN "|"
 
 IF_TAIL ::= "else" "{" CODE "}"
           | ε
 
 WHILE ::= "while" WHILE_CONDITION "{" CODE "}"
 
-WHILE_CONDITION ::= "(" LOGICAL_EXPRESSION ")"
-                  | "(" LOGICAL_EXPRESSION ")" "|" ID_TOKEN "|"
+WHILE_CONDITION ::= "(" EXPRESSION ")"
+                  | "(" EXPRESSION ")" "|" ID_TOKEN "|"
 
 FUNCTION_DEFINITION ::= "pub" "fn" ID_TOKEN "(" ARGUMENTS ")" FUNCTION_RETURN_TYPE "{" CODE "}"
 
@@ -84,17 +83,12 @@ TERM ::= ID_TOKEN
        | STRING 
        | "null"
 
-EXPRESSION ::= TERM EXPRESSION_TAIL
+EXPRESSION ::= TERM EXPRESSION_TAIL                     # tady musi jina analyza pro vyrazy
              | FUNCTION_CALL
              | "(" EXPRESSION ")"
 
-EXPRESSION_TAIL ::= OPERATOR EXPRESSION
+EXPRESSION_TAIL ::= OPERATOR EXPRESSION                 # tady musi jina analyza pro vyrazy
                   | ε
-
-LOGICAL_EXPRESSION ::= EXPRESSION LOGICAL_EXPRESSION_TAIL
-
-LOGICAL_EXPRESSION_TAIL ::= LOGICAL_OPERATOR EXPRESSION
-                          | ε
 
 DATA_TYPE_TOKEN ::= "i32" 
                   | "f64" 
