@@ -38,3 +38,25 @@ bool bufferAddChar(tBuffer* buffer ,char c) {
         return true;
     }
 }
+
+
+tBuffer* dynamicBuffer_INIT() {
+    
+    tBuffer* buffer = malloc(sizeof(tBuffer));
+
+    if (buffer == NULL){
+        return NULL;
+    }
+    else {
+        buffer->data = calloc(BUFFER_SIZE, sizeof(char));
+        if (buffer->data == NULL) {
+            free(buffer);
+            return NULL;
+        }
+        else {
+            buffer->size = 0;
+            buffer->length = BUFFER_SIZE;
+            return buffer;
+        }
+    }
+}

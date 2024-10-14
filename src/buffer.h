@@ -10,6 +10,8 @@
 #ifndef _BUFFER_H_
 #define _BUFFER_H_
 
+#define BUFFER_SIZE 8
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -27,5 +29,5 @@ typedef struct{
 
 bool bufferAddChar(tBuffer* buffer ,char c);
 
-
+tBuffer* dynamicBuffer_INIT();
 #endif // _BUFFER_H_ 

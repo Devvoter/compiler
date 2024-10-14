@@ -12,15 +12,18 @@
 #include "buffer.h"
 #include <stdbool.h>
 
-//#define STATE_PROGRESS_PROGRAM 2
-#define STATE_WAITING_ON_PROLOG 4
-
 #define ERROR_TODO -1
+
+#ifdef USE_STDIN
+    #define SOURCE stdin
+#else
+    #define SOURCE source_file
+#endif
 
 enum automat_state change_automat_state (char c){
 
     if (isalpha(c) || (c == '_')){
-    return S_LETTER;
+        return S_LETTER;
     }
     else if (isdigit(c)){
         return S_INT_NUM;
@@ -120,7 +123,7 @@ KeywordTokenPair keyword_tokens[] = {
     {"?[]u", T_U8_NULLABLE}
 };
 
-TokenType get_token_type(const char* word) {
+TokenType isKeyWord(const char* word) {
     
     size_t keywords_count = sizeof(keyword_tokens) / sizeof(keyword_tokens[0]);
     for (size_t i = 0; i < keywords_count; ++i) {
@@ -133,37 +136,15 @@ TokenType get_token_type(const char* word) {
 }
 
 
-Token automat_state_prolog(Token *Token, char c, unsigned long *line_count){
-    
-    // code 
 
-    return *Token;
-}
+FILE *source_file; // глобальная переменная для хранения файла
 
-void load_string(Token* token, char c, unsigned long *init_count){
-    /* INIT BUFFER*/
-    if (!(*init_count)){
-        token->data.u8 = dynamicBuffer_INIT();
-        if (token->data.u8 == NULL){
-            error_handle();
-            return;
-        }
-        *init_count = 1;
-    }
-    /* PROCESS skip first '"' */
-    if (c != '"' || token->data.u8->length > 0){
-        bool err = dynamicBuffer_ADD_CHAR(token->data.u8, c);
-        if (err == false){
-            error_handle();
-            return;
-        }
-    }
-    token->type = T_ERROR;
+void scanner_init(FILE *source) {
+    source_file = source;
 }
 
 
-
-Token scanner_get_next_token(short automatState){
+Token scanner_get_next_token(){
     // whate state in the state_machine?
     // в зависимости от состояния -> 
 
@@ -173,7 +154,9 @@ Token scanner_get_next_token(short automatState){
     static unsigned long init_count;
     static unsigned long line_count;
     newToken.line = line_count;
-    int c = getchar();
+
+    int c = fgetc(SOURCE);
+    //printf("Read character: %c\n", c);  
     bool escapeSequence = false;
 
     if (c == EOF){
@@ -181,18 +164,6 @@ Token scanner_get_next_token(short automatState){
         return newToken;
     }
     
-    /*          WAITING ON PROLOG
-        for just one string int the begining: const ifj = @import("ifj24.zig");    */
-
-    if (automatState == STATE_WAITING_ON_PROLOG) 
-    {
-        /* code */
-
-        newToken = automat_state_prolog(&newToken, c, &line_count);
-        // something for buffer 
-        return newToken;
-    }
-
 
     enum automat_state STATE = change_automat_state(c);
 
@@ -211,7 +182,7 @@ Token scanner_get_next_token(short automatState){
             STATE = change_automat_state(c);
             if (STATE != S_START)
             {
-                ungetc(c, stdin);
+                ungetc(c, SOURCE);
             }
             break;
         /* : */
@@ -240,11 +211,11 @@ Token scanner_get_next_token(short automatState){
             return newToken;
         /* ) */
         case S_CLOSE_PARENTHESES:
-            newToken.type = S_CLOSE_PARENTHESES;
+            newToken.type = T_CLOSE_PARENTHESES;
             return newToken;
         /* ) */
         case S_OPEN_PARANTHESES:
-            newToken.type = S_OPEN_PARANTHESES;
+            newToken.type = T_OPEN_PARENTHESES;
             return newToken;
         /* = */
         case S_ASSIGN:
@@ -254,7 +225,7 @@ Token scanner_get_next_token(short automatState){
         /* == */
         case S_EQUALS:
             if (c == '=') newToken.type = T_EQUALS;
-            else ungetc(c, stdin);
+            else ungetc(c, SOURCE);
             return newToken;
         /* > */
         case S_GREATER_THAN:
@@ -263,8 +234,8 @@ Token scanner_get_next_token(short automatState){
             break;
         /* >= */
         case S_GREATER_OR_EQUAL:
-            if (c == '=') newToken.type = S_GREATER_OR_EQUAL;
-            else ungetc(c, stdin);
+            if (c == '=') newToken.type = T_GREATER_OR_EQUAL;
+            else ungetc(c, SOURCE);
             return newToken;
         /* < */
         case S_LESS_THAN:
@@ -274,7 +245,7 @@ Token scanner_get_next_token(short automatState){
         /* <= */
         case S_LESS_OR_EQUAL:
             if (c == '=') newToken.type = T_LESS_OR_EQUAL;
-            else ungetc(c, stdin);
+            else ungetc(c, SOURCE);
             return newToken;
         /* ! */
         case S_EXCLA: 
@@ -284,7 +255,7 @@ Token scanner_get_next_token(short automatState){
         /* != */
         case S_NOT_EQUALS:
             if (c == '=') newToken.type = T_NOT_EQUALS;
-            else ungetc(c,stdin);
+            else ungetc(c,SOURCE);
             return newToken;
         /* @ */
         case S_AT:
@@ -348,12 +319,14 @@ Token scanner_get_next_token(short automatState){
                             load_string(&newToken, (char)value, &init_count);
                         } else {
                             // Pokud znaky po \x nejsou platné šestnáctkové znaky
-                            error_handle(1);  // Chyba 1
+                            //error_handle(1);  // Chyba 1
+                            exit(ERROR_TODO);
                         }
                         break;
                     }
                     default:
-                        error_handle(1);  // Pokud znak po '\' není platná escape sekvence
+                        //error_handle(1);  // Pokud znak po '\' není platná escape sekvence
+                        exit(ERROR_TODO);
                 }
                 escapeSequence = false;  // Resetování flagu escape sekvence
             } 
@@ -372,11 +345,11 @@ Token scanner_get_next_token(short automatState){
                         continue;  // Pokračujeme na další znak
                     } else {
                         // Pokud řetězec nepokračuje, vrátíme znak zpět do vstupu
-                        ungetc(skipSpace, stdin);
+                        ungetc(skipSpace, SOURCE);
                     }
                 } else {
                     // Pokud to není víceřádkový řetězec, ale symbol '\', aktivujeme escape sekvenci
-                    ungetc(nextChar, stdin);  // Vrátíme znak zpět do vstupu
+                    ungetc(nextChar, SOURCE);  // Vrátíme znak zpět do vstupu
                     escapeSequence = true;    // Aktivujeme escape sekvenci
                 }
             }
@@ -387,7 +360,8 @@ Token scanner_get_next_token(short automatState){
                 return newToken;
             }
             else if (c == '\n') {
-                error_handle(1);  // Chyba: není dovoleno přenášet řetězec na nový řádek
+                //error_handle(1);  // Chyba: není dovoleno přenášet řetězec na nový řádek
+                exit(ERROR_TODO);
             }
             else {
                 load_string(&newToken, c, &init_count);  // Standardní načítání znaku do řetězce
@@ -398,12 +372,12 @@ Token scanner_get_next_token(short automatState){
 
             if ((!isalpha(c)) && (!isdigit(c)) && (c != '_')){
                 /* check for reserved words */
-                newToken.type = isKeyWord(newToken.data.u8);
-                ungetc(c, stdin);
+                newToken.type = isKeyWord(newToken.data.u8->data);
+                ungetc(c, SOURCE);
                 init_count = 0;
                 return newToken;
             }
-            newToken.type = T_FUN_ID;
+            //newToken.type = T_ID;
             load_letter(&newToken, c, &init_count);
             break;
 
@@ -414,7 +388,9 @@ Token scanner_get_next_token(short automatState){
         }
         
 
-        c = getchar();
+        
+        c = fgetc(SOURCE);
+        //printf("Read character: %c\n", c);  
     }
 }
 
@@ -423,7 +399,8 @@ void load_string(Token* token, char c, unsigned long *init_count){
     if (!(*init_count)){
         token->data.u8 = dynamicBuffer_INIT();
         if (token->data.u8 == NULL){
-            error_handle();
+            //error_handle();
+            exit(ERROR_TODO);
             return;
         }
         *init_count = 1;
@@ -432,7 +409,8 @@ void load_string(Token* token, char c, unsigned long *init_count){
     if (c != '"' || token->data.u8->size > 0){
         bool err = bufferAddChar(token->data.u8, c);
         if (err == false){
-            error_handle();
+            //error_handle();
+            exit(ERROR_TODO);
             return;
         }
     }
@@ -448,7 +426,8 @@ void load_letter(Token* token, char c, unsigned long *init_count){
     if (!(*init_count)){
         token->data.u8 = dynamicBuffer_INIT();
         if (token->data.u8 == NULL){
-            error_handle();
+            //error_handle();
+            exit(ERROR_TODO);
             return;
         }
         *init_count = 1;
@@ -456,13 +435,8 @@ void load_letter(Token* token, char c, unsigned long *init_count){
     /* PROCESS */
     bool err = bufferAddChar(token->data.u8, c);
     if (err == false){
-        error_handle();
+        //error_handle();
+        exit(ERROR_TODO);
         return;
     }
 }
-
-
-
-
-
-

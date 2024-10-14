@@ -14,6 +14,7 @@
 #include "buffer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 enum automat_state {
     S_ERROR = 0,
@@ -80,7 +81,7 @@ typedef enum {
     T_STRING_TYPE,
 
 
-    T_FUN_ID,
+    T_ID,
 
     // s přeponou ?
     T_I32_NULLABLE, T_F64_NULLABLE, T_U8_NULLABLE,
@@ -109,7 +110,7 @@ typedef enum {
     T_CLOSE_BRACKET,        // }
     T_OPEN_BRACKET,         // {
     T_CLOSE_PARENTHESES,    // )
-    T_OPEN_PARANTHESES,     // (
+    T_OPEN_PARENTHESES,     // (
 
     // Ostatní
     T_IFJ,
@@ -154,5 +155,9 @@ Token scanner_get_next_token();
  */
 
 void scanner_init(FILE* sourse);
+
+void load_string(Token* token, char c, unsigned long *init_count);
+void load_letter(Token* token, char c, unsigned long *init_count);
+TokenType get_token_type(const char* word);
 
 #endif // _SCANNER_H_
