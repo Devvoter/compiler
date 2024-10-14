@@ -1,0 +1,6 @@
+src/tmp.c
+src/text.zig
+src/*.o
+.vscode/
+tests/LA/obj
+tests/LA/test_scanner
