@@ -7,64 +7,57 @@
  * 
  */
 
-START ::= PROLOG CODE NEXT_CODE
+START ::= PROLOG CODE
 
-CODE ::= VARIABLE_DEFINITION
-       | VARIABLE_ASSIGN
-       | IF
-       | WHILE
-       | FUNCTION_DEFINITION
-       | FUNCTION_CALL ";"
-       | STANDARD_FUNCTION_CALL
-       | RETURN
-
-NEXT_CODE ::= CODE NEXT_CODE 
-            | ε
+CODE ::= VARIABLE_DEFINITION CODE
+       | ID_TOKEN ID_TAIL CODE
+       | IF CODE
+       | WHILE CODE
+       | FUNCTION_DEFINITION CODE
+       | STANDARD_FUNCTION_CALL CODE
+       | RETURN CODE
+       | ε
 
 PROLOG ::= "const" "ifj" "=" "@import(" "\"ifj24.zig\"" ")" ";"
 
-VARIABLE_DEFINITION ::= ( "var" | "const" ) ID_TOKEN ":" DATA_TYPE_TOKEN VARIABLE_DEFINITION_TAIL ";"
+VARIABLE_DEFINITION ::= ( "var" | "const" ) ID_TOKEN VARIABLE_TYPE "=" EXPRESSION ";"
 
-VARIABLE_DEFINITION_TAIL ::= "=" EXPRESSION
-                           | ε
+VARIABLE_TYPE ::= ":" DATA_TYPE_TOKEN
+                | ε
 
-VARIABLE_ASSIGN ::= ID_TOKEN "=" EXPRESSION ";"
+ID_TAIL ::= "=" EXPRESSION ";" 
+              | "(" ARGUMENTS ")"
 
-IF ::= "if" IF_CONDITION "{" CODE "}" IF_TAIL
+IF ::= "if" "(" EXPRESSION ")" NULL_EXPRESSION "{" CODE "}" IF_TAIL
 
-IF_CONDITION ::= "(" EXPRESSION ")"
-               | "(" EXPRESSION ")" "|" ID_TOKEN "|"
+NULL_EXPRESSION ::= "|" ID_TOKEN "|"
+                  | ε
 
 IF_TAIL ::= "else" "{" CODE "}"
           | ε
 
-WHILE ::= "while" WHILE_CONDITION "{" CODE "}"
-
-WHILE_CONDITION ::= "(" EXPRESSION ")"
-                  | "(" EXPRESSION ")" "|" ID_TOKEN "|"
+WHILE ::= "while" "(" EXPRESSION ")" NULL_EXPRESSION "{" CODE "}"
 
 FUNCTION_DEFINITION ::= "pub" "fn" ID_TOKEN "(" ARGUMENTS ")" FUNCTION_RETURN_TYPE "{" CODE "}"
 
 FUNCTION_RETURN_TYPE ::= DATA_TYPE_TOKEN 
                        | "void"
 
-FUNCTION_CALL ::= ID_TOKEN "(" ARGUMENTS ")"
+STANDARD_FUNCTION_CALL ::= "ifj" "." STANDARD_FUNCTION_CALL_TAIL ";"
 
-STANDARD_FUNCTION_CALL ::= "ifj." STANDARD_FUNCTION_CALL_TAIL ";"
-
-STANDARD_FUNCTION_CALL_TAIL ::= "readstr()"
-                              | "readi32()"
-                              | "readf64()"
-                              | "write(" TERM ")"
-                              | "i2f(" TERM ")"
-                              | "f2i(" TERM ")"
-                              | "string(" TERM ")"
-                              | "length(" TERM ")"
-                              | "concat(" TERM "," TERM ")"
-                              | "substring(" TERM "," TERM ")"
-                              | "strcmp(" TERM "," TERM ")"
-                              | "ord(" TERM ")"
-                              | "chr(" TERM ")"
+STANDARD_FUNCTION_CALL_TAIL ::= "readstr" "(" ")"
+                              | "readi32" "(" ")"
+                              | "readf64" "(" ")"
+                              | "write(" ITEM ")"
+                              | "i2f" "(" ITEM ")"
+                              | "f2i" "(" ITEM ")"
+                              | "string" "(" ITEM ")"
+                              | "length" "(" ITEM ")"
+                              | "concat" "(" ITEM "," ITEM ")"
+                              | "substrin" "(" ITEM "," ITEM ")"
+                              | "strcmp" "(" ITEM "," ITEM ")"
+                              | "ord" "(" ITEM ")"
+                              | "chr" "(" ITEM ")"
 
 ARGUMENTS ::= ID_TOKEN ":" DATA_TYPE_TOKEN ARGUMENTS_TAIL
             | ε
@@ -77,18 +70,13 @@ RETURN ::= "return" RETURN_TAIL ";"
 RETURN_TAIL ::= EXPRESSION 
               | ε
 
-TERM ::= ID_TOKEN 
+ITEM ::= ID_TOKEN 
        | NUMBER 
        | FP_NUMBER 
        | STRING 
        | "null"
 
-EXPRESSION ::= TERM EXPRESSION_TAIL                     # tady musi jina analyza pro vyrazy
-             | FUNCTION_CALL
-             | "(" EXPRESSION ")"
-
-EXPRESSION_TAIL ::= OPERATOR EXPRESSION                 # tady musi jina analyza pro vyrazy
-                  | ε
+EXPRESSION ::= # here will be another type of analysis
 
 DATA_TYPE_TOKEN ::= "i32" 
                   | "f64" 
@@ -108,14 +96,3 @@ LOGICAL_OPERATOR ::= "=="
                    | ">" 
                    | "<=" 
                    | ">="
-
-ID_TOKEN ::= [a-zA-Z_][a-zA-Z0-9_]*
-
-NUMBER ::= [0-9]+
-
-FP_NUMBER ::= [0-9]+ "." [0-9]+
-
-BOOL ::= "true" 
-       | "false"
-
-STRING ::= "\"" [a-zA-Z0-9_]* "\"" # rewrite later to match specification
