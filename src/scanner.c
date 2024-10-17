@@ -299,23 +299,38 @@ Token scanner_get_next_token(){
                     case '"':
                         load_symbol(&newToken, '"', &init_count);   // Escape sekvence pro uvozovky
                         break;
-                    case 'x': {
-                        // Zpracování escape sekvence \xdd (šestnáctkový kód)
-                        char hex[3] = {0};
-                        hex[0] = getchar();  // Čteme první znak
-                        hex[1] = getchar();  // Čteme druhý znak
+                    case 'x':
+                        char nextChar = fgetc(SOURCE);
+                        if (nextChar == '{') {
+                            // Začínáme číst šestnáctkové číslice
+                            char hex[3] = {0};
+                            int i = 0;
+                            while (i < 2) {  // Omezujeme délku na dva znaky
+                                char hexChar = fgetc(SOURCE);
+                                if (hexChar == '}') {
+                                    break;  // Ukončujeme sekvenci při setkání s '}'
+                                } else if (isxdigit(hexChar)) {
+                                    hex[i++] = hexChar;  // Čteme šestnáctkové číslice
+                                } else {
+                                    // Neplatný znak v šestnáctkové sekvenci
+                                    exit(ERROR_TODO);
+                                }
+                            }
 
-                        if (isxdigit(hex[0]) && isxdigit(hex[1])) {
-                            // Převedeme šestnáctkovou hodnotu na znak
-                            int value = strtol(hex, NULL, 16);
-                            load_symbol(&newToken, (char)value, &init_count);
+                            if (i == 2) {
+                                // Převádíme šestnáctkové číslice na hodnotu znaku
+                                int value = strtol(hex, NULL, 16);
+                                load_symbol(&newToken, (char)value, &init_count);
+                                fgetc(SOURCE);  // Přeskakujeme znak uzavírající závorky '}'
+                            } else {
+                                // Nedostatek šestnáctkových číslic nebo nesprávný formát
+                                exit(ERROR_TODO);
+                            }
                         } else {
-                            // Pokud znaky po \x nejsou platné šestnáctkové znaky
-                            //error_handle(1);  // Chyba 1
+                            // Pokud jsme nenarazili na '{', jde o chybu
                             exit(ERROR_TODO);
                         }
                         break;
-                    }
                     default:
                         //error_handle(1);  // Pokud znak po '\' není platná escape sekvence
                         exit(ERROR_TODO);
@@ -323,12 +338,12 @@ Token scanner_get_next_token(){
                 escapeSequence = false;  // Resetování flagu escape sekvence
             } 
             else if (c == '\\') {  // Narazili jsme na escape sekvenci nebo pokračování víceřádkového řetězce
-                char nextChar = getchar();  // Čteme další znak
+                char nextChar = fgetc(SOURCE);  // Čteme další znak
                 if (nextChar == '\n') {  // Víceřádkové pokračování řetězce
                     // Přeskakujeme bílé znaky na dalším řádku
                     char skipSpace;
                     do {
-                        skipSpace = getchar();
+                        skipSpace = fgetc(SOURCE);
                     } while (isspace(skipSpace));  // Přeskakujeme mezery
 
                     if (skipSpace == '\\') {
@@ -515,6 +530,6 @@ void string_to_num(Token* token) {
     }
 
     // Pokud se nepodařilo rozpoznat jako celé nebo desetinné číslo
-    //dynamicBufferFREE(token->data.u8);
+    bufferFree(token->data.u8);
     token->type = T_ERROR;
 }
