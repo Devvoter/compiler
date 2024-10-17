@@ -1,7 +1,7 @@
 
 # LA
-A few tests have been done for LA, it does not cover all cases as there is no implementation for a number of other cases, for example, processing numbers
-for the test you can run it from a file or from a terminal. 
+A few tests have been done for LA, it does not cover all cases so far
+for the tests you can run it from a file or from a terminal. 
 
 ###For reading from a file (enter your code in input.txt):
 ```
