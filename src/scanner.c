@@ -10,7 +10,7 @@
 
 #include "scanner.h"
 #include "buffer.h"
-#include <stdbool.h>
+
 
 #define ERROR_TODO -1
 
@@ -56,7 +56,7 @@ enum automat_state change_automat_state (char c){
         return S_CLOSE_PARENTHESES;
         break;
     case '(':
-        return S_OPEN_PARANTHESES;
+        return S_OPEN_PARENTHESES;
         break;
     case '=':
         return S_ASSIGN;
@@ -96,11 +96,7 @@ enum automat_state change_automat_state (char c){
     }
 };
 
-// Struktura pro mapování klíčových slov na jejich typy
-typedef struct {
-    const char* keyword;
-    TokenType token_type;
-} KeywordTokenPair;
+
 
 // Pole klíčových slov s odpovídajícími typy tokenů
 KeywordTokenPair keyword_tokens[] = {
@@ -117,6 +113,8 @@ KeywordTokenPair keyword_tokens[] = {
     {"var", T_VAR},
     {"void", T_VOID},
     {"while", T_WHILE},
+    {"ifj", T_IFJ},
+    {"import", T_IMPORT},
 
     {"?i32", T_I32_NULLABLE},
     {"?f64", T_F64_NULLABLE},
@@ -214,7 +212,7 @@ Token scanner_get_next_token(){
             newToken.type = T_CLOSE_PARENTHESES;
             return newToken;
         /* ) */
-        case S_OPEN_PARANTHESES:
+        case S_OPEN_PARENTHESES:
             newToken.type = T_OPEN_PARENTHESES;
             return newToken;
         /* = */
@@ -378,13 +376,93 @@ Token scanner_get_next_token(){
                 return newToken;
             }
             //newToken.type = T_ID;
-            load_letter(&newToken, c, &init_count);
+            load_symbol(&newToken, c, &init_count);
             break;
+        /* ? */
+        case S_QUESTIONER:
+            STATE = S_TYPE_ID;
+            ungetc(c, SOURCE);
+            newToken.type = T_ERROR;
+            break;
+        /* ?i32 | ?[]u8 | ?f64 */
+        case S_TYPE_ID:
 
+            if ((!isalpha(c)) && (!isdigit(c)) && (c != '?') && (c!= '[') && (c!= ']')){
+                /* check for reserved words */
+                //newToken.type = isKeyWord(newToken.data.u8->data);
+                ungetc(c, SOURCE);
+                init_count = 0;
+
+                if (((strcmp(newToken.data.u8->data, "?[]u8")) == 0)) newToken.type = T_U8_NULLABLE;
+
+                else if (((strcmp(newToken.data.u8->data, "?i32")) == 0)) newToken.type = T_I32_NULLABLE;
+
+                else if (((strcmp(newToken.data.u8->data, "?f64")) == 0)) newToken.type = T_F64_NULLABLE;
+
+                else newToken.type = T_ERROR;
+
+                return newToken;
+            }
+            //newToken.type = T_ID;
+            load_symbol(&newToken, c, &init_count);
+            break;
+        /* 0-9 */
+        case S_INT_NUM:
+            if (isdigit(c)){
+                load_symbol(&newToken, c, &init_count);
+            }
+            else if (c == '.'){
+                load_symbol(&newToken, c, &init_count);
+                STATE = S_FLOAT_NUM;
+            }
+            else if ((c == 'e') || (c == 'E')){
+                load_symbol(&newToken, c, &init_count);
+                STATE = S_EXP_NUM;
+            }
+            else {
+                string_to_num(&newToken);
+                ungetc(c, stdin);
+                init_count = 0;
+                return newToken;
+            }
+            break;
+        case S_FLOAT_NUM:
+            if (isdigit(c)){
+                load_symbol(&newToken, c, &init_count);
+            }
+            else if ((c == 'e') || (c == 'E')){
+                load_symbol(&newToken, c, &init_count);
+                STATE = S_EXP_NUM;
+            }
+            else {
+                string_to_num(&newToken);
+                ungetc(c, stdin);
+                init_count = 0;
+                return newToken;
+            }
+            break;
+        case S_EXP_NUM:
+            if (isdigit(c)){
+                load_symbol(&newToken, c, &init_count);
+                STATE = S_FLOAT_NUM;
+            }
+            else if ((c == '+') || (c == '-')){
+                load_symbol(&newToken, c, &init_count);
+                STATE = S_FLOAT_NUM;
+            }
+            else {
+                init_count = 0;
+                newToken.type = T_ERROR;
+                return newToken;
+            }
+            break;
         
             
         default:
-            break;
+            //printf("bread pit\n");
+            newToken.type = T_UNKNOW;
+            return newToken;
+
         }
         
 
@@ -394,10 +472,12 @@ Token scanner_get_next_token(){
     }
 }
 
+
+
 void load_string(Token* token, char c, unsigned long *init_count){
     /* INIT BUFFER*/
     if (!(*init_count)){
-        token->data.u8 = dynamicBuffer_INIT();
+        token->data.u8 = bufferInit();
         if (token->data.u8 == NULL){
             //error_handle();
             exit(ERROR_TODO);
@@ -421,10 +501,10 @@ void load_string(Token* token, char c, unsigned long *init_count){
 
 
 
-void load_letter(Token* token, char c, unsigned long *init_count){
+void load_symbol(Token* token, char c, unsigned long *init_count){
     /* INIT BUFFER*/
     if (!(*init_count)){
-        token->data.u8 = dynamicBuffer_INIT();
+        token->data.u8 = bufferInit();
         if (token->data.u8 == NULL){
             //error_handle();
             exit(ERROR_TODO);
@@ -439,4 +519,39 @@ void load_letter(Token* token, char c, unsigned long *init_count){
         exit(ERROR_TODO);
         return;
     }
+}
+
+
+
+void string_to_num(Token* token) {
+    char* err;
+
+    long tmp_int;
+    double tmp_double;
+
+    // Pokus o převod řetězce na celé číslo
+    tmp_int = strtol(token->data.u8->data, &err, 10);
+
+    // Pokud se řetězec úspěšně převedl na celé číslo
+    if (*err == '\0') {
+        token->type = T_I32_ID;
+        bufferFree(token->data.u8);  // Uvolnění řetězce
+        token->data.i32 = tmp_int;
+        return;
+    }
+
+    // Pokud převod na int selhal, zkusíme převést na double
+    tmp_double = strtod(token->data.u8->data, &err);
+
+    // Zkontrolujeme úspěšnost převodu na double
+    if (*err == '\0') {
+        token->type = T_F64_ID;
+        bufferFree(token->data.u8);  // Uvolnění řetězce
+        token->data.f64 = tmp_double;
+        return;
+    }
+
+    // Pokud se nepodařilo rozpoznat jako celé nebo desetinné číslo
+    //dynamicBufferFREE(token->data.u8);
+    token->type = T_ERROR;
 }

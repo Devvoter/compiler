@@ -25,9 +25,24 @@ typedef struct{
     size_t   length;    // < max size řetezce
 } tBuffer;
 
-// ...
 
+/**
+ * @brief
+ * 
+ */
 bool bufferAddChar(tBuffer* buffer ,char c);
 
-tBuffer* dynamicBuffer_INIT();
+/**
+ * @brief
+ * 
+ */
+tBuffer* bufferInit();
+
+/**
+ * @brief
+ * 
+ */
+void bufferFree(tBuffer *buffer);
+
+
 #endif // _BUFFER_H_ 

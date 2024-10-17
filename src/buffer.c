@@ -26,37 +26,41 @@ bool bufferAddChar(tBuffer* buffer ,char c) {
         tmp = realloc(buffer->data, buffer->length * 2);
         if (tmp == NULL) return false;
             
-
         buffer->data = tmp;
         buffer->length *= 2;
         buffer->data[buffer->size] = c;
         buffer->size++;
 
-        for (size_t i = buffer->size; i < buffer->length; i++) {
-            buffer->data[i] = 0;
-        }
+        for (size_t i = buffer->size; i < buffer->length; i++) buffer->data[i] = 0;
+            
         return true;
     }
 }
 
 
-tBuffer* dynamicBuffer_INIT() {
+tBuffer* bufferInit() {
     
     tBuffer* buffer = malloc(sizeof(tBuffer));
+    if (buffer == NULL) return NULL;
 
-    if (buffer == NULL){
+    buffer->data = calloc(BUFFER_SIZE, sizeof(char));
+    if (buffer->data == NULL) {
+        free(buffer);
         return NULL;
     }
     else {
-        buffer->data = calloc(BUFFER_SIZE, sizeof(char));
-        if (buffer->data == NULL) {
-            free(buffer);
-            return NULL;
-        }
-        else {
-            buffer->size = 0;
-            buffer->length = BUFFER_SIZE;
-            return buffer;
-        }
+        buffer->size = 0;
+        buffer->length = BUFFER_SIZE;
+        return buffer;
     }
+}
+
+
+void bufferFree(tBuffer *buffer){
+
+    if (buffer != NULL) {
+        free(buffer->data);
+        free(buffer);
+    }
+    
 }

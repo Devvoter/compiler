@@ -13,7 +13,6 @@
 
 #include "buffer.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 
 enum automat_state {
@@ -45,7 +44,7 @@ enum automat_state {
     S_CLOSE_BRACKET,        // }
     S_OPEN_BRACKET,         // {
     S_CLOSE_PARENTHESES,    // )
-    S_OPEN_PARANTHESES,     // (
+    S_OPEN_PARENTHESES,     // (
 
     //
     S_LINE_COMMENT,         // //
@@ -62,7 +61,6 @@ enum automat_state {
     S_EXP_NUM,
 
 };
-
 
 /**
  * @brief Možné typy tokenu
@@ -113,6 +111,7 @@ typedef enum {
     T_OPEN_PARENTHESES,     // (
 
     // Ostatní
+    T_IMPORT,
     T_IFJ,
     T_EOF,
     T_UNKNOW,
@@ -142,22 +141,61 @@ typedef struct {
     
 } Token;
 
+
+
+
+/**
+ * @brief Struktura pro mapování klíčových slov na jejich typy
+ * 
+ */
+typedef struct {
+    const char* keyword;
+    TokenType token_type;
+} KeywordTokenPair;
+
+
+
 /**
  * @brief 
  * 
  */
-
-Token scanner_get_next_token();
+void load_string(Token* token, char c, unsigned long *init_count);
 
 /**
  * @brief 
  * 
  */
+void load_symbol(Token* token, char c, unsigned long *init_count);
 
+/**
+ * @brief 
+ * 
+ */
+void string_to_num(Token* token);
+
+/**
+ * @brief 
+ * 
+ */
 void scanner_init(FILE* sourse);
 
-void load_string(Token* token, char c, unsigned long *init_count);
-void load_letter(Token* token, char c, unsigned long *init_count);
+/**
+ * @brief 
+ * 
+ */
 TokenType get_token_type(const char* word);
+
+/**
+ * @brief 
+ * 
+ */
+TokenType isKeyWord(const char* word);
+
+/**
+ * @brief 
+ * 
+ */
+Token scanner_get_next_token();
+
 
 #endif // _SCANNER_H_
