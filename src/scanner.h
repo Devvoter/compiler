@@ -15,6 +15,10 @@
 #include <stdio.h>
 #include <ctype.h>
 
+/**
+ * @brief Možne stavy automatu.
+ * 
+ */
 enum automat_state {
     S_ERROR = 0,
     S_START,
@@ -63,7 +67,7 @@ enum automat_state {
 };
 
 /**
- * @brief Možné typy tokenu
+ * @brief Možné typy tokenu.
  * 
  */
 typedef enum {
@@ -120,7 +124,7 @@ typedef enum {
 
 
 /**
- * @brief Typy hodnot pro data v tokeně
+ * @brief Typy hodnot pro data v tokeně.
  * 
  */
 typedef union {
@@ -137,7 +141,7 @@ typedef union {
 typedef struct {
     TokenType      type;    // typ tokena
     TokenValue     data;    // hodnota tokena
-    unsigned long  line;    // řádek odkud býl token. just for debuging
+    unsigned long  line;    // řádek odkud býl token
     
 } Token;
 
@@ -145,7 +149,7 @@ typedef struct {
 
 
 /**
- * @brief Struktura pro mapování klíčových slov na jejich typy
+ * @brief Struktura pro mapování klíčových slov na jejich typy.
  * 
  */
 typedef struct {
@@ -154,45 +158,42 @@ typedef struct {
 } KeywordTokenPair;
 
 
-
 /**
- * @brief 
- * 
- */
-void load_string(Token* token, char c, unsigned long *init_count);
-
-/**
- * @brief 
+ * @brief Funkce pro zápis symbolu do string. Pro dálší kontrolu na
+ *        typ tokenu.
  * 
  */
 void load_symbol(Token* token, char c, unsigned long *init_count);
 
 /**
- * @brief 
+ * @brief Funkce převede čislo typu string na číslo typu int nebo float.
  * 
+ * @param[in] token Ukazatel na strukturu token.
  */
 void string_to_num(Token* token);
 
 /**
- * @brief 
+ * @brief Inicializace souboru z kterýho bude číst.
+ * 
+ * @param[in] source Ukazatel na soubor.
  * 
  */
-void scanner_init(FILE* sourse);
+void file_init(FILE* sourse);
 
 /**
- * @brief 
+ * @brief Funkce dostane řetězec a zkontroluje jestli je klíčové slovo.
+ * 
+ * @param[in] word Ukazatel na řetězec.
+ * 
+ * @return Přidá tokenu typ a vrátí ho. 
  * 
  */
-TokenType get_token_type(const char* word);
+TokenType is_key_word(const char* word);
 
 /**
- * @brief 
+ * @brief Funkce zpracuje vstup a pošle dál token.
  * 
- */
-TokenType isKeyWord(const char* word);
-
-/**
- * @brief 
+ * @return Vrácí token.
  * 
  */
 Token scanner_get_next_token();

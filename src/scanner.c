@@ -114,14 +114,11 @@ KeywordTokenPair keyword_tokens[] = {
     {"void", T_VOID},
     {"while", T_WHILE},
     {"ifj", T_IFJ},
-    {"import", T_IMPORT},
+    {"import", T_IMPORT}
 
-    {"?i32", T_I32_NULLABLE},
-    {"?f64", T_F64_NULLABLE},
-    {"?[]u", T_U8_NULLABLE}
 };
 
-TokenType isKeyWord(const char* word) {
+TokenType is_key_word(const char* word) {
     
     size_t keywords_count = sizeof(keyword_tokens) / sizeof(keyword_tokens[0]);
     for (size_t i = 0; i < keywords_count; ++i) {
@@ -129,22 +126,20 @@ TokenType isKeyWord(const char* word) {
             return keyword_tokens[i].token_type;
         }
     }
-    // Pokud slovo není v seznamu klíčových slov nalezeno, vrátí identifikátor funkce ????????
-    return T_ID;  // или другой тип для обычных слов
+    // Pokud slovo není v seznamu klíčových slov nalezeno, vrátí identifikátor
+    return T_ID;  
 }
 
 
 
-FILE *source_file; // глобальная переменная для хранения файла
+FILE *source_file; // globální proměna pro soubor
 
-void scanner_init(FILE *source) {
+void file_init(FILE *source) {
     source_file = source;
 }
 
 
 Token scanner_get_next_token(){
-    // whate state in the state_machine?
-    // в зависимости от состояния -> 
 
     Token newToken;
     newToken.type = T_UNKNOW;
@@ -162,7 +157,6 @@ Token scanner_get_next_token(){
         return newToken;
     }
     
-
     enum automat_state STATE = change_automat_state(c);
 
     /*          PROCESS PROGRAM              */ // 
@@ -291,19 +285,19 @@ Token scanner_get_next_token(){
                 // Zpracování standardních escape sekvencí
                 switch (c) {
                     case 'n':
-                        load_string(&newToken, '\n', &init_count);  // Znak nového řádku
+                        load_symbol(&newToken, '\n', &init_count);  // Znak nového řádku
                         break;
                     case 'r':
-                        load_string(&newToken, '\r', &init_count);  // Návrat na začátek řádku
+                        load_symbol(&newToken, '\r', &init_count);  // Návrat na začátek řádku
                         break;
                     case 't':
-                        load_string(&newToken, '\t', &init_count);  // Tabulace
+                        load_symbol(&newToken, '\t', &init_count);  // Tabulace
                         break;
                     case '\\':
-                        load_string(&newToken, '\\', &init_count);  // Escape sekvence pro znak '\'
+                        load_symbol(&newToken, '\\', &init_count);  // Escape sekvence pro znak '\'
                         break;
                     case '"':
-                        load_string(&newToken, '"', &init_count);   // Escape sekvence pro uvozovky
+                        load_symbol(&newToken, '"', &init_count);   // Escape sekvence pro uvozovky
                         break;
                     case 'x': {
                         // Zpracování escape sekvence \xdd (šestnáctkový kód)
@@ -314,7 +308,7 @@ Token scanner_get_next_token(){
                         if (isxdigit(hex[0]) && isxdigit(hex[1])) {
                             // Převedeme šestnáctkovou hodnotu na znak
                             int value = strtol(hex, NULL, 16);
-                            load_string(&newToken, (char)value, &init_count);
+                            load_symbol(&newToken, (char)value, &init_count);
                         } else {
                             // Pokud znaky po \x nejsou platné šestnáctkové znaky
                             //error_handle(1);  // Chyba 1
@@ -339,7 +333,7 @@ Token scanner_get_next_token(){
 
                     if (skipSpace == '\\') {
                         // Pokud řetězec skutečně pokračuje, přidáme '\n' do řetězce
-                        load_string(&newToken, '\n', &init_count);
+                        load_symbol(&newToken, '\n', &init_count);
                         continue;  // Pokračujeme na další znak
                     } else {
                         // Pokud řetězec nepokračuje, vrátíme znak zpět do vstupu
@@ -362,7 +356,8 @@ Token scanner_get_next_token(){
                 exit(ERROR_TODO);
             }
             else {
-                load_string(&newToken, c, &init_count);  // Standardní načítání znaku do řetězce
+                if (c == '"') break; // skipujeme první "
+                load_symbol(&newToken, c, &init_count);  // Standardní načítání znaku do řetězce
             }
             break;
         /* _a-zA-Z */
@@ -370,7 +365,7 @@ Token scanner_get_next_token(){
 
             if ((!isalpha(c)) && (!isdigit(c)) && (c != '_')){
                 /* check for reserved words */
-                newToken.type = isKeyWord(newToken.data.u8->data);
+                newToken.type = is_key_word(newToken.data.u8->data);
                 ungetc(c, SOURCE);
                 init_count = 0;
                 return newToken;
@@ -388,22 +383,17 @@ Token scanner_get_next_token(){
         case S_TYPE_ID:
 
             if ((!isalpha(c)) && (!isdigit(c)) && (c != '?') && (c!= '[') && (c!= ']')){
-                /* check for reserved words */
-                //newToken.type = isKeyWord(newToken.data.u8->data);
                 ungetc(c, SOURCE);
                 init_count = 0;
 
                 if (((strcmp(newToken.data.u8->data, "?[]u8")) == 0)) newToken.type = T_U8_NULLABLE;
-
                 else if (((strcmp(newToken.data.u8->data, "?i32")) == 0)) newToken.type = T_I32_NULLABLE;
-
                 else if (((strcmp(newToken.data.u8->data, "?f64")) == 0)) newToken.type = T_F64_NULLABLE;
-
                 else newToken.type = T_ERROR;
 
                 return newToken;
             }
-            //newToken.type = T_ID;
+
             load_symbol(&newToken, c, &init_count);
             break;
         /* 0-9 */
@@ -473,36 +463,9 @@ Token scanner_get_next_token(){
 }
 
 
-
-void load_string(Token* token, char c, unsigned long *init_count){
-    /* INIT BUFFER*/
-    if (!(*init_count)){
-        token->data.u8 = bufferInit();
-        if (token->data.u8 == NULL){
-            //error_handle();
-            exit(ERROR_TODO);
-            return;
-        }
-        *init_count = 1;
-    }
-    /* PROCESS skip first '"' */
-    if (c != '"' || token->data.u8->size > 0){
-        bool err = bufferAddChar(token->data.u8, c);
-        if (err == false){
-            //error_handle();
-            exit(ERROR_TODO);
-            return;
-        }
-    }
-    token->type = T_ERROR;
-    
-
-}
-
-
-
 void load_symbol(Token* token, char c, unsigned long *init_count){
-    /* INIT BUFFER*/
+    
+    //init buffer
     if (!(*init_count)){
         token->data.u8 = bufferInit();
         if (token->data.u8 == NULL){
@@ -512,7 +475,7 @@ void load_symbol(Token* token, char c, unsigned long *init_count){
         }
         *init_count = 1;
     }
-    /* PROCESS */
+
     bool err = bufferAddChar(token->data.u8, c);
     if (err == false){
         //error_handle();

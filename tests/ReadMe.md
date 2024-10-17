@@ -1,16 +1,16 @@
 
 # LA
-A few tests have been done for LA, it does not cover all cases so far
-for the tests you can run it from a file or from a terminal. 
+Testing. You can test code from a file(past code in input.txt and LA will makes tokens) or if 
+you want to test some specific lexem you can run it without file and write lexem into terminal. 
 
-###For reading from a file (enter your code in input.txt):
+### For reading from a file (one more: enter your code in input.txt):
 ```
 cd test/LA
 make
 ./test_scanner
 ```
 
-###For reading from stdin:
+### For reading from stdin:
 ```
 cd test/LA
 make USE_STDIN=1

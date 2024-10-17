@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
 /**
  * @brief buffer struktura pro []u8
  * 
@@ -27,20 +28,29 @@ typedef struct{
 
 
 /**
- * @brief
+ * @brief  V buffer se zapísuje symbol c.
+ * 
+ * @param[in] buffer Ukazatel na buffer
+ * @param[in] c Symbol do buffru
+ * 
+ * @return Vrátí true pokud se povede uložít jinak false
  * 
  */
-bool bufferAddChar(tBuffer* buffer ,char c);
+bool bufferAddChar(tBuffer* buffer , char c);
 
 /**
- * @brief
+ * @brief Inicializace buffru
+ * 
+ * @return Ukazatel na inicializovaný buffer. V připadě chyby alokace 
+ *         vrací hodnotu NULL
  * 
  */
 tBuffer* bufferInit();
 
 /**
- * @brief
+ * @brief Uvolnění paměti
  * 
+ * @param[in] buffer Ukazatel na buffer
  */
 void bufferFree(tBuffer *buffer);
 
