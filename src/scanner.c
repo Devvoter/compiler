@@ -100,22 +100,21 @@ enum automat_state changeAutomatState (char c){
 
 // Pole klíčových slov s odpovídajícími typy tokenů
 KeywordTokenPair keyword_tokens[] = {
-    {"const", T_CONST},
-    {"else", T_ELSE},
-    {"fn", T_FN},
-    {"if", T_IF},
-    {"i32", T_I32_ID},
-    {"f64", T_F64_ID},
-    {"null", T_NULL},
-    {"pub", T_PUB},
+    {"fn",     T_FN},
+    {"if",     T_IF},
+    {"pub",    T_PUB},
+    {"var",    T_VAR},
+    {"ifj",    T_IFJ},
+    {"else",   T_ELSE},
+    {"null",   T_NULL},
+    {"void",   T_VOID},
+    {"const",  T_CONST},
+    {"u8",     T_U8_ID},
+    {"while",  T_WHILE},
     {"return", T_RETURN},
-    {"u8", T_U8_ID},
-    {"var", T_VAR},
-    {"void", T_VOID},
-    {"while", T_WHILE},
-    {"ifj", T_IFJ},
+    {"i32",    T_I32_ID},
+    {"f64",    T_F64_ID},
     {"import", T_IMPORT}
-
 };
 
 TokenType isKeyWord(const char* word) {
@@ -130,12 +129,66 @@ TokenType isKeyWord(const char* word) {
     return T_ID;  
 }
 
-
-
 FILE *source_file; // globální proměna pro soubor
 
 void fileInit(FILE *source) {
     source_file = source;
+}
+
+
+void loadSymbol(Token* token, char c, unsigned long *init_count){
+    
+    //init buffer
+    if (!(*init_count)){
+        token->data.u8 = bufferInit();
+        if (token->data.u8 == NULL){
+            //error_handle();
+            exit(ERROR_TODO);
+            return;
+        }
+        *init_count = 1;
+    }
+
+    bool err = bufferAddChar(token->data.u8, c);
+    if (err == false){
+        //error_handle();
+        exit(ERROR_TODO);
+        return;
+    }
+}
+
+
+void stringToNum(Token* token) {
+    char* err;
+
+    long tmp_int;
+    double tmp_double;
+
+    // Pokus o převod řetězce na celé číslo
+    tmp_int = strtol(token->data.u8->data, &err, 10);
+
+    // Pokud se řetězec úspěšně převedl na celé číslo
+    if (*err == '\0') {
+        token->type = T_I32_ID;
+        bufferFree(token->data.u8);  // Uvolnění řetězce
+        token->data.i32 = tmp_int;
+        return;
+    }
+
+    // Pokud převod na int selhal, zkusíme převést na double
+    tmp_double = strtod(token->data.u8->data, &err);
+
+    // Zkontrolujeme úspěšnost převodu na double
+    if (*err == '\0') {
+        token->type = T_F64_ID;
+        bufferFree(token->data.u8);  // Uvolnění řetězce
+        token->data.f64 = tmp_double;
+        return;
+    }
+
+    // Pokud se nepodařilo rozpoznat jako celé nebo desetinné číslo
+    bufferFree(token->data.u8);
+    token->type = T_ERROR;
 }
 
 
@@ -158,7 +211,6 @@ Token getNextToken(){
     }
     
     enum automat_state STATE = changeAutomatState(c);
-
     /*          PROCESS PROGRAM              */ // 
     while (c != EOF)
     {
@@ -205,7 +257,7 @@ Token getNextToken(){
         case S_CLOSE_PARENTHESES:
             newToken.type = T_CLOSE_PARENTHESES;
             return newToken;
-        /* ) */
+        /* ( */
         case S_OPEN_PARENTHESES:
             newToken.type = T_OPEN_PARENTHESES;
             return newToken;
@@ -470,66 +522,14 @@ Token getNextToken(){
 
         }
         
-
-        
         c = fgetc(SOURCE);
         //printf("Read character: %c\n", c);  
     }
-}
 
 
-void loadSymbol(Token* token, char c, unsigned long *init_count){
-    
-    //init buffer
-    if (!(*init_count)){
-        token->data.u8 = bufferInit();
-        if (token->data.u8 == NULL){
-            //error_handle();
-            exit(ERROR_TODO);
-            return;
-        }
-        *init_count = 1;
+    if (c == EOF) {
+        newToken.type = T_EOF;
+        return newToken;
     }
 
-    bool err = bufferAddChar(token->data.u8, c);
-    if (err == false){
-        //error_handle();
-        exit(ERROR_TODO);
-        return;
-    }
-}
-
-
-
-void stringToNum(Token* token) {
-    char* err;
-
-    long tmp_int;
-    double tmp_double;
-
-    // Pokus o převod řetězce na celé číslo
-    tmp_int = strtol(token->data.u8->data, &err, 10);
-
-    // Pokud se řetězec úspěšně převedl na celé číslo
-    if (*err == '\0') {
-        token->type = T_I32_ID;
-        bufferFree(token->data.u8);  // Uvolnění řetězce
-        token->data.i32 = tmp_int;
-        return;
-    }
-
-    // Pokud převod na int selhal, zkusíme převést na double
-    tmp_double = strtod(token->data.u8->data, &err);
-
-    // Zkontrolujeme úspěšnost převodu na double
-    if (*err == '\0') {
-        token->type = T_F64_ID;
-        bufferFree(token->data.u8);  // Uvolnění řetězce
-        token->data.f64 = tmp_double;
-        return;
-    }
-
-    // Pokud se nepodařilo rozpoznat jako celé nebo desetinné číslo
-    bufferFree(token->data.u8);
-    token->type = T_ERROR;
 }

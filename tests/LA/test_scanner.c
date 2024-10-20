@@ -11,9 +11,13 @@
 #include <stdlib.h>
 #include "../src/scanner.h" 
 
-void printTokenType(Token newToken) {
+int printTokenType(Token newToken) {
     // výpis tokena
     switch (newToken.type) {
+        case T_EOF:
+            printf("Token type: T_EOF\n");
+            return -1;
+            break;
         case T_IMPORT:
             printf("Token type: T_IMPORT,            value: %s\n", newToken.data.u8->data);
             break;
@@ -134,14 +138,12 @@ void printTokenType(Token newToken) {
         case T_COMMA:
             printf("Token type: T_COMMA,             value: ,\n");
             break;
-        case T_EOF:
-            printf("Token type: T_EOF\n");
-            break;
         case T_UNKNOW:
             printf("Token type: T_UNKNOW\n");
             break;
         default:
-            
+            printf("im in switch in default - it might be a error\n");
+            return -1;
             break;
     }
 }
@@ -160,9 +162,9 @@ int main() {
 
     // čteme a výpisujeme tokeny 
     Token newToken;
-    while ((newToken = getNextToken()).type != T_EOF) {
-        printTokenType(newToken);
-    }
+    do newToken = getNextToken();
+    while (printTokenType(newToken) != -1);
+
 
     fclose(file);
     return EXIT_SUCCESS;

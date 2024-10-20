@@ -1,6 +1,6 @@
 # Kompilátor a příznaky
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -Wall -Wextra -std=c11
 SRC_DIR = ../../src
 OBJ_DIR = obj
 INCLUDES = -I$(SRC_DIR)
