@@ -96,6 +96,12 @@ enum automat_state changeAutomatState (char c){
     }
 };
 
+void isNullType (Token* newToken){
+    if (((strcmp(newToken->data.u8->data, "?[]u8")) == 0)) newToken->type = T_U8_NULLABLE;
+    else if (((strcmp(newToken->data.u8->data, "?i32")) == 0)) newToken->type = T_I32_NULLABLE;
+    else if (((strcmp(newToken->data.u8->data, "?f64")) == 0)) newToken->type = T_F64_NULLABLE;
+    else newToken->type = T_ERROR;
+}
 
 
 // Pole klíčových slov s odpovídajícími typy tokenů
@@ -448,20 +454,13 @@ Token getNextToken(){
             break;
         /* ?i32 | ?[]u8 | ?f64 */
         case S_TYPE_ID:
-
-            if ((!isalpha(c)) && (!isdigit(c)) && (c != '?') && (c!= '[') && (c!= ']')){
+            if ((isalpha(c)) || (isdigit(c)) || (c == '?') || (c == '[') || (c == ']')) loadSymbol(&newToken, c, &init_count);
+            else{
                 ungetc(c, SOURCE);
                 init_count = 0;
-
-                if (((strcmp(newToken.data.u8->data, "?[]u8")) == 0)) newToken.type = T_U8_NULLABLE;
-                else if (((strcmp(newToken.data.u8->data, "?i32")) == 0)) newToken.type = T_I32_NULLABLE;
-                else if (((strcmp(newToken.data.u8->data, "?f64")) == 0)) newToken.type = T_F64_NULLABLE;
-                else newToken.type = T_ERROR;
-
+                isNullType(&newToken);
                 return newToken;
             }
-
-            loadSymbol(&newToken, c, &init_count);
             break;
         /* 0-9 */
         case S_INT_NUM:
@@ -527,9 +526,11 @@ Token getNextToken(){
     }
 
 
-    if (c == EOF) {
-        newToken.type = T_EOF;
-        return newToken;
-    }
-
+    if(STATE == S_INT_NUM || STATE == S_EXP_NUM || STATE == S_FLOAT_NUM) stringToNum(&newToken);
+    else if(STATE == S_LETTER) newToken.type = isKeyWord(newToken.data.u8->data);
+    else if (STATE == S_TYPE_ID) isNullType(&newToken);
+    else if (c == EOF) newToken.type = T_EOF;
+    
+    return newToken;
 }
+

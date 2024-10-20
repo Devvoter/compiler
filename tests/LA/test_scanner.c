@@ -141,6 +141,9 @@ int printTokenType(Token newToken) {
         case T_UNKNOW:
             printf("Token type: T_UNKNOW\n");
             break;
+        case T_ERROR:
+            printf("Token type: T_ERROR\n");
+            return -1;
         default:
             printf("im in switch in default - it might be a error\n");
             return -1;
