@@ -163,14 +163,14 @@ typedef struct {
  *        typ tokenu.
  * 
  */
-void load_symbol(Token* token, char c, unsigned long *init_count);
+void loadSymbol(Token* token, char c, unsigned long *init_count);
 
 /**
  * @brief Funkce převede čislo typu string na číslo typu int nebo float.
  * 
  * @param[in] token Ukazatel na strukturu token.
  */
-void string_to_num(Token* token);
+void stringToNum(Token* token);
 
 /**
  * @brief Inicializace souboru z kterýho bude číst.
@@ -178,7 +178,7 @@ void string_to_num(Token* token);
  * @param[in] source Ukazatel na soubor.
  * 
  */
-void file_init(FILE* sourse);
+void fileInit(FILE* sourse);
 
 /**
  * @brief Funkce dostane řetězec a zkontroluje jestli je klíčové slovo.
@@ -188,7 +188,7 @@ void file_init(FILE* sourse);
  * @return Přidá tokenu typ a vrátí ho. 
  * 
  */
-TokenType is_key_word(const char* word);
+TokenType isKeyWord(const char* word);
 
 /**
  * @brief Funkce zpracuje vstup a pošle dál token.
@@ -196,7 +196,7 @@ TokenType is_key_word(const char* word);
  * @return Vrácí token.
  * 
  */
-Token scanner_get_next_token();
+Token getNextToken();
 
 
 #endif // _SCANNER_H_

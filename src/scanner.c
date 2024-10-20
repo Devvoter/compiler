@@ -20,7 +20,7 @@
     #define SOURCE source_file
 #endif
 
-enum automat_state change_automat_state (char c){
+enum automat_state changeAutomatState (char c){
 
     if (isalpha(c) || (c == '_')){
         return S_LETTER;
@@ -118,7 +118,7 @@ KeywordTokenPair keyword_tokens[] = {
 
 };
 
-TokenType is_key_word(const char* word) {
+TokenType isKeyWord(const char* word) {
     
     size_t keywords_count = sizeof(keyword_tokens) / sizeof(keyword_tokens[0]);
     for (size_t i = 0; i < keywords_count; ++i) {
@@ -134,12 +134,12 @@ TokenType is_key_word(const char* word) {
 
 FILE *source_file; // globální proměna pro soubor
 
-void file_init(FILE *source) {
+void fileInit(FILE *source) {
     source_file = source;
 }
 
 
-Token scanner_get_next_token(){
+Token getNextToken(){
 
     Token newToken;
     newToken.type = T_UNKNOW;
@@ -157,7 +157,7 @@ Token scanner_get_next_token(){
         return newToken;
     }
     
-    enum automat_state STATE = change_automat_state(c);
+    enum automat_state STATE = changeAutomatState(c);
 
     /*          PROCESS PROGRAM              */ // 
     while (c != EOF)
@@ -171,7 +171,7 @@ Token scanner_get_next_token(){
                 line_count++;
                 newToken.line = line_count;
             }
-            STATE = change_automat_state(c);
+            STATE = changeAutomatState(c);
             if (STATE != S_START)
             {
                 ungetc(c, SOURCE);
@@ -285,19 +285,19 @@ Token scanner_get_next_token(){
                 // Zpracování standardních escape sekvencí
                 switch (c) {
                     case 'n':
-                        load_symbol(&newToken, '\n', &init_count);  // Znak nového řádku
+                        loadSymbol(&newToken, '\n', &init_count);  // Znak nového řádku
                         break;
                     case 'r':
-                        load_symbol(&newToken, '\r', &init_count);  // Návrat na začátek řádku
+                        loadSymbol(&newToken, '\r', &init_count);  // Návrat na začátek řádku
                         break;
                     case 't':
-                        load_symbol(&newToken, '\t', &init_count);  // Tabulace
+                        loadSymbol(&newToken, '\t', &init_count);  // Tabulace
                         break;
                     case '\\':
-                        load_symbol(&newToken, '\\', &init_count);  // Escape sekvence pro znak '\'
+                        loadSymbol(&newToken, '\\', &init_count);  // Escape sekvence pro znak '\'
                         break;
                     case '"':
-                        load_symbol(&newToken, '"', &init_count);   // Escape sekvence pro uvozovky
+                        loadSymbol(&newToken, '"', &init_count);   // Escape sekvence pro uvozovky
                         break;
                     case 'x':
                         char nextChar = fgetc(SOURCE);
@@ -320,7 +320,7 @@ Token scanner_get_next_token(){
                             if (i == 2) {
                                 // Převádíme šestnáctkové číslice na hodnotu znaku
                                 int value = strtol(hex, NULL, 16);
-                                load_symbol(&newToken, (char)value, &init_count);
+                                loadSymbol(&newToken, (char)value, &init_count);
                                 fgetc(SOURCE);  // Přeskakujeme znak uzavírající závorky '}'
                             } else {
                                 // Nedostatek šestnáctkových číslic nebo nesprávný formát
@@ -348,7 +348,7 @@ Token scanner_get_next_token(){
 
                     if (skipSpace == '\\') {
                         // Pokud řetězec skutečně pokračuje, přidáme '\n' do řetězce
-                        load_symbol(&newToken, '\n', &init_count);
+                        loadSymbol(&newToken, '\n', &init_count);
                         continue;  // Pokračujeme na další znak
                     } else {
                         // Pokud řetězec nepokračuje, vrátíme znak zpět do vstupu
@@ -372,7 +372,7 @@ Token scanner_get_next_token(){
             }
             else {
                 if (c == '"') break; // skipujeme první "
-                load_symbol(&newToken, c, &init_count);  // Standardní načítání znaku do řetězce
+                loadSymbol(&newToken, c, &init_count);  // Standardní načítání znaku do řetězce
             }
             break;
         /* _a-zA-Z */
@@ -380,13 +380,13 @@ Token scanner_get_next_token(){
 
             if ((!isalpha(c)) && (!isdigit(c)) && (c != '_')){
                 /* check for reserved words */
-                newToken.type = is_key_word(newToken.data.u8->data);
+                newToken.type = isKeyWord(newToken.data.u8->data);
                 ungetc(c, SOURCE);
                 init_count = 0;
                 return newToken;
             }
             //newToken.type = T_ID;
-            load_symbol(&newToken, c, &init_count);
+            loadSymbol(&newToken, c, &init_count);
             break;
         /* ? */
         case S_QUESTIONER:
@@ -409,23 +409,23 @@ Token scanner_get_next_token(){
                 return newToken;
             }
 
-            load_symbol(&newToken, c, &init_count);
+            loadSymbol(&newToken, c, &init_count);
             break;
         /* 0-9 */
         case S_INT_NUM:
             if (isdigit(c)){
-                load_symbol(&newToken, c, &init_count);
+                loadSymbol(&newToken, c, &init_count);
             }
             else if (c == '.'){
-                load_symbol(&newToken, c, &init_count);
+                loadSymbol(&newToken, c, &init_count);
                 STATE = S_FLOAT_NUM;
             }
             else if ((c == 'e') || (c == 'E')){
-                load_symbol(&newToken, c, &init_count);
+                loadSymbol(&newToken, c, &init_count);
                 STATE = S_EXP_NUM;
             }
             else {
-                string_to_num(&newToken);
+                stringToNum(&newToken);
                 ungetc(c, stdin);
                 init_count = 0;
                 return newToken;
@@ -433,14 +433,14 @@ Token scanner_get_next_token(){
             break;
         case S_FLOAT_NUM:
             if (isdigit(c)){
-                load_symbol(&newToken, c, &init_count);
+                loadSymbol(&newToken, c, &init_count);
             }
             else if ((c == 'e') || (c == 'E')){
-                load_symbol(&newToken, c, &init_count);
+                loadSymbol(&newToken, c, &init_count);
                 STATE = S_EXP_NUM;
             }
             else {
-                string_to_num(&newToken);
+                stringToNum(&newToken);
                 ungetc(c, stdin);
                 init_count = 0;
                 return newToken;
@@ -448,11 +448,11 @@ Token scanner_get_next_token(){
             break;
         case S_EXP_NUM:
             if (isdigit(c)){
-                load_symbol(&newToken, c, &init_count);
+                loadSymbol(&newToken, c, &init_count);
                 STATE = S_FLOAT_NUM;
             }
             else if ((c == '+') || (c == '-')){
-                load_symbol(&newToken, c, &init_count);
+                loadSymbol(&newToken, c, &init_count);
                 STATE = S_FLOAT_NUM;
             }
             else {
@@ -478,7 +478,7 @@ Token scanner_get_next_token(){
 }
 
 
-void load_symbol(Token* token, char c, unsigned long *init_count){
+void loadSymbol(Token* token, char c, unsigned long *init_count){
     
     //init buffer
     if (!(*init_count)){
@@ -501,7 +501,7 @@ void load_symbol(Token* token, char c, unsigned long *init_count){
 
 
 
-void string_to_num(Token* token) {
+void stringToNum(Token* token) {
     char* err;
 
     long tmp_int;

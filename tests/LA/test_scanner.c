@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "../src/scanner.h" 
 
-void print_token_type(Token newToken) {
+void printTokenType(Token newToken) {
     // výpis tokena
     switch (newToken.type) {
         case T_IMPORT:
@@ -156,12 +156,12 @@ int main() {
     }
 
     // 
-    file_init(file);
+    fileInit(file);
 
     // čteme a výpisujeme tokeny 
     Token newToken;
-    while ((newToken = scanner_get_next_token()).type != T_EOF) {
-        print_token_type(newToken);
+    while ((newToken = getNextToken()).type != T_EOF) {
+        printTokenType(newToken);
     }
 
     fclose(file);
