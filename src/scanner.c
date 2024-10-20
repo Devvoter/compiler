@@ -217,7 +217,7 @@ Token getNextToken(){
     }
     
     enum automat_state STATE = changeAutomatState(c);
-    /*          PROCESS PROGRAM              */ // 
+
     while (c != EOF)
     {
         switch (STATE)
@@ -426,6 +426,7 @@ Token getNextToken(){
             }
             else if (c == '\n') {
                 //error_handle(1);  // Chyba: není dovoleno přenášet řetězec na nový řádek
+                printf("Eroroororor\n");
                 exit(ERROR_TODO);
             }
             else {
@@ -477,7 +478,7 @@ Token getNextToken(){
             }
             else {
                 stringToNum(&newToken);
-                ungetc(c, stdin);
+                ungetc(c, SOURCE);
                 init_count = 0;
                 return newToken;
             }
@@ -492,7 +493,7 @@ Token getNextToken(){
             }
             else {
                 stringToNum(&newToken);
-                ungetc(c, stdin);
+                ungetc(c, SOURCE);
                 init_count = 0;
                 return newToken;
             }
@@ -527,10 +528,11 @@ Token getNextToken(){
 
 
     if(STATE == S_INT_NUM || STATE == S_EXP_NUM || STATE == S_FLOAT_NUM) stringToNum(&newToken);
+    if (STATE == S_QUOTE) newToken.type = T_ERROR;
     else if(STATE == S_LETTER) newToken.type = isKeyWord(newToken.data.u8->data);
     else if (STATE == S_TYPE_ID) isNullType(&newToken);
     else if (c == EOF) newToken.type = T_EOF;
-    
+
     return newToken;
 }
 

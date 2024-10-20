@@ -181,6 +181,14 @@ void stringToNum(Token* token);
 void fileInit(FILE* sourse);
 
 /**
+ * @brief Funkce odvodi jestli je nullable typ.
+ * 
+ * @param[in] source Ukazatel na token.
+ * 
+ */
+void isNullType (Token* newToken);
+
+/**
  * @brief Funkce dostane řetězec a zkontroluje jestli je klíčové slovo.
  * 
  * @param[in] word Ukazatel na řetězec.
