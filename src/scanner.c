@@ -89,6 +89,8 @@ enum automat_state changeAutomatState (char c){
         break;
     case '@':
         return S_AT;
+    case '|':
+        return S_VERTICAL_BAR;
     default:
         return S_ERROR;
         break;
@@ -307,6 +309,9 @@ Token getNextToken(){
         /* @ */
         case S_AT:
             newToken.type = T_AT;
+            return newToken;
+        case S_VERTICAL_BAR:
+            newToken.type = T_VERTICAL_BAR;
             return newToken;
         /* * */
         case S_MUL:

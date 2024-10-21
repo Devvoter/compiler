@@ -49,6 +49,7 @@ enum automat_state {
     S_OPEN_BRACKET,         // {
     S_CLOSE_PARENTHESES,    // )
     S_OPEN_PARENTHESES,     // (
+    S_VERTICAL_BAR,         // |
 
     //
     S_LINE_COMMENT,         // //
@@ -113,6 +114,7 @@ typedef enum {
     T_OPEN_BRACKET,         // {
     T_CLOSE_PARENTHESES,    // )
     T_OPEN_PARENTHESES,     // (
+    T_VERTICAL_BAR,         // |
 
     // Ostatní
     T_IMPORT,

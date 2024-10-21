@@ -8,7 +8,8 @@
  */
 
 
-#include "../src/scanner.h" 
+#include "../src/scanner.h"
+#include "../src/error.h"
 
 int printTokenType(Token newToken) {
     // výpis tokena
@@ -136,6 +137,9 @@ int printTokenType(Token newToken) {
             break;
         case T_COMMA:
             printf("Token type: T_COMMA,             value: ,\n");
+            break;
+        case T_VERTICAL_BAR:
+            printf("Token type: T_VERTICAL_BAR,      value: |\n");
             break;
         case T_UNKNOW:
             printf("Token type: T_UNKNOW\n");
