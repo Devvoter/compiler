@@ -7,8 +7,7 @@
  * 
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+
 #include "../src/scanner.h" 
 
 int printTokenType(Token newToken) {

@@ -1,6 +1,6 @@
 # Kompilátor a příznaky
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11
+CFLAGS = -Wall -Wextra -std=c11 -g
 SRC_DIR = ../../src
 OBJ_DIR = obj
 INCLUDES = -I$(SRC_DIR)
@@ -11,9 +11,9 @@ ifeq ($(USE_STDIN), 1)
 endif
 
 # Zdrojové soubory
-SRC_FILES = $(SRC_DIR)/buffer.c $(SRC_DIR)/scanner.c
+SRC_FILES = $(SRC_DIR)/buffer.c $(SRC_DIR)/scanner.c $(SRC_DIR)/error.c
 TEST_FILES = test_scanner.c
-OBJS = $(OBJ_DIR)/buffer.o $(OBJ_DIR)/scanner.o $(OBJ_DIR)/test_scanner.o
+OBJS = $(OBJ_DIR)/buffer.o $(OBJ_DIR)/scanner.o $(OBJ_DIR)/error.o $(OBJ_DIR)/test_scanner.o
 
 # Výchozí cíl
 all: test_scanner
@@ -29,6 +29,9 @@ $(OBJ_DIR)/buffer.o: $(SRC_DIR)/buffer.c $(SRC_DIR)/buffer.h
 
 $(OBJ_DIR)/scanner.o: $(SRC_DIR)/scanner.c $(SRC_DIR)/scanner.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $(SRC_DIR)/scanner.c -o $(OBJ_DIR)/scanner.o
+
+$(OBJ_DIR)/error.o: $(SRC_DIR)/error.c $(SRC_DIR)/error.h
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(SRC_DIR)/error.c -o $(OBJ_DIR)/error.o
 
 # Kompilace testovacího souboru
 $(OBJ_DIR)/test_scanner.o: $(TEST_FILES)

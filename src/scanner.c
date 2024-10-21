@@ -10,9 +10,8 @@
 
 #include "scanner.h"
 #include "buffer.h"
+#include "error.h"
 
-
-#define ERROR_TODO -1
 
 #ifdef USE_STDIN
     #define SOURCE stdin
@@ -148,8 +147,7 @@ void loadSymbol(Token* token, char c, unsigned long *init_count){
     if (!(*init_count)){
         token->data.u8 = bufferInit();
         if (token->data.u8 == NULL){
-            //error_handle();
-            exit(ERROR_TODO);
+            exitWithError(NULL, ERR_INTERNAL_COMPILER);
             return;
         }
         *init_count = 1;
@@ -157,8 +155,7 @@ void loadSymbol(Token* token, char c, unsigned long *init_count){
 
     bool err = bufferAddChar(token->data.u8, c);
     if (err == false){
-        //error_handle();
-        exit(ERROR_TODO);
+        exitWithError(NULL, ERR_INTERNAL_COMPILER);
         return;
     }
 }
@@ -371,7 +368,7 @@ Token getNextToken(){
                                     hex[i++] = hexChar;  // Čteme šestnáctkové číslice
                                 } else {
                                     // Neplatný znak v šestnáctkové sekvenci
-                                    exit(ERROR_TODO);
+                                    exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
                                 }
                             }
 
@@ -382,16 +379,16 @@ Token getNextToken(){
                                 fgetc(SOURCE);  // Přeskakujeme znak uzavírající závorky '}'
                             } else {
                                 // Nedostatek šestnáctkových číslic nebo nesprávný formát
-                                exit(ERROR_TODO);
+                                exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
                             }
                         } else {
                             // Pokud jsme nenarazili na '{', jde o chybu
-                            exit(ERROR_TODO);
+                            exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
                         }
                         break;
                     default:
-                        //error_handle(1);  // Pokud znak po '\' není platná escape sekvence
-                        exit(ERROR_TODO);
+                        // Pokud znak po '\' není platná escape sekvence
+                        exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
                 }
                 escapeSequence = false;  // Resetování flagu escape sekvence
             } 
@@ -425,9 +422,8 @@ Token getNextToken(){
                 return newToken;
             }
             else if (c == '\n') {
-                //error_handle(1);  // Chyba: není dovoleno přenášet řetězec na nový řádek
-                printf("Eroroororor\n");
-                exit(ERROR_TODO);
+                // Chyba: není dovoleno přenášet řetězec na nový řádek
+                exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
             }
             else {
                 if (c == '"') break; // skipujeme první "
