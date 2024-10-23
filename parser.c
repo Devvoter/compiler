@@ -157,11 +157,11 @@ Token parse_variable_definition() {
     if (token.type != T_ID) {
         unexpected_token(CurrentToken);
     }
-    Token token = getCurrentToken();
+    token = getCurrentToken();
     if (token.type != T_COLON && token.type != T_ASSIGN) {
         unexpected_token(CurrentToken);
     }
-    if (token.type == T_COLON) {
+    else if (token.type == T_COLON) {
         if (getCurrentToken().type != T_I32_ID || 
         getCurrentToken().type != T_F64_ID || 
         getCurrentToken().type != T_U8_ID ||
@@ -170,7 +170,7 @@ Token parse_variable_definition() {
         getCurrentToken().type != T_U8_NULLABLE) {
         unexpected_token(CurrentToken);
     }
-        if (getCurrentToken().type != T_ASSIGN) {
+    if (getCurrentToken().type != T_ASSIGN) {
         unexpected_token(CurrentToken);
     }
     }
@@ -278,12 +278,13 @@ Token parse_standard_function_call() {
 }
 
 void arguments(Token token) {
-    if (getCurrentToken().type != T_ID) {
+    if (token.type != T_ID) {
         unexpected_token(CurrentToken);
     }
     if (getCurrentToken().type != T_COLON) {
         unexpected_token(CurrentToken);
     }
+    getCurrentToken();
     if (token.type != T_I32_ID && 
         token.type != T_F64_ID && 
         token.type != T_U8_ID &&
@@ -296,11 +297,11 @@ void arguments(Token token) {
         if (getCurrentToken().type != T_COMMA) {
             unexpected_token(CurrentToken);
         }
-        Token token = getCurrentToken();
-        if (token.type == T_CLOSE_PARENTHESES) {
+        getCurrentToken();
+        if (CurrentToken.type == T_CLOSE_PARENTHESES) {
             return;
         }
-        else if (token.type != T_ID) {
+        else if (CurrentToken.type != T_ID) {
             unexpected_token(CurrentToken);
         }
         if (getCurrentToken().type != T_COLON) {
@@ -321,16 +322,15 @@ Token parse_function_definition() {
     if (getCurrentToken().type != T_FN) {
         unexpected_token(CurrentToken);
     }
-    Token token = getCurrentToken();
-    if (token.type != T_ID) {
+    if (getCurrentToken().type != T_ID) {
         unexpected_token(CurrentToken);
     }
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         unexpected_token(CurrentToken);
     }
-    Token token = getCurrentToken();
-    if (token.type != T_CLOSE_PARENTHESES) {
-        arguments(token);  // Parsování argumentů funkce
+    getCurrentToken();
+    if (CurrentToken.type != T_CLOSE_PARENTHESES) {
+        arguments(CurrentToken);  // Parsování argumentů funkce
     }
     if (getCurrentToken().type != T_I32_ID || 
         getCurrentToken().type != T_F64_ID || 
