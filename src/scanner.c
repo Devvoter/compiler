@@ -91,6 +91,8 @@ enum automat_state changeAutomatState (char c){
         return S_AT;
     case '|':
         return S_VERTICAL_BAR;
+    case '[':
+        return S_SQUQRE_BRACKET_OPEN;
     default:
         return S_ERROR;
         break;
@@ -100,8 +102,14 @@ enum automat_state changeAutomatState (char c){
 void isNullType (Token* newToken){
     if (((strcmp(newToken->data.u8->data, "?[]u8")) == 0)) newToken->type = T_U8_NULLABLE;
     else if (((strcmp(newToken->data.u8->data, "?i32")) == 0)) newToken->type = T_I32_NULLABLE;
+    else if (((strcmp(newToken->data.u8->data, "[]u8")) == 0)) newToken->type = T_U8_ID;
     else if (((strcmp(newToken->data.u8->data, "?f64")) == 0)) newToken->type = T_F64_NULLABLE;
-    else newToken->type = T_ERROR;
+    else {
+        newToken->type = T_ERROR;
+        exitWithError(newToken, ERR_LEXICAL_ANALYSIS);
+    }
+
+
 }
 
 
@@ -116,7 +124,6 @@ KeywordTokenPair keyword_tokens[] = {
     {"null",   T_NULL},
     {"void",   T_VOID},
     {"const",  T_CONST},
-    {"u8",     T_U8_ID},
     {"while",  T_WHILE},
     {"return", T_RETURN},
     {"i32",    T_I32_ID},
@@ -133,7 +140,7 @@ TokenType isKeyWord(const char* word) {
         }
     }
     // Pokud slovo není v seznamu klíčových slov nalezeno, vrátí identifikátor
-    return T_ID;  
+    return T_ID;
 }
 
 FILE *source_file; // globální proměna pro soubor
@@ -266,6 +273,10 @@ Token getNextToken(){
         case S_OPEN_PARENTHESES:
             newToken.type = T_OPEN_PARENTHESES;
             return newToken;
+        case S_SQUQRE_BRACKET_OPEN:
+            ungetc(c, SOURCE);
+            STATE = S_TYPE_ID;
+            break;
         /* = */
         case S_ASSIGN:
             newToken.type = T_ASSIGN;
