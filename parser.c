@@ -42,62 +42,51 @@ void parse() {
         fprintf(stderr, "Syntax error: invalid prologue\n");
         exit(ERROR_SYNTAX);
     }
-    Token token = getCurrentToken();
-    while (token.type != T_EOF) {
-        Token new_token = code(token);
-        token = new_token;
+    Token token = code(getCurrentToken());
+    if (token.type != T_EOF) {
+        unexpected_token(token);
     }
 }
 
 int parse_prolog() {
-    int return_code = 0;
     if (getCurrentToken().type != T_CONST ||
         getCurrentToken().type != T_IFJ || 
         getCurrentToken().type != T_ASSIGN ||
         getCurrentToken().type != T_IMPORT ||
         getCurrentToken().type != T_OPEN_PARENTHESES) {
-            return_code = 1;
+            return 1;
     }
     Token token = getCurrentToken();
     if (token.type != T_STRING_TYPE || (strcmp(token.data, "ifj24.zig") != 0)) {
-        return_code = 1;
+        return 1;
     }
     if (getCurrentToken().type != T_CLOSE_PARENTHESES || getCurrentToken().type != T_SEMICOLON) {
-        return_code = 1;
+        return 1;
     }
-
-    return return_code;
+    return 0;
 }
 
 // code() bude volat konkrétní funkci dle typu tokenu
 Token code(Token token) {
     switch (token.type) {
         case T_IF:
-            return parse_if();
+            return code(parse_if());
         case T_WHILE:
-            return parse_while();
+            return code(parse_while());
         case T_VAR:
-            return parse_variable_definition();
+            return code(parse_variable_definition());
         case T_CONST:
-            return parse_variable_definition();
+            return code(parse_variable_definition());
         case T_RETURN:
-            parse_return();
-            break;
+            return code(parse_return());
         case T_ID: // Could be an assignment or a function call
-            parse_assignment_or_function_call();
-            break;
+            return code(parse_assignment_or_function_call());
         case T_IFJ: // Standard function calls (starting with "ifj")
-            parse_standard_function_call();
-            break;
+            return code(parse_standard_function_call());
         case T_PUB:
-            parse_function_definition();
-            break;
-        case T_EOF:
-            return token;
+            return code(parse_function_definition());
         default:
-            fprintf(stderr, "Syntax error: unexpected token\n");
-            exit(ERROR_SYNTAX);
-            break;
+            return token;
     }
 }
 
@@ -113,8 +102,8 @@ Token parse_if() {
     if (getCurrentToken().type != T_OPEN_BRACKET) {
         unexpected_token(CurrentToken);
     }
-    code(getCurrentToken());  // Parsování těla if-bloku
-    if (getCurrentToken().type != T_CLOSE_BRACKET) {
+    Token token = code(getCurrentToken());  // Parsování těla if-bloku
+    if (token.type != T_CLOSE_BRACKET) {
         unexpected_token(CurrentToken);
     }
 
@@ -124,8 +113,8 @@ Token parse_if() {
         if (getCurrentToken().type != T_OPEN_BRACKET) {
             unexpected_token(CurrentToken);
         }
-        code(getCurrentToken());  // Parsování else-bloku
-        if (getCurrentToken().type != T_CLOSE_BRACKET) {
+        Token token_2 = code(getCurrentToken());  // Parsování else-bloku
+        if (token_2.type != T_CLOSE_BRACKET) {
             unexpected_token(CurrentToken);
         }
         return getCurrentToken();  // Vrátíme token pro další zpracování
@@ -146,10 +135,11 @@ Token parse_while() {
     if (getCurrentToken().type != T_OPEN_BRACKET) {
         unexpected_token(CurrentToken);
     }
-    code(getCurrentToken());  // Parsování těla while smyčky
-    if (getCurrentToken().type != T_CLOSE_BRACKET) {
+    Token token = code(getCurrentToken());  // Parsování těla while smyčky
+    if (token.type != T_CLOSE_BRACKET) {
         unexpected_token(CurrentToken); 
     }
+    return getCurrentToken();  // Vrátíme token pro další zpracování
 }
 
 Token parse_variable_definition() {
