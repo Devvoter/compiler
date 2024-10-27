@@ -18,7 +18,7 @@ Token getCurrentToken() {
     return token;
 }
 
-void parse() {
+void syntax_analysis() {
     if (parse_prolog() != 0) {
         fprintf(stderr, "Syntax error: invalid prologue\n");
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -322,6 +322,6 @@ Token parse_function_definition() {
 }
 
 int main() {
-    parse();  // Spustí se syntaktická analýza
+    syntax_analysis();  // Spustí se syntaktická analýza
     return 0;
 }
