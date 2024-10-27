@@ -22,7 +22,6 @@ enum ErrorCodes {
 };
 
 #include "parser.h"
-#include "scanner.h"
 
 Token CurrentToken;
 
@@ -79,9 +78,9 @@ Token code(Token token) {
             return code(parse_variable_definition());
         case T_RETURN:
             return code(parse_return());
-        case T_ID: // Could be an assignment or a function call
+        case T_ID: // přiřazení nebo volání funkce
             return code(parse_assignment_or_function_call());
-        case T_IFJ: // Standard function calls (starting with "ifj")
+        case T_IFJ: // volani vestavene funkce
             return code(parse_standard_function_call());
         case T_PUB:
             return code(parse_function_definition());
