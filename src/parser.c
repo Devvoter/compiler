@@ -38,7 +38,7 @@ int parse_prolog() {
             return 1;
     }
     Token token = getCurrentToken();
-    if (token.type != T_STRING_TYPE || (strcmp(token.data, "ifj24.zig") != 0)) {
+    if (token.type != T_STRING_TYPE || (strcmp(token.data.u8, "ifj24.zig") != 0)) {
         return 1;
     }
     if (getCurrentToken().type != T_CLOSE_PARENTHESES || getCurrentToken().type != T_SEMICOLON) {
@@ -191,28 +191,28 @@ Token parse_standard_function_call() {
     if (token.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    if (!strcmp(token.data, "readstr") &&
-        !strcmp(token.data, "readi32") &&
-        !strcmp(token.data, "readf64") &&
-        !strcmp(token.data, "write") &&
-        !strcmp(token.data, "i2f") &&
-        !strcmp(token.data, "f2i") &&
-        !strcmp(token.data, "string") &&
-        !strcmp(token.data, "length") &&
-        !strcmp(token.data, "concat") &&
-        !strcmp(token.data, "substrin") &&
-        !strcmp(token.data, "strcmp") &&
-        !strcmp(token.data, "ord") &&
-        !strcmp(token.data, "chr")) {
+    if (!strcmp(token.data.u8, "readstr") &&
+        !strcmp(token.data.u8, "readi32") &&
+        !strcmp(token.data.u8, "readf64") &&
+        !strcmp(token.data.u8, "write") &&
+        !strcmp(token.data.u8, "i2f") &&
+        !strcmp(token.data.u8, "f2i") &&
+        !strcmp(token.data.u8, "string") &&
+        !strcmp(token.data.u8, "length") &&
+        !strcmp(token.data.u8, "concat") &&
+        !strcmp(token.data.u8, "substrin") &&
+        !strcmp(token.data.u8, "strcmp") &&
+        !strcmp(token.data.u8, "ord") &&
+        !strcmp(token.data.u8, "chr")) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    if (!strcmp(token.data, "write") ||
-        !strcmp(token.data, "i2f") ||
-        !strcmp(token.data, "f2i") ||
-        !strcmp(token.data, "string") ||
-        !strcmp(token.data, "length") ||
-        !strcmp(token.data, "ord") ||
-        !strcmp(token.data, "chr")) {
+    if (!strcmp(token.data.u8, "write") ||
+        !strcmp(token.data.u8, "i2f") ||
+        !strcmp(token.data.u8, "f2i") ||
+        !strcmp(token.data.u8, "string") ||
+        !strcmp(token.data.u8, "length") ||
+        !strcmp(token.data.u8, "ord") ||
+        !strcmp(token.data.u8, "chr")) {
         if (getCurrentToken().type != T_OPEN_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -220,7 +220,7 @@ Token parse_standard_function_call() {
         if (getCurrentToken().type != T_CLOSE_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-    } else if (!strcmp(token.data, "concat") || !strcmp(token.data, "substrin") || !strcmp(token.data, "strcmp")) {
+    } else if (!strcmp(token.data.u8, "concat") || !strcmp(token.data.u8, "substrin") || !strcmp(token.data.u8, "strcmp")) {
         if (getCurrentToken().type != T_OPEN_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -321,8 +321,7 @@ Token parse_function_definition() {
     return getCurrentToken();  // Vrátíme token pro další zpracování
 }
 
-// Hlavní program
 int main() {
-    parse();  // Spustí se parsování
+    parse();  // Spustí se syntaktická analýza
     return 0;
 }
