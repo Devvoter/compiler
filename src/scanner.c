@@ -331,10 +331,16 @@ Token getNextToken(){
         /* / */
         case S_SLASH:
             newToken.type = T_DIV;
-            STATE = S_LINE_COMMENT;
-            break;
+            if ((c = fgetc(SOURCE)) == '/')
+            {
+                STATE = S_LINE_COMMENT;
+                break;
+            }
+            ungetc(c,SOURCE);
+            return newToken;
         /* // */
         case S_LINE_COMMENT:
+
             if (c == '\n'){
                 newToken.type = T_UNKNOW;
                 line_count++;
