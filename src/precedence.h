@@ -132,3 +132,14 @@ void ruleReduce(Stack *stack) {
         }
     }
 }
+
+PrecedenceToken *getTopTerminal(Stack stack) {
+    while (!S_IsEmpty(&stack)) {
+        PrecedenceToken *token = (PrecedenceToken *) S_Top(&stack);
+        if (token->isTerminal) {
+            return token;
+        }
+        S_Pop(&stack);
+    }
+    return NULL;
+}
