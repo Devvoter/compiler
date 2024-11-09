@@ -61,3 +61,74 @@ void addArrrowToTop(Stack *stack) {
     PrecedenceToken *tokenPtr = (PrecedenceToken *) S_Top(&stack);
     tokenPtr->reduction = true;
 }
+
+void ruleReduce(Stack *stack) {
+    PrecedenceToken *tokenTop = (PrecedenceToken *) S_Top(&stack);
+    if (tokenTop->isTerminal) {
+        if (tokenTop->token.type == T_ID) {                                 // E -> id
+            Token expr;
+            expr.type = T_EXPRESSION_NONTERMINAL;
+            expr.data.u8 = tokenTop->token.data.u8;
+            PrecedenceToken reducedTop;
+            reducedTop.token = expr;
+            reducedTop.isTerminal = false;
+            reducedTop.reduction = false;
+
+            S_Pop(&stack);
+            S_Push(&stack, &reducedTop);
+        }
+        else if (tokenTop->token.type == T_CLOSE_PARENTHESES) {             // E -> (E)
+            S_Pop(&stack);
+            PrecedenceToken *exprInParenth = (PrecedenceToken *) S_Top(&stack);
+            if (exprInParenth->isTerminal) {
+                exitWithError(&exprInParenth->token, ERR_SYNTAX_ANALYSIS);
+            }
+            S_Pop(&stack);
+            PrecedenceToken *openParenth = (PrecedenceToken *) S_Top(&stack);
+            if (openParenth->token.type != T_OPEN_PARENTHESES) {
+                exitWithError(&openParenth->token, ERR_SYNTAX_ANALYSIS);
+            }
+            S_Pop(&stack);
+
+            Token expr;
+            expr.type = T_EXPRESSION_NONTERMINAL;
+            expr.data.u8 = tokenTop->token.data.u8; //? not sure
+            PrecedenceToken reducedTop;
+            reducedTop.token = expr;
+            reducedTop.isTerminal = false;
+            reducedTop.reduction = false;
+
+            S_Push(&stack, &reducedTop);
+        }
+    }
+    else {
+        if (tokenTop->token.type == T_EXPRESSION_NONTERMINAL) {             // E -> E op E
+            S_Pop(&stack);
+            PrecedenceToken *op = (PrecedenceToken *) S_Top(&stack);
+            if (!op->isTerminal) {
+                exitWithError(&op->token, ERR_SYNTAX_ANALYSIS);
+            }
+            if (op->token.type != T_ADD && op->token.type != T_SUB && op->token.type != T_MUL && op->token.type != T_DIV &&
+                op->token.type != T_EQUALS && op->token.type != T_NOT_EQUALS && op->token.type != T_LESS_THAN && op->token.type != T_GREATER_THAN &&
+                op->token.type != T_LESS_OR_EQUAL && op->token.type != T_GREATER_OR_EQUAL) {
+                exitWithError(&op->token, ERR_SYNTAX_ANALYSIS);
+            }
+            S_Pop(&stack);
+            PrecedenceToken *left = (PrecedenceToken *) S_Top(&stack);
+            if (left->isTerminal) {
+                exitWithError(&left->token, ERR_SYNTAX_ANALYSIS);
+            }
+            S_Pop(&stack);
+
+            Token expr;
+            expr.type = T_EXPRESSION_NONTERMINAL;
+            expr.data.u8 = "E"; //? not sure maybe E op E?
+            PrecedenceToken reducedTop;
+            reducedTop.token = expr;
+            reducedTop.isTerminal = false;
+            reducedTop.reduction = false;
+
+            S_Push(&stack, &reducedTop);
+        }
+    }
+}
