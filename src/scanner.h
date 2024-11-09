@@ -127,6 +127,8 @@ typedef enum {
     T_EOF,
     T_UNKNOW,
     T_ERROR,
+
+    T_EXPRESSION_NONTERMINAL,
 } TokenType;
 
 
