@@ -38,28 +38,51 @@ void expression() {
     Semicolon.type = T_SEMICOLON;
     PrecedenceToken bottom = tokenWrapper(Semicolon);
     S_Push(&stack, &bottom);
-    int parentheses = 0;
-    bool exprEnd = false;
+    int parentheses = 0;        // pokud pocitadlo zavorek = -1, jsme na konci vyrazu
+    bool endToken = false;      // posledni token
+    bool exprEnd = false;       // konec vyrazu
+    Token next_token;
+
+    // pokud jsme uz precetli prvni token vyrazu, zpracujeme ho
+    if (CurrentToken.type != T_OPEN_PARENTHESES && CurrentToken.type != T_ASSIGN && CurrentToken.type != T_COMMA) {
+        next_token = CurrentToken;
+    }
+    else {
+        next_token = getCurrentToken();
+    }
 
     while(!exprEnd) {
         if (S_IsEmpty(&stack)) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        PrecedenceToken *tokenTop = (PrecedenceToken *) S_Top(&stack);
-        Token next_token = getCurrentToken();
-        if (next_token.type == T_OPEN_PARENTHESES) {
-            parentheses++;
-        } else if (next_token.type == T_CLOSE_PARENTHESES) {
-            parentheses--;
+        PrecedenceToken *tokenTop = getTopTerminal(stack);              // posilame kopii zasobniku
+        // pokud na zasobniku neni zadny terminal, overujeme zda jsme narazili na konec vyrazu
+        if (tokenTop == NULL) {
+            exprEnd = checkExprEnd(&stack);
+            break;
         }
-        if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA) {
-            exprEnd = true;
+        if (endToken != true) {                                             // pokud nenarazime na posledni token ve vyrazu overujeme zda precteny token je posledni
+            if (next_token.type == T_OPEN_PARENTHESES) {
+                PrecedenceToken *function_call_check = getTopTerminal(stack);
+                if (function_call_check->token.type == T_ID) {              // pokud pred zavorkou je ID, jedna se o volani funkce
+                    parse_function_call();                                  // prepneme se na ll1 analyzu
+                    next_token = getCurrentToken();
+                    continue;                                               // na zasobniku zustane pouze id funkce a nikoliv zavorka a jeji argumenty
+                }
+                parentheses++;                                              // pokud narazime na token "(", zvysime pocitadlo zavorek 
+            } else if (next_token.type == T_CLOSE_PARENTHESES) {            // pokud narazime na token ")", zmensime pocitadlo zavorek
+                parentheses--;
+            }
+            if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA) {
+                endToken = true;
+                next_token = Semicolon;
+            }
         }
         
+        // porovnavame priority posledniho terminalu na zasobniku s prave nactenym tokenem
         if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)]==EMPTY) {
             exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
         }
-
         PrecedenceToken pushToken = tokenWrapper(next_token);
         if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '=') {
             S_Push(&stack, &pushToken);
@@ -72,11 +95,14 @@ void expression() {
         } else if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '>') {
             if (tokenTop->reduction) {
                 ruleReduce(&stack);
+                continue;                               // pokud lze provest redukci, pokracujeme dal se stejnym tokenem na vstupu
             }
             else {
-                exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
+                exprEnd = checkExprEnd(&stack);
+                break;
             }
         }
+        next_token = getCurrentToken();
     }
 }
 
