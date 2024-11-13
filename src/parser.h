@@ -99,3 +99,8 @@ void expression();
  * @brief Funkce pro parsování volání funkce
  */
 void function();
+
+/**
+ * @brief Funkce pro parsování argumentů volání funkce uvnitř výrazu
+ */
+void parse_function_call();
