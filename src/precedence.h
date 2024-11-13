@@ -143,3 +143,20 @@ PrecedenceToken *getTopTerminal(Stack stack) {
     }
     return NULL;
 }
+
+bool checkExprEnd(Stack *stack) {
+    PrecedenceToken *checkEnd = getTopTerminal(*stack);
+    if (checkEnd->token.type != T_EXPRESSION_NONTERMINAL) {
+        exitWithError(&checkEnd->token, ERR_SYNTAX_ANALYSIS);
+    }
+    S_Pop(stack);
+    checkEnd = getTopTerminal(*stack);
+    if (checkEnd->token.type != T_SEMICOLON) {
+        exitWithError(&checkEnd->token, ERR_SYNTAX_ANALYSIS);
+    }
+    S_Pop(stack);
+    if (!S_IsEmpty(stack)) {
+        exitWithError(&checkEnd->token, ERR_SYNTAX_ANALYSIS);
+    }
+    return true;
+}
