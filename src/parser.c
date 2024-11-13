@@ -38,28 +38,51 @@ void expression() {
     Semicolon.type = T_SEMICOLON;
     PrecedenceToken bottom = tokenWrapper(Semicolon);
     S_Push(&stack, &bottom);
-    int parentheses = 0;
-    bool exprEnd = false;
+    int parentheses = 0;        // pokud pocitadlo zavorek = -1, jsme na konci vyrazu
+    bool endToken = false;      // posledni token
+    bool exprEnd = false;       // konec vyrazu
+    Token next_token;
+
+    // pokud jsme uz precetli prvni token vyrazu, zpracujeme ho
+    if (CurrentToken.type != T_OPEN_PARENTHESES && CurrentToken.type != T_ASSIGN && CurrentToken.type != T_COMMA) {
+        next_token = CurrentToken;
+    }
+    else {
+        next_token = getCurrentToken();
+    }
 
     while(!exprEnd) {
         if (S_IsEmpty(&stack)) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        PrecedenceToken *tokenTop = (PrecedenceToken *) S_Top(&stack);
-        Token next_token = getCurrentToken();
-        if (next_token.type == T_OPEN_PARENTHESES) {
-            parentheses++;
-        } else if (next_token.type == T_CLOSE_PARENTHESES) {
-            parentheses--;
+        PrecedenceToken *tokenTop = getTopTerminal(stack);              // posilame kopii zasobniku
+        // pokud na zasobniku neni zadny terminal, overujeme zda jsme narazili na konec vyrazu
+        if (tokenTop == NULL) {
+            exprEnd = checkExprEnd(&stack);
+            break;
         }
-        if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA) {
-            exprEnd = true;
+        if (endToken != true) {                                             // pokud nenarazime na posledni token ve vyrazu overujeme zda precteny token je posledni
+            if (next_token.type == T_OPEN_PARENTHESES) {
+                PrecedenceToken *function_call_check = getTopTerminal(stack);
+                if (function_call_check->token.type == T_ID) {              // pokud pred zavorkou je ID, jedna se o volani funkce
+                    parse_function_call();                                  // prepneme se na ll1 analyzu
+                    next_token = getCurrentToken();
+                    continue;                                               // na zasobniku zustane pouze id funkce a nikoliv zavorka a jeji argumenty
+                }
+                parentheses++;                                              // pokud narazime na token "(", zvysime pocitadlo zavorek 
+            } else if (next_token.type == T_CLOSE_PARENTHESES) {            // pokud narazime na token ")", zmensime pocitadlo zavorek
+                parentheses--;
+            }
+            if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA) {
+                endToken = true;
+                next_token = Semicolon;
+            }
         }
         
+        // porovnavame priority posledniho terminalu na zasobniku s prave nactenym tokenem
         if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)]==EMPTY) {
             exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
         }
-
         PrecedenceToken pushToken = tokenWrapper(next_token);
         if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '=') {
             S_Push(&stack, &pushToken);
@@ -72,11 +95,14 @@ void expression() {
         } else if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '>') {
             if (tokenTop->reduction) {
                 ruleReduce(&stack);
+                continue;                               // pokud lze provest redukci, pokracujeme dal se stejnym tokenem na vstupu
             }
             else {
-                exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
+                exprEnd = checkExprEnd(&stack);
+                break;
             }
         }
+        next_token = getCurrentToken();
     }
 }
 
@@ -128,7 +154,7 @@ Token parse_if() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     expression();  // Parsování výrazu uvnitř závorek
-    if (getCurrentToken().type != T_CLOSE_PARENTHESES) {
+    if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     if (getCurrentToken().type != T_OPEN_BRACKET) {
@@ -160,8 +186,8 @@ Token parse_while() {
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    //expression();  
-    if (getCurrentToken().type != T_CLOSE_PARENTHESES) {
+    expression();  
+    if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     if (getCurrentToken().type != T_OPEN_BRACKET) {
@@ -197,7 +223,7 @@ Token parse_variable_definition() {
     }
     }
     expression();  // Parsování výrazu na pravé straně přiřazení
-    if (getCurrentToken().type != T_SEMICOLON) {
+    if (CurrentToken.type != T_SEMICOLON) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     return getCurrentToken();  // Vrátíme token pro další zpracování
@@ -205,7 +231,7 @@ Token parse_variable_definition() {
 
 Token parse_return() {
     expression();  // Parsování výrazu, který se má vrátit
-    if (getCurrentToken().type != T_SEMICOLON) {
+    if (CurrentToken.type != T_SEMICOLON) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     return getCurrentToken();  // Vrátíme token pro další zpracování
@@ -218,7 +244,7 @@ Token parse_assignment_or_function_call() {
     }
     if (token.type == T_ASSIGN) {
         expression();  // Parsování výrazu na pravé straně přiřazení
-        if (getCurrentToken().type != T_SEMICOLON) {
+        if (CurrentToken.type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
     } else {
@@ -267,8 +293,9 @@ Token parse_standard_function_call() {
         if (getCurrentToken().type != T_OPEN_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+        // THIS MAY NOT WORK WELL DEBUG LATER !!
         expression();  // Parsování argumentu funkce
-        if (getCurrentToken().type != T_CLOSE_PARENTHESES) {
+        if (CurrentToken.type != T_CLOSE_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
     } else if (!strcmp(token.data.u8, "concat") || !strcmp(token.data.u8, "substrin") || !strcmp(token.data.u8, "strcmp")) {
@@ -276,11 +303,11 @@ Token parse_standard_function_call() {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
         expression();  // Parsování prvního argumentu funkce
-        if (getCurrentToken().type != T_COMMA) {
+        if (CurrentToken.type != T_COMMA) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
         expression();  // Parsování druhého argumentu funkce
-        if (getCurrentToken().type != T_CLOSE_PARENTHESES) {
+        if (CurrentToken.type != T_CLOSE_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
         // add optional comma?
@@ -370,6 +397,20 @@ Token parse_function_definition() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     return getCurrentToken();  // Vrátíme token pro další zpracování
+}
+
+void parse_function_call() {
+    //Token token = CurrentToken;
+    while (CurrentToken.type != T_CLOSE_PARENTHESES) {
+        expression();  // Parsování argumentů funkce
+        if (CurrentToken.type != T_COMMA && CurrentToken.type != T_CLOSE_PARENTHESES) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        else if (CurrentToken.type == T_COMMA) {
+            getCurrentToken();
+        }
+    }
+    //return getCurrentToken();  // Vrátíme token pro další zpracování
 }
 
 int main() {
