@@ -9,6 +9,8 @@
 
 #include "parser.h"
 #include "error.h"
+#include "stack.h"
+#include "precedence.h"
 
 Token CurrentToken;
 
@@ -26,6 +28,55 @@ void syntax_analysis() {
     Token token = code(getCurrentToken());
     if (token.type != T_EOF) {
         exitWithError(&token, ERR_SYNTAX_ANALYSIS);
+    }
+}
+
+void expression() {
+    Stack stack;
+    S_Init(&stack);
+    Token Semicolon;
+    Semicolon.type = T_SEMICOLON;
+    PrecedenceToken bottom = tokenWrapper(Semicolon);
+    S_Push(&stack, &bottom);
+    int parentheses = 0;
+    bool exprEnd = false;
+
+    while(!exprEnd) {
+        if (S_IsEmpty(&stack)) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        PrecedenceToken *tokenTop = (PrecedenceToken *) S_Top(&stack);
+        Token next_token = getCurrentToken();
+        if (next_token.type == T_OPEN_PARENTHESES) {
+            parentheses++;
+        } else if (next_token.type == T_CLOSE_PARENTHESES) {
+            parentheses--;
+        }
+        if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA) {
+            exprEnd = true;
+        }
+        
+        if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)]==EMPTY) {
+            exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
+        }
+
+        PrecedenceToken pushToken = tokenWrapper(next_token);
+        if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '=') {
+            S_Push(&stack, &pushToken);
+            continue;
+        } 
+        else if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '<') {
+            tokenTop->reduction = true;
+            S_Push(&stack, &next_token);
+            continue;
+        } else if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '>') {
+            if (tokenTop->reduction) {
+                ruleReduce(&stack);
+            }
+            else {
+                exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
+            }
+        }
     }
 }
 
