@@ -536,7 +536,7 @@ void expression() {
 }
 
 int main() {
-    FILE *source = fopen("test_1.ifj", "r");
+    FILE *source = fopen("empty_main.ifj", "r");
     if (source == NULL) {
         fprintf(stderr, "Error: Unable to open file\n");
         return 1;
