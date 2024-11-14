@@ -90,7 +90,7 @@ void expression() {
         } 
         else if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '<') {
             tokenTop->reduction = true;
-            S_Push(&stack, &next_token);
+            S_Push(&stack, &pushToken);
             continue;
         } else if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '>') {
             if (tokenTop->reduction) {
@@ -536,6 +536,13 @@ void expression() {
 }
 
 int main() {
+    FILE *source = fopen("test_1.ifj", "r");
+    if (source == NULL) {
+        fprintf(stderr, "Error: Unable to open file\n");
+        return 1;
+    }
+    fileInit(source);  // Inicializace souboru
     syntax_analysis();  // Spustí se syntaktická analýza
+    fclose(source);
     return 0;
 }
