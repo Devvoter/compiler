@@ -6,8 +6,8 @@ OBJ_DIR = obj
 INCLUDES = -I$(SRC_DIR)
 
 # Přepínače pro zdroj
-ifeq ($(USE_STDIN), 1)
-    CFLAGS += -DUSE_STDIN
+ifeq ($(USE_FILE), 1)
+    CFLAGS += -DUSE_FILE
 endif
 
 # Zdrojové soubory

@@ -13,10 +13,10 @@
 #include "error.h"
 
 
-#ifdef USE_STDIN
-    #define SOURCE stdin
-#else
+#ifdef USE_FILE
     #define SOURCE source_file
+#else
+    #define SOURCE stdin
 #endif
 
 enum automat_state changeAutomatState (char c){
@@ -181,7 +181,7 @@ void stringToNum(Token* token) {
 
     // Pokud se řetězec úspěšně převedl na celé číslo
     if (*err == '\0') {
-        token->type = T_I32_ID;
+        token->type = T_I32_VAR;
         bufferFree(token->data.u8);  // Uvolnění řetězce
         token->data.i32 = tmp_int;
         return;
@@ -192,7 +192,7 @@ void stringToNum(Token* token) {
 
     // Zkontrolujeme úspěšnost převodu na double
     if (*err == '\0') {
-        token->type = T_F64_ID;
+        token->type = T_F64_VAR;
         bufferFree(token->data.u8);  // Uvolnění řetězce
         token->data.f64 = tmp_double;
         return;
@@ -273,6 +273,7 @@ Token getNextToken(){
         case S_OPEN_PARENTHESES:
             newToken.type = T_OPEN_PARENTHESES;
             return newToken;
+        /* [ */
         case S_SQUQRE_BRACKET_OPEN:
             ungetc(c, SOURCE);
             STATE = S_TYPE_ID;

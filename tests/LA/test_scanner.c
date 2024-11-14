@@ -36,11 +36,17 @@ int printTokenType(Token newToken) {
         case T_IF:
             printf("Token type: T_IF,                value: %s\n", newToken.data.u8->data);
             break;
+        case T_I32_VAR:
+            printf("Token type: T_I32_VAR,           value: %ld\n", newToken.data.i32);
+            break;
         case T_I32_ID:
-            printf("Token type: T_I32_ID,            value: %ld\n", newToken.data.i32);
+            printf("Token type: T_I32_ID\n");
+            break;
+        case T_F64_VAR:
+            printf("Token type: T_F64_VAR,           value: %f\n", newToken.data.f64);
             break;
         case T_F64_ID:
-            printf("Token type: T_F64_ID,            value: %f\n", newToken.data.f64);
+            printf("Token type: T_F64_ID\n");
             break;
         case T_NULL:
             printf("Token type: T_NULL\n");
@@ -82,7 +88,7 @@ int printTokenType(Token newToken) {
             printf("Token type: T_AT,                value: @\n");
             break;
         case T_STRING_TYPE:
-            printf("Token type: STRING TYPE ([]u8),  value: %s\n", newToken.data.u8->data);
+            printf("Token type: T_STRING_TYPE,       value: %s\n", newToken.data.u8->data);
             break;
         case T_OPEN_PARENTHESES:
             printf("Token type: T_OPEN_PARENTHESES,  value: (\n");
@@ -156,22 +162,26 @@ int printTokenType(Token newToken) {
 
 
 int main() {
-    // čtení ze soubora
+#ifdef USE_FILE
+    // čtení ze souboru
     FILE *file = fopen("input.txt", "r");
     if (file == NULL) {
         perror("Could not open file");
         return EXIT_FAILURE;
     }
 
-    // 
+    // inicializace souboru
     fileInit(file);
+#endif
 
-    // čteme a výpisujeme tokeny 
+    // čteme a výpisujeme tokeny
     Token newToken;
     do newToken = getNextToken();
     while (printTokenType(newToken) != -1);
 
-
+#ifdef USE_FILE
     fclose(file);
+#endif
+
     return EXIT_SUCCESS;
 }

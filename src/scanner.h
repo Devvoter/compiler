@@ -84,7 +84,10 @@ typedef enum {
     // typy
     T_STRING_TYPE,
 
-
+    T_I32_VAR,
+    T_F64_VAR,
+    T_U8,
+    
     T_ID,
 
     // s přeponou ?
