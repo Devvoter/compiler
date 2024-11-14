@@ -221,17 +221,18 @@ Token parse_variable_definition() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     else if (token.type == T_COLON) {
-        if (getCurrentToken().type != T_I32_ID || 
-        getCurrentToken().type != T_F64_ID || 
-        getCurrentToken().type != T_U8_ID ||
-        getCurrentToken().type != T_I32_NULLABLE ||
-        getCurrentToken().type != T_F64_NULLABLE ||
-        getCurrentToken().type != T_U8_NULLABLE) {
-        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-    }
-    if (getCurrentToken().type != T_ASSIGN) {
-        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-    }
+        token = getCurrentToken();
+        if (token.type != T_I32_ID && 
+        token.type != T_F64_ID &&
+        token.type != T_U8_ID &&
+        token.type != T_I32_NULLABLE &&
+        token.type != T_F64_NULLABLE &&
+        token.type != T_U8_NULLABLE) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        if (getCurrentToken().type != T_ASSIGN) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
     }
     expression();  // Parsování výrazu na pravé straně přiřazení
     if (CurrentToken.type != T_SEMICOLON) {
@@ -427,7 +428,7 @@ void parse_function_call() {
 }
 
 int main() {
-    FILE *source = fopen("test_1.ifj", "r");
+    FILE *source = fopen("empty_main.ifj", "r");
     if (source == NULL) {
         fprintf(stderr, "Error: Unable to open file\n");
         return 1;
