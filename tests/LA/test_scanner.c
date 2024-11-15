@@ -90,6 +90,9 @@ int printTokenType(Token newToken) {
         case T_STRING_TYPE:
             printf("Token type: T_STRING_TYPE,       value: %s\n", newToken.data.u8->data);
             break;
+        case T_STRING_TYPE_EMPTY:
+            printf("Token type: T_STRING_TYPE_EMPTY\n");
+            break;
         case T_OPEN_PARENTHESES:
             printf("Token type: T_OPEN_PARENTHESES,  value: (\n");
             break;

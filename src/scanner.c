@@ -211,11 +211,12 @@ Token getNextToken(){
 
     static unsigned long init_count;
     static unsigned long line_count;
-    newToken.line = line_count;
+
 
     int c = fgetc(SOURCE);
     //printf("Read character: %c\n", c);  
     bool escapeSequence = false;
+    bool isEmptyString = true;
 
     if (c == EOF){
         newToken.type = T_EOF;
@@ -359,6 +360,21 @@ Token getNextToken(){
             return newToken;
         /* "..." */
         case S_QUOTE:
+            
+            if (c == '"' && isEmptyString)
+            {
+                c = fgetc(SOURCE);
+                if (c == '"')
+                {
+                   newToken.type = T_STRING_TYPE_EMPTY;
+                   return newToken;
+                }
+                ungetc(c, SOURCE);
+                isEmptyString = false;
+                break;
+            }
+            
+
             if (escapeSequence) {
                 // Zpracování standardních escape sekvencí
                 switch (c) {
