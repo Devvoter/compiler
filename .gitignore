@@ -3,4 +3,6 @@ src/text.zig
 src/*.o
 .vscode/
 tests/LA/obj
+test/test/obj
+test/test/test_stack
 tests/LA/test_scanner

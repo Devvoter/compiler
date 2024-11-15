@@ -29,3 +29,18 @@ make
 ```
 make clean
 ```
+
+
+# Stack
+Added some tests for stack.
+
+```
+cd test/stack
+make
+./test_stack
+```
+
+## Cleanup (removal of object and executable files)
+```
+make clean
+```
