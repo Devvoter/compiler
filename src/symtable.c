@@ -44,8 +44,8 @@ tSymTabNode* search_avl (tSymTabNode *node, char *key) {
     int match = strcmp(node->id, key);
 
     if (match == 0) return node;
-    else if (match > 0) return search(node->left, key);
-    else return search(node->right, key);
+    else if (match > 0) return search_avl(node->left, key);
+    else return search_avl(node->right, key);
 }
 
 tSymTabNode* search_symbol (tFrameStack *fs, char *key) {
@@ -89,7 +89,7 @@ tSymTabNode* rotate_dlr (tSymTabNode *root) {
     // Korekce váhy
     if(tmpC->height == 1) {
         tmpB->height = -1;
-        root->height = 0
+        root->height = 0;
     }
     else if(tmpC->height == -1) {
         tmpB->height = 0;
@@ -99,7 +99,7 @@ tSymTabNode* rotate_dlr (tSymTabNode *root) {
         tmpB->height = 0;
         root->height = 0;
     }
-    tmpC->height == 0;
+    tmpC->height = 0;
     return tmpC;
 }
 
@@ -123,32 +123,32 @@ tSymTabNode* rotate_drl (tSymTabNode *root) {
         tmpB->height = 0;
         root->height = 0;
     }
-    tmpC->height == 0;
+    tmpC->height = 0;
     return tmpC;
 }
 
 tSymTabNode* insert_avl (tSymTabNode *root, tSymTabNode *node, bool *heightChange) {
     // vložit ako kořen
     if(root == NULL) {
-        heightChange = true;
+        *heightChange = true;
         return node;
     }
     // vložit do levého podstromu
     else if (strcmp(root->id, node->id) > 0) {
         root->left = insert_avl(root->left, node, heightChange);
 
-        if (heightChange) {
+        if (*heightChange) {
             root->height--;
 
             // if(root->height == -1) změna výšky putuje dál do otcovského uzlu
-            if(root->height == 0) heightChange = false;
+            if(root->height == 0) *heightChange = false;
             if(root->height == -2) {
                 // Kritický uzel, musíme rotovat
                 // Situace LL
                 if (root->left->height < 0) root = rotate_ll(root);
                 // Situace LR
                 else root = rotate_dlr(root);
-                heightChange = false;
+                *heightChange = false;
             }
         }
     }
@@ -156,18 +156,18 @@ tSymTabNode* insert_avl (tSymTabNode *root, tSymTabNode *node, bool *heightChang
     else {
         root->right = insert_avl(root->right, node, heightChange); 
         
-        if (heightChange) {
+        if (*heightChange) {
             root->height++;
 
             // if(root->height == 1) změna výšky putuje dál do otcovského uzlu
-            if(root->height == 0) heightChange = false;
+            if(root->height == 0) *heightChange = false;
             if(root->height == 2) { 
                 // Kritický uzel, musíme rotovat
                 // Situace RR
                 if (root->right->height > 0) root = rotate_rr (root);
                 // Situace RL
                 else root = rotate_drl (root);
-                heightChange = false;
+                *heightChange = false;
             }
         }
     }
@@ -192,16 +192,18 @@ tSymTabNode* create_var_node (bool isConst) {
     if (newVar == NULL) return NULL;
 
     newVar->varData = malloc(sizeof(tVar));
-    if (newVar == NULL) { 
+    if (newVar->varData == NULL) { 
         free(newVar);
         return NULL;
     }
     newVar->varData->isConst = isConst;
     newVar->varData->isUsed = false;
+    newVar->varData->isDef = false;
 
-    newVar->isFun = false;
     newVar->id = NULL;
+    newVar->isFun = false;
     newVar->funData = NULL;
+
     newVar->height = 0;
     newVar->left = NULL;
     newVar->right = NULL;
@@ -216,7 +218,7 @@ tSymTabNode* create_fun_node () {
 
     // todo: inicializace
     newFun->funData = malloc(sizeof(tVar));
-    if (newFun == NULL) { 
+    if (newFun->funData == NULL) { 
         free(newFun);
         return NULL;
     }
@@ -236,11 +238,10 @@ tSymTabNode* create_fun_node () {
  * @param node Vkladaný symbol
  * @todo Vykoná funkce také sémantickou kontrolu duplicitních identifikátorú?
  */
-void insert_symbol (tFrameStack *fs, tSymTabNode *node);
 void insert_symbol (tFrameStack *fs, tSymTabNode *node) { // doplnit parametry
     if(search_symbol(fs, node->id) != NULL) { 
         // semanticka chyba - duplicitny identifikator
-        // return;
+        return;
     }
     bool heightChange = false;
     fs->current->symTable = insert_avl(fs->current->symTable, node, &heightChange);

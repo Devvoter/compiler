@@ -7,14 +7,13 @@
  * @date 2024-10-19
  *
  * @todo Nahradit placeholdery v strukturach!!!, operace AVL, funkce semanticke analyzy
- *       V struct tVar pouzit existujici TokenValue misto VarValue zo scanner.c??
- *       Odstranenou uroven symtab odstranujeme nebo uvolnujeme?
+ *       Odstranenou uroven symtab odstranujeme nebo uvolnujeme? ODSTRANIT
  *       Pri vkladani symbolu kontrolujeme duplicitu?
  */
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include "scanner.h"
+#include <string.h>
 
 enum dataType {
     i32,
@@ -22,19 +21,12 @@ enum dataType {
     u8
 };
 
-// TokenValue?
-typedef union {
-    long       i32;
-    double     f64;
-    tBuffer*    u8;
-} VarValue;
-
 /** 
  * @brief Prvek TS - proměnná
  */
-typedef struct {
+typedef struct var{
     int dataType;
-    VarValue value;    // TokenValue?
+    bool isDef; 
     bool isConst;
     bool isNullable;
     bool isUsed;       // nevyuziti promenne je chyba
@@ -43,7 +35,7 @@ typedef struct {
 /**
  * @brief Prvek TS - funkce
  */
-typedef struct {
+typedef struct fun{
     int retType;
     // *paramTypes   // funkce muze mit vice ruznych parametru - jak implementovat?
     int paramCnt;    // pocet parametru
@@ -52,7 +44,7 @@ typedef struct {
 /**
  * @brief Struktura pro reprezentaci TS - AVL strom
  */
-typedef struct {
+typedef struct symTabNode{
     char *id;
     bool isFun;             // uzel muze reprezentovat funkci/promennou
     tVar *varData;
@@ -66,7 +58,7 @@ typedef struct {
 /**
  * @brief Struktura zásobníku pro reprezentaci úrovní TS
  */
-typedef struct {
+typedef struct frame{
     bool isFun;               // zda blok kodu patri funkci nebo while,if,..
     tSymTabNode *symTable;    // lokalni TS
     tFrame *prev;             // nadrazeny blok kodu
@@ -75,7 +67,7 @@ typedef struct {
 /**
  * @brief Zasobník pro reprezentaci úrovní TS
  */
-typedef struct {
+typedef struct frameStack{
     tFrame *current;
     tFrame *global;
 } tFrameStack;
@@ -167,5 +159,9 @@ tSymTabNode* insert_avl (tSymTabNode *root, tSymTabNode *node, bool *heightChang
  *  RRrot
  *  RLrot
 */
+
+tSymTabNode* create_var_node (bool isConst);
+tSymTabNode* create_fun_node ();
+void insert_symbol (tFrameStack *fs, tSymTabNode *node);
 
 /* Konec souboru symtable.h */
