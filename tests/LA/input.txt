@@ -1,7 +1,5 @@
 const ifj = @import("ifj24.zig");
-pub fn bar(param : u8) u8 {
+pub fn bar(param : []u8) []u8 {
 const r = foo(param);
-void return r;
-while();
-var tmp;
-u8 = "q";
+var i : i32 = 5;
+return r;
