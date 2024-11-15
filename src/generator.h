@@ -9,34 +9,33 @@
 /**
  * @brief struktura elementu pro ukladani mezikodu
  */
-typedef struct codeBufferElement {
+typedef struct codeBufElem {
     char *code;
-    struct codeBufferElement *next;
-} *codeBufferElementPtr;
+    struct codeBufElem *next;
+} *codeBufElemPtr;
 
 /**
  * @brief struktura jednosmerneho seznamu pro ukladani mezikodu
  */
 typedef struct {
-    codeBufferElementPtr* first;
-    codeBufferElementPtr* active;
-    int CurrentLength;
-} codeBuffer;
+    codeBufElemPtr first;
+    codeBufElemPtr active;
+} codeBuf;
 
 /**
  * @brief inicializace buffer pro ukladani mezikodu
  */
-void BufferInit(codeBuffer* buffer);
+void bufInit(codeBuf** buffer);
 
 /**
  * @brief pridani polozky do bufferu
  */
-void addCodeBufferElement(char instr[10], char* firstArg, char* secondArg, char* thirdArg);
+void addCodeBufferElement(codeBuf **buffer, char instr[10], char* firstArg, char* secondArg, char* thirdArg);
 
 /**
  * @brief uvolni veskerou pamet alokovanou pro codeBuffer
  */
-void destroyBuffer(codeBuffer* buffer);
+void bufDestroy(codeBuf* buffer);
 
 
 
