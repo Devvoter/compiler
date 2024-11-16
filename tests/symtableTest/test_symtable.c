@@ -189,6 +189,73 @@ void test_drl() {
     printf("Testy drl OK!\n");
 }
 
+void test_LL_more_nodes() {
+    tSymTabNode *root = NULL;
+    bool heightChange = false;
+
+    tSymTabNode *node1 = create_var_node(false);
+    node1->id = str_duplicate("e");
+    tSymTabNode *node2 = create_var_node(false);
+    node2->id = str_duplicate("f");
+    tSymTabNode *node3 = create_var_node(false);
+    node3->id = str_duplicate("c");
+    tSymTabNode *node4 = create_var_node(false);
+    node4->id = str_duplicate("d");
+    tSymTabNode *node5 = create_var_node(false);
+    node5->id = str_duplicate("b");
+    tSymTabNode *node6 = create_var_node(false);
+    node6->id = str_duplicate("a");
+
+    root = insert_avl(root, node1, &heightChange);
+    root = insert_avl(root, node2, &heightChange);
+    root = insert_avl(root, node3, &heightChange);
+    root = insert_avl(root, node4, &heightChange);
+    root = insert_avl(root, node5, &heightChange);
+    root = insert_avl(root, node6, &heightChange);
+
+    assert(strcmp(root->id, "c") == 0);
+    assert(root->height == 0);
+    assert(strcmp(root->right->id, "e") == 0);
+    assert(root->right->height == 0);
+    assert(strcmp(root->right->left->id, "d") == 0);
+
+    printf("Testy ll_more_nodes OK!\n");
+}
+
+void test_dlr_more_nodes() {
+    tSymTabNode *root = NULL;
+    bool heightChange = false;
+
+    tSymTabNode *node1 = create_var_node(false);
+    node1->id = str_duplicate("e");
+    tSymTabNode *node2 = create_var_node(false);
+    node2->id = str_duplicate("f");
+    tSymTabNode *node3 = create_var_node(false);
+    node3->id = str_duplicate("b");
+    tSymTabNode *node4 = create_var_node(false);
+    node4->id = str_duplicate("a");
+    tSymTabNode *node5 = create_var_node(false);
+    node5->id = str_duplicate("c");
+    tSymTabNode *node6 = create_var_node(false);
+    node6->id = str_duplicate("d");
+
+    root = insert_avl(root, node1, &heightChange);
+    root = insert_avl(root, node2, &heightChange);
+    root = insert_avl(root, node3, &heightChange);
+    root = insert_avl(root, node4, &heightChange);
+    root = insert_avl(root, node5, &heightChange);
+    assert(strcmp(root->left->right->id, "c") == 0);
+    root = insert_avl(root, node6, &heightChange);
+
+    assert(strcmp(root->id, "c") == 0);
+    assert(root->height == 0);
+    assert(strcmp(root->right->id, "e") == 0);
+    assert(root->right->height == 0);
+    assert(strcmp(root->right->left->id, "d") == 0);
+
+    printf("Testy dlr_more_nodes OK!\n");
+}
+
 int main() {
     test_RR_rot();
     test_search_symbol();
@@ -196,5 +263,7 @@ int main() {
     test_frame_stack();
     test_drl();
     test_dlr();
+    test_LL_more_nodes();
+    test_dlr_more_nodes();
     return 0;
 }

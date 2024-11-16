@@ -199,6 +199,8 @@ tSymTabNode* create_var_node (bool isConst) {
     newVar->varData->isConst = isConst;
     newVar->varData->isUsed = false;
     newVar->varData->isDef = false;
+    newVar->varData->isNull = false;
+    newVar->varData->dataType = NOT_DEF;
 
     newVar->id = NULL;
     newVar->isFun = false;
@@ -222,6 +224,10 @@ tSymTabNode* create_fun_node () {
         free(newFun);
         return NULL;
     }
+    newFun->paramCnt = 0;
+    newFun->paramTypes = NULL;
+    newFun->retType = NOT_DEF;
+
     newFun->isFun = true;
     newFun->id = NULL;
     newFun->varData = NULL;

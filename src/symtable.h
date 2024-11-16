@@ -16,9 +16,14 @@
 #include <string.h>
 
 enum dataType {
-    i32,
-    f64,
-    u8
+    NOT_DEF,
+    VOID,
+    T_I32;
+    T_F64,
+    T_U8,
+    T_I32_NULLABLE,
+    T_F64_NULLABLE,
+    T_U8_NULLABLE
 };
 
 /** 
@@ -28,7 +33,7 @@ typedef struct var{
     int dataType;
     bool isDef; 
     bool isConst;
-    bool isNullable;
+    bool isNull;
     bool isUsed;       // nevyuziti promenne je chyba
 } tVar;
 
