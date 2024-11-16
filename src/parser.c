@@ -9,7 +9,7 @@
 
 #include "parser.h"
 #include "error.h"
-#include "stack_precedence.h"
+#include "stack.h"
 #include "precedence.h"
 
 Token CurrentToken;
@@ -53,8 +53,6 @@ void expression() {
     }
 
     while(!exprEnd) {
-        // PrecedenceToken *topToken = S_Top(&stack);
-        // printf("TopToken: %d\n", topToken->isTerminal);
         if (S_IsEmpty(&stack)) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -64,7 +62,7 @@ void expression() {
             exprEnd = checkExprEnd(&stack);
             break;
         }
-        if (alreadyRead == false && endToken == false) {                                             // pokud nenarazime na posledni token ve vyrazu overujeme zda precteny token je posledni
+        if (alreadyRead == false && endToken == false) {                    // pokud nenarazime na posledni token ve vyrazu overujeme zda precteny token je posledni
             if (next_token.type == T_OPEN_PARENTHESES) {
                 PrecedenceToken *function_call_check = S_getTopTerminal(&stack);
                 if (function_call_check->token.type == T_ID) {              // pokud pred zavorkou je ID, jedna se o volani funkce
