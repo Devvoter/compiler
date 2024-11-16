@@ -1,0 +1,19 @@
+const ifj = @import("ifj24.zig");
+pub fn main() void {
+    if (a) {
+    }
+    if (a+b) {
+    }
+    if ((a)) {
+    }
+    if (a+b*c) {
+    }
+    if(5){
+        return;
+    }
+    else {
+        var x = 5;
+        return;
+    }
+    foo();
+}

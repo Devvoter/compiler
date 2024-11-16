@@ -1,0 +1,14 @@
+const ifj = @import("ifj24.zig");
+pub fn main() void {
+    while (a) {
+    }
+    while (a+b) {
+    }
+    while ((a)) {
+    }
+    while (a+b*c) {
+    }
+    while(5+foo()){
+        return;
+    }
+}

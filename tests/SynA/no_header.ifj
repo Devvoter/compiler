@@ -1,0 +1,4 @@
+// error code: 2, no prolog
+pub fn main() void {
+    
+}

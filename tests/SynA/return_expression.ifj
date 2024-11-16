@@ -1,0 +1,15 @@
+// error code: 0
+const ifj = @import("ifj24.zig");
+pub fn main() void {
+    return;
+    return a;
+    return (a);
+    return (a + b);
+    return (a + b) * c;
+    return a + b * c;
+    return a == b;
+    return 5;
+    return a-5;
+    return (a-10+b)*3/6;
+    return (b <= 8 + 2);
+}
