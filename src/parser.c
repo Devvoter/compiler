@@ -9,7 +9,7 @@
 
 #include "parser.h"
 #include "error.h"
-#include "stack.h"
+#include "stack_precedence.h"
 #include "precedence.h"
 
 Token CurrentToken;
@@ -37,14 +37,15 @@ void expression() {
     Token Semicolon;
     Semicolon.type = T_SEMICOLON;
     PrecedenceToken bottom = tokenWrapper(Semicolon);
-    S_Push(&stack, &bottom);
+    S_Push(&stack, bottom);
     int parentheses = 0;        // pokud pocitadlo zavorek = -1, jsme na konci vyrazu
     bool endToken = false;      // posledni token
     bool exprEnd = false;       // konec vyrazu
     Token next_token;
+    bool alreadyRead = false;
 
     // pokud jsme uz precetli prvni token vyrazu, zpracujeme ho
-    if (CurrentToken.type != T_OPEN_PARENTHESES && CurrentToken.type != T_ASSIGN && CurrentToken.type != T_COMMA) {
+    if (CurrentToken.type != T_ASSIGN) {
         next_token = CurrentToken;
     }
     else {
@@ -52,57 +53,74 @@ void expression() {
     }
 
     while(!exprEnd) {
+        // PrecedenceToken *topToken = S_Top(&stack);
+        // printf("TopToken: %d\n", topToken->isTerminal);
         if (S_IsEmpty(&stack)) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        PrecedenceToken *tokenTop = getTopTerminal(stack);              // posilame kopii zasobniku
+        PrecedenceToken *tokenTop = S_getTopTerminal(&stack);           // zjistime posledni terminal na zasobniku
         // pokud na zasobniku neni zadny terminal, overujeme zda jsme narazili na konec vyrazu
         if (tokenTop == NULL) {
             exprEnd = checkExprEnd(&stack);
             break;
         }
-        if (endToken != true) {                                             // pokud nenarazime na posledni token ve vyrazu overujeme zda precteny token je posledni
+        if (alreadyRead == false && endToken == false) {                                             // pokud nenarazime na posledni token ve vyrazu overujeme zda precteny token je posledni
             if (next_token.type == T_OPEN_PARENTHESES) {
-                PrecedenceToken *function_call_check = getTopTerminal(stack);
+                PrecedenceToken *function_call_check = S_getTopTerminal(&stack);
                 if (function_call_check->token.type == T_ID) {              // pokud pred zavorkou je ID, jedna se o volani funkce
                     parse_function_call();                                  // prepneme se na ll1 analyzu
                     next_token = getCurrentToken();
+                    alreadyRead = false;
                     continue;                                               // na zasobniku zustane pouze id funkce a nikoliv zavorka a jeji argumenty
                 }
                 parentheses++;                                              // pokud narazime na token "(", zvysime pocitadlo zavorek 
             } else if (next_token.type == T_CLOSE_PARENTHESES) {            // pokud narazime na token ")", zmensime pocitadlo zavorek
                 parentheses--;
             }
-            if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA) {
+            if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA || next_token.type == T_OPEN_BRACKET) { // pokud je pocitadlo zavorek mensi nez 0, jedna se o konec vyrazu
                 endToken = true;
-                next_token = Semicolon;
+                next_token.type = T_SEMICOLON;
+            }
+        }
+        else {
+            if (next_token.type == T_SEMICOLON) {                      // overime zda mame zredukovany cely vyraz
+                if(checkExprEnd(&stack)) {
+                    break;
+                }
             }
         }
         
         // porovnavame priority posledniho terminalu na zasobniku s prave nactenym tokenem
-        if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)]==EMPTY) {
+        if (getOperatorIndex(next_token)==-1) {
             exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
         }
-        PrecedenceToken pushToken = tokenWrapper(next_token);
-        if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '=') {
-            S_Push(&stack, &pushToken);
-            continue;
-        } 
-        else if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '<') {
-            tokenTop->reduction = true;
-            S_Push(&stack, &pushToken);
-            continue;
-        } else if (precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)] == '>') {
-            if (tokenTop->reduction) {
+        char relation = precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)];
+        if (relation==EMPTY) {
+            exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
+        }
+        if (relation == '>') {
+            if (S_topTerminalReduce(&stack)) {       // vrati znak pred poslednim terminalem na zasobniku pro overeni redukce
                 ruleReduce(&stack);
-                continue;                               // pokud lze provest redukci, pokracujeme dal se stejnym tokenem na vstupu
+                alreadyRead = true;
+                // PrecedenceToken *topToken = S_Top(&stack);
+                // printf("TopToken: %d\n", topToken->isTerminal);
+                continue;                                       // pokud lze provest redukci, pokracujeme dal se stejnym tokenem na vstupu
             }
             else {
-                exprEnd = checkExprEnd(&stack);
-                break;
+                exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
             }
         }
+        else if (relation == '=') {
+            PrecedenceToken pushToken = tokenWrapper(next_token);
+            S_Push(&stack, pushToken);
+        } 
+        else if (relation == '<') {
+            tokenTop->reduction = true;
+            PrecedenceToken pushToken = tokenWrapper(next_token);
+            S_Push(&stack, pushToken);
+        } 
         next_token = getCurrentToken();
+        alreadyRead = false;
     }
 }
 
@@ -536,13 +554,6 @@ void expression() {
 }
 
 int main() {
-    FILE *source = fopen("empty_main.ifj", "r");
-    if (source == NULL) {
-        fprintf(stderr, "Error: Unable to open file\n");
-        return 1;
-    }
-    fileInit(source);  // Inicializace souboru
     syntax_analysis();  // Spustí se syntaktická analýza
-    fclose(source);
     return 0;
 }
