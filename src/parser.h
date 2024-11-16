@@ -81,7 +81,7 @@ Token parse_assignment_or_function_call();
  * 
  * @return Token pro další zpracování
  */
-Token parse_standard_function_call();
+void parse_standard_function_call();
 
 /**
  * @brief Funkce pro parsování argumentů funkce

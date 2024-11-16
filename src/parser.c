@@ -31,97 +31,6 @@ void syntax_analysis() {
     }
 }
 
-void expression() {
-    Stack stack;
-    S_Init(&stack);
-    Token Semicolon;
-    Semicolon.type = T_SEMICOLON;
-    PrecedenceToken bottom = tokenWrapper(Semicolon);
-    S_Push(&stack, bottom);
-    int parentheses = 0;        // pokud pocitadlo zavorek = -1, jsme na konci vyrazu
-    bool endToken = false;      // posledni token
-    bool exprEnd = false;       // konec vyrazu
-    Token next_token;
-    bool alreadyRead = false;
-
-    // pokud jsme uz precetli prvni token vyrazu, zpracujeme ho
-    if (CurrentToken.type != T_ASSIGN) {
-        next_token = CurrentToken;
-    }
-    else {
-        next_token = getCurrentToken();
-    }
-
-    while(!exprEnd) {
-        if (S_IsEmpty(&stack)) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-        PrecedenceToken *tokenTop = S_getTopTerminal(&stack);           // zjistime posledni terminal na zasobniku
-        // pokud na zasobniku neni zadny terminal, overujeme zda jsme narazili na konec vyrazu
-        if (tokenTop == NULL) {
-            exprEnd = checkExprEnd(&stack);
-            break;
-        }
-        if (alreadyRead == false && endToken == false) {                    // pokud nenarazime na posledni token ve vyrazu overujeme zda precteny token je posledni
-            if (next_token.type == T_OPEN_PARENTHESES) {
-                PrecedenceToken *function_call_check = S_getTopTerminal(&stack);
-                if (function_call_check->token.type == T_ID) {              // pokud pred zavorkou je ID, jedna se o volani funkce
-                    parse_function_call();                                  // prepneme se na ll1 analyzu
-                    next_token = getCurrentToken();
-                    alreadyRead = false;
-                    continue;                                               // na zasobniku zustane pouze id funkce a nikoliv zavorka a jeji argumenty
-                }
-                parentheses++;                                              // pokud narazime na token "(", zvysime pocitadlo zavorek 
-            } else if (next_token.type == T_CLOSE_PARENTHESES) {            // pokud narazime na token ")", zmensime pocitadlo zavorek
-                parentheses--;
-            }
-            if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA || next_token.type == T_OPEN_BRACKET) { // pokud je pocitadlo zavorek mensi nez 0, jedna se o konec vyrazu
-                endToken = true;
-                next_token.type = T_SEMICOLON;
-            }
-        }
-        else {
-            if (next_token.type == T_SEMICOLON) {                      // overime zda mame zredukovany cely vyraz
-                if(checkExprEnd(&stack)) {
-                    break;
-                }
-            }
-        }
-        
-        // porovnavame priority posledniho terminalu na zasobniku s prave nactenym tokenem
-        if (getOperatorIndex(next_token)==-1) {
-            exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
-        }
-        char relation = precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)];
-        if (relation==EMPTY) {
-            exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
-        }
-        if (relation == '>') {
-            if (S_topTerminalReduce(&stack)) {       // vrati znak pred poslednim terminalem na zasobniku pro overeni redukce
-                ruleReduce(&stack);
-                alreadyRead = true;
-                // PrecedenceToken *topToken = S_Top(&stack);
-                // printf("TopToken: %d\n", topToken->isTerminal);
-                continue;                                       // pokud lze provest redukci, pokracujeme dal se stejnym tokenem na vstupu
-            }
-            else {
-                exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
-            }
-        }
-        else if (relation == '=') {
-            PrecedenceToken pushToken = tokenWrapper(next_token);
-            S_Push(&stack, pushToken);
-        } 
-        else if (relation == '<') {
-            tokenTop->reduction = true;
-            PrecedenceToken pushToken = tokenWrapper(next_token);
-            S_Push(&stack, pushToken);
-        } 
-        next_token = getCurrentToken();
-        alreadyRead = false;
-    }
-}
-
 int parse_prolog() {
     if (getCurrentToken().type != T_CONST) {
         return 1;
@@ -167,7 +76,7 @@ Token code(Token token) {
         case T_ID: // přiřazení nebo volání funkce
             return code(parse_assignment_or_function_call());
         case T_IFJ: // volani vestavene funkce
-            return code(parse_standard_function_call());
+            return code(parse_assignment_or_function_call());
         case T_PUB:
             return code(parse_function_definition());
         default:
@@ -185,7 +94,14 @@ Token parse_if() {
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    if (getCurrentToken().type != T_OPEN_BRACKET) {
+    getCurrentToken();
+    if (CurrentToken.type == T_VERTICAL_BAR) {                                // if (...) | id_bez_null |
+        if (getCurrentToken().type != T_ID || getCurrentToken().type != T_VERTICAL_BAR) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        getCurrentToken();
+    }
+    if (CurrentToken.type != T_OPEN_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     Token token = code(getCurrentToken());  // Parsování těla if-bloku
@@ -219,7 +135,14 @@ Token parse_while() {
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    if (getCurrentToken().type != T_OPEN_BRACKET) {
+    getCurrentToken();
+    if (CurrentToken.type == T_VERTICAL_BAR) {                                // if (...) | id_bez_null |
+        if (getCurrentToken().type != T_ID || getCurrentToken().type != T_VERTICAL_BAR) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        getCurrentToken();
+    }
+    if (CurrentToken.type != T_OPEN_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     Token token = code(getCurrentToken());  // Parsování těla while smyčky
@@ -252,7 +175,8 @@ Token parse_variable_definition() {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
     }
-    if (getCurrentToken().type == T_STRING_TYPE) {
+    getCurrentToken();
+    if (CurrentToken.type == T_STRING_TYPE || CurrentToken.type == T_STRING_TYPE_EMPTY) {
         if (getCurrentToken().type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -280,6 +204,13 @@ Token parse_return() {
 }
 
 Token parse_assignment_or_function_call() {
+    if (CurrentToken.type == T_IFJ) {
+        parse_standard_function_call();
+        if (getCurrentToken().type != T_SEMICOLON) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        return getCurrentToken();  // Vrátíme token pro další zpracování
+    }
     Token token = getCurrentToken();
     if (token.type != T_ASSIGN && token.type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -302,7 +233,7 @@ Token parse_assignment_or_function_call() {
     return getCurrentToken();  // Vrátíme token pro další zpracování
 }
 
-Token parse_standard_function_call() {
+void parse_standard_function_call() {
     if (getCurrentToken().type != T_DOT) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -323,49 +254,16 @@ Token parse_standard_function_call() {
         !strcmp(token.data.u8->data, "strcmp") &&
         !strcmp(token.data.u8->data, "ord") &&
         !strcmp(token.data.u8->data, "chr")) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+    }
+    if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    if (!strcmp(token.data.u8->data, "write") ||
-        !strcmp(token.data.u8->data, "i2f") ||
-        !strcmp(token.data.u8->data, "f2i") ||
-        !strcmp(token.data.u8->data, "string") ||
-        !strcmp(token.data.u8->data, "length") ||
-        !strcmp(token.data.u8->data, "ord") ||
-        !strcmp(token.data.u8->data, "chr")) {
-        if (getCurrentToken().type != T_OPEN_PARENTHESES) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-        // THIS MAY NOT WORK WELL DEBUG LATER !!
-        expression();  // Parsování argumentu funkce
-        if (CurrentToken.type != T_CLOSE_PARENTHESES) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-    } else if (!strcmp(token.data.u8->data, "concat") || !strcmp(token.data.u8->data, "substrin") || !strcmp(token.data.u8->data, "strcmp")) {
-        if (getCurrentToken().type != T_OPEN_PARENTHESES) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-        expression();  // Parsování prvního argumentu funkce
-        if (CurrentToken.type != T_COMMA) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-        expression();  // Parsování druhého argumentu funkce
-        if (CurrentToken.type != T_CLOSE_PARENTHESES) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-        // add optional comma?
-    }
-    else {
-        if (getCurrentToken().type != T_OPEN_PARENTHESES) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-        if (getCurrentToken().type != T_CLOSE_PARENTHESES) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-    }
-    if (getCurrentToken().type != T_SEMICOLON) {
+    parse_function_call();
+    if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    return getCurrentToken();  // Vrátíme token pro další zpracování
+    return;
 }
 
 void arguments(Token token) {
@@ -376,12 +274,12 @@ void arguments(Token token) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
-    if (token.type != T_I32_ID && 
-        token.type != T_F64_ID && 
-        token.type != T_U8_ID &&
-        token.type != T_I32_NULLABLE &&
-        token.type != T_F64_NULLABLE &&
-        token.type != T_U8_NULLABLE) {
+    if (CurrentToken.type != T_I32_ID && 
+        CurrentToken.type != T_F64_ID && 
+        CurrentToken.type != T_U8_ID &&
+        CurrentToken.type != T_I32_NULLABLE &&
+        CurrentToken.type != T_F64_NULLABLE &&
+        CurrentToken.type != T_U8_NULLABLE) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
@@ -399,12 +297,13 @@ void arguments(Token token) {
         if (getCurrentToken().type != T_COLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        if (token.type != T_I32_ID && 
-            token.type != T_F64_ID && 
-            token.type != T_U8_ID &&
-            token.type != T_I32_NULLABLE &&
-            token.type != T_F64_NULLABLE &&
-            token.type != T_U8_NULLABLE) {
+        getCurrentToken();
+        if (CurrentToken.type != T_I32_ID && 
+            CurrentToken.type != T_F64_ID && 
+            CurrentToken.type != T_U8_ID &&
+            CurrentToken.type != T_I32_NULLABLE &&
+            CurrentToken.type != T_F64_NULLABLE &&
+            CurrentToken.type != T_U8_NULLABLE) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
         getCurrentToken();
@@ -425,9 +324,7 @@ Token parse_function_definition() {
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         arguments(CurrentToken);  // Parsování argumentů funkce
     }
-    else { 
-        getCurrentToken();
-    }
+    getCurrentToken();
     if (CurrentToken.type != T_I32_ID && 
         CurrentToken.type != T_F64_ID && 
         CurrentToken.type != T_U8_ID &&
@@ -451,7 +348,13 @@ void parse_function_call() {
     //Token token = CurrentToken;
     getCurrentToken();
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
-        expression();  // Parsování argumentů funkce
+        if (CurrentToken.type != T_STRING_TYPE && CurrentToken.type != T_STRING_TYPE_EMPTY) {
+            expression();  // Parsování argumentů funkce
+        }
+        else {
+            getCurrentToken();
+        }
+        //expression();  // Parsování argumentů funkce
         if (CurrentToken.type != T_COMMA && CurrentToken.type != T_CLOSE_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -460,6 +363,101 @@ void parse_function_call() {
         }
     }
     //return getCurrentToken();  // Vrátíme token pro další zpracování
+}
+
+void expression() {
+    Stack stack;
+    S_Init(&stack);
+    Token Semicolon;
+    Semicolon.type = T_SEMICOLON;
+    PrecedenceToken bottom = tokenWrapper(Semicolon);
+    S_Push(&stack, bottom);
+    int parentheses = 0;        // pokud pocitadlo zavorek = -1, jsme na konci vyrazu
+    bool endToken = false;      // posledni token
+    bool exprEnd = false;       // konec vyrazu
+    Token next_token;
+    bool alreadyRead = false;
+
+    // pokud jsme uz precetli prvni token vyrazu, zpracujeme ho
+    if (CurrentToken.type != T_ASSIGN) {
+        next_token = CurrentToken;
+    }
+    else {
+        next_token = getCurrentToken();
+    }
+
+    while(!exprEnd) {
+        if (S_IsEmpty(&stack)) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        PrecedenceToken *tokenTop = S_getTopTerminal(&stack);           // zjistime posledni terminal na zasobniku
+        // pokud na zasobniku neni zadny terminal, overujeme zda jsme narazili na konec vyrazu
+        if (tokenTop == NULL) {
+            exprEnd = checkExprEnd(&stack);
+            break;
+        }
+        if (next_token.type == T_IFJ) {
+            parse_standard_function_call();
+            next_token.type = T_ID;
+            alreadyRead = false;
+            continue;
+        }
+        if (alreadyRead == false && endToken == false) {                    // pokud nenarazime na posledni token ve vyrazu overujeme zda precteny token je posledni
+            if (next_token.type == T_OPEN_PARENTHESES) {
+                PrecedenceToken *function_call_check = S_getTopTerminal(&stack);
+                if (function_call_check->token.type == T_ID) {              // pokud pred zavorkou je ID, jedna se o volani funkce
+                    parse_function_call();                                  // prepneme se na ll1 analyzu
+                    next_token = getCurrentToken();
+                    alreadyRead = false;
+                    continue;                                               // na zasobniku zustane pouze id funkce a nikoliv zavorka a jeji argumenty
+                }
+                parentheses++;                                              // pokud narazime na token "(", zvysime pocitadlo zavorek 
+            } else if (next_token.type == T_CLOSE_PARENTHESES) {            // pokud narazime na token ")", zmensime pocitadlo zavorek
+                parentheses--;
+            }
+            if (parentheses < 0 || next_token.type == T_SEMICOLON || next_token.type == T_COMMA || next_token.type == T_OPEN_BRACKET) { // pokud je pocitadlo zavorek mensi nez 0, jedna se o konec vyrazu
+                endToken = true;
+                next_token.type = T_SEMICOLON;
+            }
+        }
+        else {
+            if (next_token.type == T_SEMICOLON) {                      // overime zda mame zredukovany cely vyraz
+                if(checkExprEnd(&stack)) {
+                    break;
+                }
+            }
+        }
+        
+        // porovnavame priority posledniho terminalu na zasobniku s prave nactenym tokenem
+        if (getOperatorIndex(next_token)==-1) {
+            exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
+        }
+        char relation = precedenceTable[getOperatorIndex(tokenTop->token)][getOperatorIndex(next_token)];
+        if (relation==EMPTY) {
+            exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
+        }
+        if (relation == '>') {
+            if (S_topTerminalReduce(&stack)) {       // vrati znak pred poslednim terminalem na zasobniku pro overeni redukce
+                ruleReduce(&stack);
+                alreadyRead = true;
+                continue;                                       // pokud lze provest redukci, pokracujeme dal se stejnym tokenem na vstupu
+            }
+            else {
+                exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
+            }
+        }
+        else if (relation == '=') {
+            PrecedenceToken pushToken = tokenWrapper(next_token);
+            S_Push(&stack, pushToken);
+        } 
+        else if (relation == '<') {
+            tokenTop->reduction = true;
+            PrecedenceToken pushToken = tokenWrapper(next_token);
+            S_Push(&stack, pushToken);
+        } 
+        next_token = getCurrentToken();
+        alreadyRead = false;
+    }
 }
 
 int main() {
