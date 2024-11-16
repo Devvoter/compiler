@@ -6,12 +6,10 @@
 
 #include "scanner.h"
 #include "precedence_token.h"
-#include "stack_precedence.h"
+#include "stack.h"
 #include "error.h"
 
 char precedenceTable[NUM_OPERATORS][NUM_OPERATORS] = {
-    // Fill in the table based on your image
-    // Example:
     //        +    -    *    /    ==   !=   <    >    <=   >=   (    )    id   ;    
     /* +  */ {'>', '>', '<', '<', '>', '>', '>', '>', '>', '>', '<', '>', '<', '>'},
     /* -  */ {'>', '>', '<', '<', '>', '>', '>', '>', '>', '>', '<', '>', '<', '>'},
@@ -58,11 +56,6 @@ PrecedenceToken tokenWrapper(Token token) {
     pt.reduction = false;
     return pt;
 }
-
-// void addArrrowToTop(Stack *stack) {
-//     PrecedenceToken *tokenPtr = S_Top(stack);
-//     tokenPtr->reduction = true;
-// }
 
 void ruleReduce(Stack *stack) {
     PrecedenceToken *tokenTop = S_Top(stack);

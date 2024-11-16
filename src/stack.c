@@ -10,12 +10,10 @@
 /*************************************************************************************************
  * Příklad použití zásobníku s prvky různých datových typů                                       *
  *                                                                                               *
- *   int integerValue = 42;                 // hodnota celého čísla                              *
- *   S_Push(&stack, &integerValue);         // přidání hodnoty do zásobníku                      *
- *   int *intPtr = (int *) S_Top(&stack);   // převést ukazatel na (int *)  !!!!!                *
- *   S_Pop(&stack);                         // Odebrání prvku z vrcholu zásobníku                *
- *                                                                                               *
- * !!! Pro vyjmutí dat je třeba provést přetypování ukazatele (void *) na původní datový typ.    *
+ *   PrecedenceToken token;                      // hodnota celého čísla                         *
+ *   S_Push(&stack, token);                      // přidání hodnoty do zásobníku                 *
+ *   PrecedenceToken *tokenPtr = S_Top(&stack);  // Vratí ukazatel na prvek z vrcholu zásobníku  *
+ *   S_Pop(&stack);                              // Odebrání prvku z vrcholu zásobníku           *
  *                                                                                               *
  *************************************************************************************************/
 
@@ -26,7 +24,7 @@ void S_Init(Stack *s) {
     s->top = NULL;
 }
 
-bool S_Push(Stack *s, void *data) {
+bool S_Push(Stack *s, PrecedenceToken data) {
     StackItem *new_item = (StackItem *) malloc(sizeof(StackItem));
     if (new_item == NULL) return false;
 
@@ -46,8 +44,8 @@ void S_Pop(Stack *s) {
     }
 }
 
-void *S_Top(Stack *s) {
-    if (s->top != NULL) return (s->top->data);
+PrecedenceToken *S_Top(Stack *s) {
+    if (s->top != NULL) return &(s->top->data);
     return NULL;
 }
 
