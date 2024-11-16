@@ -4,11 +4,13 @@ pub fn main() void {
     }
     while (a+b) {
     }
-    while ((a)) {
+    while ((a)) |b| {
     }
     while (a+b*c) {
     }
+    var x = 5;
     while(5+foo()){
         return;
     }
+    var a = 8;
 }

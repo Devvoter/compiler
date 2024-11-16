@@ -1,0 +1,15 @@
+const ifj = @import("ifj24.zig");
+pub fn main() void {
+    const par = ifj.string(a);
+    const par = ifj.string("ahoj");
+    const res = ifj. concat(x, y);
+    res = ifj. concat(x, y);
+    ifj.concat(x, y);
+    var ct : []u8 = ifj.string("svete");
+    // pub fn ifj.readstr() ?[]u8;       // would this be syntax or semantic error? i think semantic
+    // ifj.readi32() ?i32
+    // i = ifj.readf64() ?f64
+    ifj.write(term);
+    //ifj.strcmp(𝑠1 : []u8, 𝑠2 : []u8);
+    a = ifj.strcmp(s1, s2);
+}

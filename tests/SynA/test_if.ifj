@@ -2,13 +2,13 @@ const ifj = @import("ifj24.zig");
 pub fn main() void {
     if (a) {
     }
-    if (a+b) {
+    if (a+b) |id|{
     }
     if ((a)) {
     }
     if (a+b*c) {
     }
-    if(5){
+    if(5 < foo(9,8,)){
         return;
     }
     else {
