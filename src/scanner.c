@@ -13,11 +13,13 @@
 #include "error.h"
 
 
-#ifdef USE_STDIN
-    #define SOURCE stdin
-#else
+#ifdef USE_FILE
     #define SOURCE source_file
+#else
+    #define SOURCE stdin
 #endif
+
+static unsigned long line_count = 0;
 
 enum automat_state changeAutomatState (char c){
 
@@ -181,7 +183,7 @@ void stringToNum(Token* token) {
 
     // Pokud se řetězec úspěšně převedl na celé číslo
     if (*err == '\0') {
-        token->type = T_I32_ID;
+        token->type = T_I32_VAR;
         bufferFree(token->data.u8);  // Uvolnění řetězce
         token->data.i32 = tmp_int;
         return;
@@ -192,7 +194,7 @@ void stringToNum(Token* token) {
 
     // Zkontrolujeme úspěšnost převodu na double
     if (*err == '\0') {
-        token->type = T_F64_ID;
+        token->type = T_F64_VAR;
         bufferFree(token->data.u8);  // Uvolnění řetězce
         token->data.f64 = tmp_double;
         return;
@@ -201,8 +203,8 @@ void stringToNum(Token* token) {
     // Pokud se nepodařilo rozpoznat jako celé nebo desetinné číslo
     bufferFree(token->data.u8);
     token->type = T_ERROR;
+    exitWithError(token, ERR_LEXICAL_ANALYSIS);
 }
-
 
 Token getNextToken(){
 
@@ -210,12 +212,14 @@ Token getNextToken(){
     newToken.type = T_UNKNOW;
 
     static unsigned long init_count;
-    static unsigned long line_count;
+
+
     newToken.line = line_count;
 
     int c = fgetc(SOURCE);
     //printf("Read character: %c\n", c);  
     bool escapeSequence = false;
+    bool isEmptyString = true;
 
     if (c == EOF){
         newToken.type = T_EOF;
@@ -273,6 +277,7 @@ Token getNextToken(){
         case S_OPEN_PARENTHESES:
             newToken.type = T_OPEN_PARENTHESES;
             return newToken;
+        /* [ */
         case S_SQUQRE_BRACKET_OPEN:
             ungetc(c, SOURCE);
             STATE = S_TYPE_ID;
@@ -315,7 +320,10 @@ Token getNextToken(){
         /* != */
         case S_NOT_EQUALS:
             if (c == '=') newToken.type = T_NOT_EQUALS;
-            else ungetc(c,SOURCE);
+            else {
+                ungetc(c,SOURCE);
+                exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
+            }
             return newToken;
         /* @ */
         case S_AT:
@@ -331,10 +339,16 @@ Token getNextToken(){
         /* / */
         case S_SLASH:
             newToken.type = T_DIV;
-            STATE = S_LINE_COMMENT;
-            break;
+            if ((c = fgetc(SOURCE)) == '/')
+            {
+                STATE = S_LINE_COMMENT;
+                break;
+            }
+            ungetc(c,SOURCE);
+            return newToken;
         /* // */
         case S_LINE_COMMENT:
+
             if (c == '\n'){
                 newToken.type = T_UNKNOW;
                 line_count++;
@@ -352,6 +366,21 @@ Token getNextToken(){
             return newToken;
         /* "..." */
         case S_QUOTE:
+            
+            if (c == '"' && isEmptyString)
+            {
+                c = fgetc(SOURCE);
+                if (c == '"')
+                {
+                   newToken.type = T_STRING_TYPE_EMPTY;
+                   return newToken;
+                }
+                ungetc(c, SOURCE);
+                isEmptyString = false;
+                break;
+            }
+            
+
             if (escapeSequence) {
                 // Zpracování standardních escape sekvencí
                 switch (c) {
@@ -464,6 +493,7 @@ Token getNextToken(){
             STATE = S_TYPE_ID;
             ungetc(c, SOURCE);
             newToken.type = T_ERROR;
+            exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
             break;
         /* ?i32 | ?[]u8 | ?f64 */
         case S_TYPE_ID:
@@ -522,11 +552,14 @@ Token getNextToken(){
             else {
                 init_count = 0;
                 newToken.type = T_ERROR;
-                return newToken;
+                exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);                
             }
             break;
         
-            
+        case S_ERROR:
+            newToken.type = T_ERROR;
+            exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
+            break;
         default:
             //printf("bread pit\n");
             newToken.type = T_UNKNOW;
@@ -540,10 +573,11 @@ Token getNextToken(){
 
 
     if(STATE == S_INT_NUM || STATE == S_EXP_NUM || STATE == S_FLOAT_NUM) stringToNum(&newToken);
-    if (STATE == S_QUOTE) newToken.type = T_ERROR;
+    if (STATE == S_QUOTE) exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
     else if(STATE == S_LETTER) newToken.type = isKeyWord(newToken.data.u8->data);
     else if (STATE == S_TYPE_ID) isNullType(&newToken);
     else if (c == EOF) newToken.type = T_EOF;
+    else if(newToken.type == T_UNKNOW || newToken.type == T_ERROR) exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
 
     return newToken;
 }
