@@ -5,8 +5,6 @@
  * 
  * @author Michaela Capíková (xcapikm00)
  * @date 2024-10-19
- * @todo (uvedeno v symtable.h)
- * 
  */
 
 #include "symtable.h"
@@ -174,19 +172,6 @@ tSymTabNode* insert_avl (tSymTabNode *root, tSymTabNode *node, bool *heightChang
     return root;
 }
 
-//---------------------IN PROGRESS----------------------------------------
-/**
- * OPERACE PRO AVL STROM
- * create / init node: var, fun
- * insert node - kontrola duplicity
- * delete node (bude nekdy potreba mazat?)
- *  LLrot
- *  LRrot
- *  RRrot
- *  RLrot
-*/
-
-// doplnit parametry? Kdy dostaneme nové parametry?
 tSymTabNode* create_var_node (bool isConst) {
     tSymTabNode *newVar = malloc(sizeof(tSymTabNode));
     if (newVar == NULL) return NULL;
@@ -213,12 +198,10 @@ tSymTabNode* create_var_node (bool isConst) {
     return newVar;
 }
 
-// doplnit parametry? Kdy dostaneme nové parametry?
 tSymTabNode* create_fun_node () {
     tSymTabNode *newFun = malloc(sizeof(tSymTabNode));
     if (newFun == NULL) return NULL;
 
-    // todo: inicializace
     newFun->funData = malloc(sizeof(tVar));
     if (newFun->funData == NULL) { 
         free(newFun);
@@ -238,19 +221,14 @@ tSymTabNode* create_fun_node () {
     return newFun;
 }
 
-/**
- * @brief Funkce pro vložení uzlu do tabulky symbolú
- * @param fs Zásobník úrovní tabulek symbolú
- * @param node Vkladaný symbol
- * @todo Vykoná funkce také sémantickou kontrolu duplicitních identifikátorú?
- */
-void insert_symbol (tFrameStack *fs, tSymTabNode *node) { // doplnit parametry
+bool insert_symbol (tFrameStack *fs, tSymTabNode *node) {
     if(search_symbol(fs, node->id) != NULL) { 
         // semanticka chyba - duplicitny identifikator
-        return;
+        return false;
     }
     bool heightChange = false;
     fs->current->symTable = insert_avl(fs->current->symTable, node, &heightChange);
+    return true;
 }
 
 /* Konec souboru symtable.c */

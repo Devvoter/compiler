@@ -5,10 +5,6 @@
  * 
  * @author Michaela Capíková (xcapikm00)
  * @date 2024-10-19
- *
- * @todo Nahradit placeholdery v strukturach!!!, operace AVL, funkce semanticke analyzy
- *       Odstranenou uroven symtab odstranujeme nebo uvolnujeme? ODSTRANIT
- *       Pri vkladani symbolu kontrolujeme duplicitu?
  */
 
 #include <stdbool.h>
@@ -42,7 +38,7 @@ typedef struct var{
  */
 typedef struct fun{
     int retType;
-    // *paramTypes   // funkce muze mit vice ruznych parametru - jak implementovat?
+    int *paramTypes; // typy parametrú funkce - pole?
     int paramCnt;    // pocet parametru
 } tFun;
 
@@ -95,8 +91,10 @@ tFrame* push_frame (tFrameStack *fs, bool isFun);
  * @brief Funkce pro odstránění nejvíce zanořené úrovně TS ze zásobníku úrovní
  * @param fs Ukazatel na zásobník úrovní TS
  * @return Ukazatel na odstraněnou úroveň TS. NULL ak byl zásobník prázdný
- * 
- * @todo Uvolnit úroveň nebo se bude ukládat jinam?
+ *
+ * Úroveň je zapotřebí odstránit VŽDY při opuštění bloku kódu!!!
+ * Zásobník pak bude obsahovat jenom symboly platné v aktuální úrovni
+ * Funkce neuvolňuje paměť!!! Odstráněnou úroveň je možné dál využít
  */
 tFrame* pop_frame (tFrameStack *fs);
 
@@ -153,20 +151,25 @@ tSymTabNode* rotate_drl (tSymTabNode *root);
  */
 tSymTabNode* insert_avl (tSymTabNode *root, tSymTabNode *node, bool *heightChange);
 
-//---------------------IN PROGRESS----------------------------------------
 /**
- * OPERACE PRO AVL STROM
- * create / init node: var, fun
- * insert node - kontrola duplicity
- * delete node (bude nekdy potreba mazat?)
- *  LLrot
- *  LRrot
- *  RRrot
- *  RLrot
-*/
-
+ * @brief Funkce pro vytvoření uzlu reprezentující proměnnou
+ * @param isConst Zda je proměnná konstantou (První informace získaná při deklaraci)
+ * @return Ukazatel na vytvořený uzel. Null když selhala alokace paměti
+ */
 tSymTabNode* create_var_node (bool isConst);
+
+/**
+ * @brief Funkce pro vytvoření uzlu reprezentující funkci
+ * @return Ukazatel na vytvořený uzel. Null když selhala alokace paměti
+ */
 tSymTabNode* create_fun_node ();
-void insert_symbol (tFrameStack *fs, tSymTabNode *node);
+
+/**
+ * @brief Funkce pro vložení uzlu do tabulky symbolú. Před vložením ověří duplicitu identifikátorú
+ * @param fs Ukazatel na zásobník úrovní TS
+ * @param node Ukazatel na vkládaný uzel
+ * @return True při úspěšném vložení. False když byl nalezen duplicitní identifikátor
+ */
+bool insert_symbol (tFrameStack *fs, tSymTabNode *node);
 
 /* Konec souboru symtable.h */
