@@ -21,6 +21,7 @@ tFrame* push_frame (tFrameStack *fs, bool isFun) {
     newFrame->prev = fs->current;
     newFrame->symTable = NULL;
     newFrame->isFun = isFun;
+    newFrame->retType = NOT_DEF;
 
     fs->current = newFrame;
     if (fs->global == NULL) fs->global = newFrame;

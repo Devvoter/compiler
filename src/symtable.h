@@ -61,6 +61,8 @@ typedef struct symTabNode{
  */
 typedef struct frame{
     bool isFun;               // zda blok kodu patri funkci nebo while,if,..
+    int retType;              // pro kontrolu návratové hodnoty funkce
+    bool calledReturn;
     tSymTabNode *symTable;    // lokalni TS
     tFrame *prev;             // nadrazeny blok kodu
 } tFrame;
