@@ -1,7 +1,7 @@
 /**
  * @file scanner.c
  * @author Denys Pylypenko (xpylypd00)
- * @brief
+ * @brief 
  * 
  * @date 2024-09-30
  * 
@@ -23,15 +23,10 @@ static unsigned long line_count = 0;
 
 enum automat_state changeAutomatState (char c){
 
-    if (isalpha(c) || (c == '_')){
-        return S_LETTER;
-    }
-    else if (isdigit(c)){
-        return S_INT_NUM;
-    }
-    else if(isspace(c)){
-        return S_START;
-    }
+    if      (isalpha(c) || (c == '_')) return S_LETTER;
+    else if (isdigit(c))               return S_INT_NUM;
+    else if (isspace(c))               return S_START;
+
 
     switch (c)
     {
@@ -110,8 +105,6 @@ void isNullType (Token* newToken){
         newToken->type = T_ERROR;
         exitWithError(newToken, ERR_LEXICAL_ANALYSIS);
     }
-
-
 }
 
 
@@ -136,11 +129,11 @@ KeywordTokenPair keyword_tokens[] = {
 TokenType isKeyWord(const char* word) {
     
     size_t keywords_count = sizeof(keyword_tokens) / sizeof(keyword_tokens[0]);
+
     for (size_t i = 0; i < keywords_count; ++i) {
-        if (strcmp(word, keyword_tokens[i].keyword) == 0) {
-            return keyword_tokens[i].token_type;
-        }
+        if (strcmp(word, keyword_tokens[i].keyword) == 0) return keyword_tokens[i].token_type;
     }
+    
     // Pokud slovo není v seznamu klíčových slov nalezeno, vrátí identifikátor
     return T_ID;
 }
@@ -402,35 +395,42 @@ Token getNextToken(){
                     case 'x':
                         char nextChar = fgetc(SOURCE);
                         if (nextChar == '{') {
-                            // Začínáme číst šestnáctkové číslice
+                            // Pripad s slozenymi zavorkami
                             char hex[3] = {0};
                             int i = 0;
-                            while (i < 2) {  // Omezujeme délku na dva znaky
+                            while (i < 2) {  // Omezujeme delku na dva znaky
+
                                 char hexChar = fgetc(SOURCE);
-                                if (hexChar == '}') {
-                                    break;  // Ukončujeme sekvenci při setkání s '}'
-                                } else if (isxdigit(hexChar)) {
-                                    hex[i++] = hexChar;  // Čteme šestnáctkové číslice
-                                } else {
-                                    // Neplatný znak v šestnáctkové sekvenci
-                                    exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
-                                }
+                                if (hexChar == '}') break;  // Ukoncujeme pri setkani s '}'
+                                else if (isxdigit(hexChar)) hex[i++] = hexChar;  // Cteme sestnactkove cislice
+                                else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Neplatny znak v sestnactkove sekvenci
                             }
 
                             if (i == 2) {
-                                // Převádíme šestnáctkové číslice na hodnotu znaku
+                                // Prevadime sestnactkove cislice na hodnotu znaku
                                 int value = strtol(hex, NULL, 16);
                                 loadSymbol(&newToken, (char)value, &init_count);
-                                fgetc(SOURCE);  // Přeskakujeme znak uzavírající závorky '}'
-                            } else {
-                                // Nedostatek šestnáctkových číslic nebo nesprávný formát
-                                exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
-                            }
-                        } else {
-                            // Pokud jsme nenarazili na '{', jde o chybu
-                            exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
-                        }
+                                fgetc(SOURCE);  // Preskakujeme znak uzavirajici zavorky '}'
+                            } 
+                            else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Nedostatek sestnactkovych cislic nebo spatny format
+                        } 
+                        else if (isxdigit(nextChar)) {
+                            // Pripad bez slozenych zavorek
+                            char hex[3] = {0};
+                            hex[0] = nextChar;  // Ukladame prvni znak
+                            hex[1] = fgetc(SOURCE);  // Cteme druhy znak
+
+                            if (isxdigit(hex[1])) {
+                                // Pokud jsou oba znaky platne, prevadime je
+                                int value = strtol(hex, NULL, 16);
+                                loadSymbol(&newToken, (char)value, &init_count);
+                            } 
+                            else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);// Pokud druhy znak neni sestnactkovy
+                        } 
+                        else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Pokud po 'x' neni '{' a ani sestnactkovy znak
+
                         break;
+
                     default:
                         // Pokud znak po '\' není platná escape sekvence
                         exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
@@ -450,11 +450,11 @@ Token getNextToken(){
                         // Pokud řetězec skutečně pokračuje, přidáme '\n' do řetězce
                         loadSymbol(&newToken, '\n', &init_count);
                         continue;  // Pokračujeme na další znak
-                    } else {
-                        // Pokud řetězec nepokračuje, vrátíme znak zpět do vstupu
-                        ungetc(skipSpace, SOURCE);
-                    }
-                } else {
+                    } 
+                    else ungetc(skipSpace, SOURCE); // Pokud řetězec nepokračuje, vrátíme znak zpět do vstupu
+
+                } 
+                else {
                     // Pokud to není víceřádkový řetězec, ale symbol '\', aktivujeme escape sekvenci
                     ungetc(nextChar, SOURCE);  // Vrátíme znak zpět do vstupu
                     escapeSequence = true;    // Aktivujeme escape sekvenci
@@ -466,10 +466,7 @@ Token getNextToken(){
                 newToken.type = T_STRING_TYPE;
                 return newToken;
             }
-            else if (c == '\n') {
-                // Chyba: není dovoleno přenášet řetězec na nový řádek
-                exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
-            }
+            else if (c == '\n') exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Chyba: není dovoleno přenášet řetězec na nový řádek
             else {
                 if (c == '"') break; // skipujeme první "
                 loadSymbol(&newToken, c, &init_count);  // Standardní načítání znaku do řetězce
