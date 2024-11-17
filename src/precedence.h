@@ -10,7 +10,7 @@
 #include "error.h"
 
 char precedenceTable[NUM_OPERATORS][NUM_OPERATORS] = {
-    //        +    -    *    /    ==   !=   <    >    <=   >=   (    )    id   ;    
+    //        +    -    *    /    ==   !=   <    >    <=   >=   (    )   term   ;    
     /* +  */ {'>', '>', '<', '<', '>', '>', '>', '>', '>', '>', '<', '>', '<', '>'},
     /* -  */ {'>', '>', '<', '<', '>', '>', '>', '>', '>', '>', '<', '>', '<', '>'},
     /* *  */ {'>', '>', '>', '>', '>', '>', '>', '>', '>', '>', '<', '>', '<', '>'},
@@ -23,7 +23,7 @@ char precedenceTable[NUM_OPERATORS][NUM_OPERATORS] = {
     /* >= */ {'<', '<', '<', '<', EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, '<', '>', '<', '>'},
     /* (  */ {'<', '<', '<', '<', '<', '<', '<', '<', '<', '<', '<', '=', '<', EMPTY},
     /* )  */ {'>', '>', '>', '>', '>', '>', '>', '>', '>', '>', EMPTY, '>', EMPTY, '>'},
-    /* id */ {'>', '>', '>', '>', '>', '>', '>', '>', '>', '>', EMPTY, '>', EMPTY, '>'},
+    /*term*/ {'>', '>', '>', '>', '>', '>', '>', '>', '>', '>', EMPTY, '>', EMPTY, '>'},
     /* ;  */ {'<', '<', '<', '<', '<', '<', '<', '<', '<', '<', '<', EMPTY, '<', EMPTY}
 };
 
@@ -44,6 +44,7 @@ int getOperatorIndex(Token token) {
         case T_ID: return 12;
         case T_I32_VAR: return 12;
         case T_F64_VAR: return 12;
+        case T_NULL: return 12;
         case T_SEMICOLON: return 13;
         default: return -1;         // Invalid operator
     }
@@ -62,7 +63,8 @@ void ruleReduce(Stack *stack) {
     if (tokenTop->isTerminal) {
         if (tokenTop->token.type == T_ID ||
         tokenTop->token.type == T_I32_VAR ||
-        tokenTop->token.type ==T_F64_VAR) {                                 // E -> id
+        tokenTop->token.type == T_F64_VAR ||
+        tokenTop->token.type == T_NULL) {                                 // E -> id
             Token expr;
             expr.type = T_EXPRESSION_NONTERMINAL;
             expr.line = tokenTop->token.line;
@@ -72,10 +74,9 @@ void ruleReduce(Stack *stack) {
             else if (tokenTop->token.type == T_I32_VAR) {
                 expr.data.i32 = tokenTop->token.data.i32;
             }
-            else {
+            else if (tokenTop->token.type == T_F64_VAR) {
                 expr.data.f64 = tokenTop->token.data.f64;
             }
-            //expr.data.u8 = tokenTop->token.data.u8;
             PrecedenceToken reducedTop;
             reducedTop.token = expr;
             reducedTop.isTerminal = false;
