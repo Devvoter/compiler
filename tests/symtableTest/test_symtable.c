@@ -256,6 +256,60 @@ void test_dlr_more_nodes() {
     printf("Testy dlr_more_nodes OK!\n");
 }
 
+void test_LL_critical_deeper() {
+    tSymTabNode *root = NULL;
+    bool heightChange = false;
+
+    tSymTabNode *node1 = create_var_node(false);
+    node1->id = str_duplicate("d");
+    tSymTabNode *node2 = create_var_node(false);
+    node2->id = str_duplicate("e");
+    tSymTabNode *node3 = create_var_node(false);
+    node3->id = str_duplicate("c");
+    tSymTabNode *node4 = create_var_node(false);
+    node4->id = str_duplicate("b");
+    tSymTabNode *node5 = create_var_node(false);
+    node5->id = str_duplicate("a");
+
+    root = insert_avl(root, node1, &heightChange);
+    root = insert_avl(root, node2, &heightChange);
+    root = insert_avl(root, node3, &heightChange);
+    root = insert_avl(root, node4, &heightChange);
+    root = insert_avl(root, node5, &heightChange);
+
+    assert(strcmp(root->left->id, "b") == 0);
+
+    printf("Test LL_critical_deeper OK!\n");
+}
+
+void test_dlr_critical_deeper() {
+    tSymTabNode *root = NULL;
+    bool heightChange = false;
+
+    tSymTabNode *node1 = create_var_node(false);
+    node1->id = str_duplicate("d");
+    tSymTabNode *node2 = create_var_node(false);
+    node2->id = str_duplicate("e");
+    tSymTabNode *node3 = create_var_node(false);
+    node3->id = str_duplicate("c");
+    tSymTabNode *node4 = create_var_node(false);
+    node4->id = str_duplicate("a");
+    tSymTabNode *node5 = create_var_node(false);
+    node5->id = str_duplicate("b");
+
+    root = insert_avl(root, node1, &heightChange);
+    root = insert_avl(root, node2, &heightChange);
+    root = insert_avl(root, node3, &heightChange);
+    root = insert_avl(root, node4, &heightChange);
+    root = insert_avl(root, node5, &heightChange);
+
+    assert(strcmp(root->left->id, "b") == 0);
+    assert(root->height == -1);
+    assert(strcmp(root->id, "d") == 0);
+
+    printf("Test dlr_critical_deeper OK!\n");
+}
+
 int main() {
     test_RR_rot();
     test_search_symbol();
@@ -265,5 +319,7 @@ int main() {
     test_dlr();
     test_LL_more_nodes();
     test_dlr_more_nodes();
+    test_LL_critical_deeper();
+    test_dlr_critical_deeper();
     return 0;
 }
