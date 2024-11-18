@@ -207,13 +207,43 @@ void isNullType (Token* newToken);
  */
 TokenType isKeyWord(const char* word);
 
+/** Prvek jednosměrně vázaného seznamu. */
+typedef struct ListToken{
+    Token                    token;   // token
+    struct ListToken  *nextToken;   // dalsi token
+}*ListTokenPtr;
+
+/** Jednosměrně vázaný seznam. */
+typedef struct {
+    /** Ukazatel na první token seznamu. */
+    ListTokenPtr     firstToken;
+    /** Ukazatel na aktuální prvek seznamu. */
+    ListTokenPtr    activeToken;
+
+    ListTokenPtr     tokenToGet;
+    /** Aktuální délka seznamu. */
+    int          currentLength;
+}ListOfTokens;
+
+void init_list_of_tokens(ListOfTokens *list);
+
+void free_list_of_tokens(ListOfTokens *list);
+
+
+void insert_in_list_of_tokens(ListOfTokens *list, Token token);
+
+void i_want_to_get_tokens(ListOfTokens *list);
+
+Token get_token_from_list(ListOfTokens *list);
+
+void print_list_of_tokens(ListOfTokens * list);
+
 /**
  * @brief Funkce zpracuje vstup a pošle dál token.
  * 
  * @return Vrácí token.
  * 
  */
-Token getNextToken();
-
+Token getNextToken(ListOfTokens *list);
 
 #endif // _SCANNER_H_

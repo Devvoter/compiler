@@ -40,13 +40,13 @@ int printTokenType(Token newToken) {
             printf("Token type: T_I32_VAR,            line:%ld, value: %ld\n", newToken.line+1, newToken.data.i32);
             break;
         case T_I32_ID:
-            printf("Token type: T_I32_ID              line:%ld\n", newToken.line+1+1);
+            printf("Token type: T_I32_ID              line:%ld\n", newToken.line+1);
             break;
         case T_F64_VAR:
             printf("Token type: T_F64_VAR,            line:%ld, value: %f\n",newToken.line+1+1, newToken.data.f64);
             break;
         case T_F64_ID:
-            printf("Token type: T_F64_ID              line:%ld\n", newToken.line+1+1);
+            printf("Token type: T_F64_ID              line:%ld\n", newToken.line+1);
             break;
         case T_NULL:
             printf("Token type: T_NULL                line:%ld\n", newToken.line+1);
@@ -179,8 +179,39 @@ int main() {
 
     // čteme a výpisujeme tokeny
     Token newToken;
-    do newToken = getNextToken();
-    while (printTokenType(newToken) != -1);
+    ListOfTokens list;
+    init_list_of_tokens(&list);
+
+    //do newToken = getNextToken();
+    //while (printTokenType(newToken) != -1);
+    Token token = getNextToken(&list);
+    while(token.type != T_EOF){
+        token = getNextToken(&list);
+    }
+
+    print_list_of_tokens(&list);
+
+    printf("--------------------------------------------\n");
+    i_want_to_get_tokens(&list);
+    Token test_token;
+    test_token = get_token_from_list(&list);
+    while (printTokenType(test_token) != -1)
+    {
+        test_token = get_token_from_list(&list);
+    }
+
+    printf("--------------------------------------------\n");
+    i_want_to_get_tokens(&list);
+    Token test1_token;
+    test1_token = get_token_from_list(&list);
+    while (printTokenType(test1_token) != -1)
+    {
+        test1_token = get_token_from_list(&list);
+    }
+    
+    free_list_of_tokens(&list);
+    
+    print_list_of_tokens(&list);
 
 #ifdef USE_FILE
     fclose(file);

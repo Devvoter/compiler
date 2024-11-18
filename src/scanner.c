@@ -19,6 +19,240 @@
     #define SOURCE stdin
 #endif
 
+
+void init_list_of_tokens(ListOfTokens *list){
+    list->firstToken = NULL;
+    list->activeToken = NULL;
+    list->currentLength = 0;
+    list->tokenToGet = NULL;
+}
+
+void free_list_of_tokens(ListOfTokens *list) {
+	
+	while (list->firstToken != NULL)
+	{
+		list->activeToken = list->firstToken; 
+        list->firstToken = list->firstToken->nextToken; // posuneme first na dalsi prvek
+
+        free(list->activeToken); // uvolnujeme prvek
+	}
+	
+	list->firstToken = NULL;
+	list->activeToken = NULL;
+    list->firstToken = NULL;
+	list->currentLength = 0; 
+}
+
+
+void insert_in_list_of_tokens(ListOfTokens *list, Token token){
+
+    ListTokenPtr newElemnt = (ListTokenPtr)malloc(sizeof(struct ListToken));
+    if (newElemnt == NULL) exit(42);
+
+    newElemnt->token = token;
+    newElemnt->nextToken = NULL;
+
+    
+    
+
+    if (list->firstToken == NULL)
+    {
+        list->firstToken = newElemnt;
+        list->activeToken = newElemnt;
+        
+    }
+    else{
+        list->activeToken = list->firstToken;
+        while (list->activeToken->nextToken != NULL)
+        {
+            list->activeToken = list->activeToken->nextToken;
+        }
+        list->activeToken->nextToken = newElemnt;
+        
+    }
+
+    list->currentLength++;
+}
+
+void i_want_to_get_tokens(ListOfTokens *list){
+    list->tokenToGet = list->firstToken;
+}
+
+Token get_token_from_list(ListOfTokens *list){
+    list->activeToken = list->tokenToGet;
+    list->tokenToGet = list->tokenToGet->nextToken;
+    return list->activeToken->token;
+}
+
+void print_list_of_tokens(ListOfTokens * list){
+    if (list->firstToken == NULL)
+    {
+        printf("list is empty\n");
+        return;
+    }
+    
+    list->activeToken = list->firstToken;
+    while (list->activeToken != NULL)
+    {
+        Token newToken = list->activeToken->token;
+        switch (newToken.type) {
+            case T_EOF:
+                printf("Token type: T_EOF                 line:%ld\n", newToken.line+1);
+                return;
+                break;
+            case T_IMPORT:
+                printf("Token type: T_IMPORT,             line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_IFJ:
+                printf("Token type: T_IFJ,                line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_CONST:
+                printf("Token type: T_CONST,              line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_ELSE:
+                printf("Token type: T_ELSE,               line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_FN:
+                printf("Token type: T_FN,                 line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_IF:
+                printf("Token type: T_IF,                 line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_I32_VAR:
+                printf("Token type: T_I32_VAR,            line:%ld, value: %ld\n", newToken.line+1, newToken.data.i32);
+                break;
+            case T_I32_ID:
+                printf("Token type: T_I32_ID              line:%ld\n", newToken.line+1);
+                break;
+            case T_F64_VAR:
+                printf("Token type: T_F64_VAR,            line:%ld, value: %f\n",newToken.line+1+1, newToken.data.f64);
+                break;
+            case T_F64_ID:
+                printf("Token type: T_F64_ID              line:%ld\n", newToken.line+1+1);
+                break;
+            case T_NULL:
+                printf("Token type: T_NULL                line:%ld\n", newToken.line+1);
+                break;
+            case T_PUB:
+                printf("Token type: T_PUB,                line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_RETURN:
+                printf("Token type: T_RETURN,             line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_U8_ID:
+                printf("Token type: T_U8_ID,              line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_VAR:
+                printf("Token type: T_VAR,                line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_VOID:
+                printf("Token type: T_VOID,               line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_WHILE:
+                printf("Token type: T_WHILE,              line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_I32_NULLABLE:
+                printf("Token type: T_I32_NULLABLE,       line:%ld\n", newToken.line+1);
+                break;
+            case T_F64_NULLABLE:
+                printf("Token type: T_F64_NULLABLE,       line:%ld\n", newToken.line+1);
+                break;
+            case T_U8_NULLABLE:
+                printf("Token type: T_U8_NULLABLE,        line:%ld\n", newToken.line+1);
+                break;
+            case T_ID:
+                printf("Token type: T_ID,                 line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_ASSIGN:
+                printf("Token type: T_ASSIGN,             line:%ld, value: =\n", newToken.line+1);
+                break;
+            case T_AT:
+                printf("Token type: T_AT,                 line:%ld, value: @\n", newToken.line+1);
+                break;
+            case T_STRING_TYPE:
+                printf("Token type: T_STRING_TYPE,        line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                break;
+            case T_STRING_TYPE_EMPTY:
+                printf("Token type: T_STRING_TYPE_EMPTY,  line:%ld\n", newToken.line+1);
+                break;
+            case T_OPEN_PARENTHESES:
+                printf("Token type: T_OPEN_PARENTHESES,   line:%ld, value: (  \n", newToken.line+1);
+                break;
+            case T_CLOSE_PARENTHESES:
+                printf("Token type: T_CLOSE_PARENTHESES,  line:%ld, value: )  \n", newToken.line+1);
+                break;
+            case T_OPEN_BRACKET:
+                printf("Token type: T_OPEN_BRACKET,       line:%ld, value: {  \n", newToken.line+1);
+                break;
+            case T_CLOSE_BRACKET:
+                printf("Token type: T_CLOSE_BRACKET,      line:%ld, value: }  \n", newToken.line+1);
+                break;
+            case T_SEMICOLON:
+                printf("Token type: T_SEMICOLON,          line:%ld, value: ;  \n", newToken.line+1);
+                break;
+            case T_COLON:
+                printf("Token type: T_COLON,              line:%ld, value: :  \n", newToken.line+1);
+                break;
+            case T_MUL:
+                printf("Token type: T_MUL,                line:%ld, value: *  \n", newToken.line+1);
+                break;
+            case T_DIV:
+                printf("Token type: T_DIV,                line:%ld, value: /  \n", newToken.line+1);
+                break;
+            case T_ADD:
+                printf("Token type: T_ADD,                line:%ld, value: +  \n", newToken.line+1);
+                break;
+            case T_SUB:
+                printf("Token type: T_SUB,                line:%ld, value: -  \n", newToken.line+1);
+                break;
+            case T_EQUALS:
+                printf("Token type: T_EQUALS,             line:%ld, value: ==  \n", newToken.line+1);
+                break;
+            case T_NOT_EQUALS:
+                printf("Token type: T_NOT_EQUALS,         line:%ld, value: !=  \n", newToken.line+1);
+                break;
+            case T_GREATER_THAN:
+                printf("Token type: T_GREATER_THAN,       line:%ld, value: >  \n", newToken.line+1);
+                break;
+            case T_GREATER_OR_EQUAL:
+                printf("Token type: T_GREATER_OR_EQUAL,   line:%ld, value: >=  \n", newToken.line+1);
+                break;
+            case T_LESS_THAN:
+                printf("Token type: T_LESS_THAN,          line:%ld, value: <  \n", newToken.line+1);
+                break;
+            case T_LESS_OR_EQUAL:
+                printf("Token type: T_LESS_OR_EQUAL,      line:%ld, value: <=  \n", newToken.line+1);
+                break;
+            case T_DOT:
+                printf("Token type: T_DOT,                line:%ld, value: .  \n", newToken.line+1);
+                break;
+            case T_COMMA:
+                printf("Token type: T_COMMA,              line:%ld, value: ,  \n", newToken.line+1);
+                break;
+            case T_VERTICAL_BAR:
+                printf("Token type: T_VERTICAL_BAR,       line:%ld, value: |  \n", newToken.line+1);
+                break;
+            case T_UNKNOW:
+                printf("Token type: T_UNKNOW,             line:%ld\n", newToken.line+1);
+                break;
+            case T_ERROR:
+                printf("Token type: T_ERROR,              line:%ld\n", newToken.line+1);
+                return;
+            default:
+                printf("im in switch in default - it might be a error, line:%ld\n", newToken.line+1);
+                return ;
+                break;
+        }
+        
+        list->activeToken = list->activeToken->nextToken;
+    }
+    
+}
+
+
+
+
+
 static unsigned long line_count = 0;
 
 enum automat_state changeAutomatState (char c){
@@ -133,7 +367,7 @@ TokenType isKeyWord(const char* word) {
     for (size_t i = 0; i < keywords_count; ++i) {
         if (strcmp(word, keyword_tokens[i].keyword) == 0) return keyword_tokens[i].token_type;
     }
-    
+
     // Pokud slovo není v seznamu klíčových slov nalezeno, vrátí identifikátor
     return T_ID;
 }
@@ -199,7 +433,7 @@ void stringToNum(Token* token) {
     exitWithError(token, ERR_LEXICAL_ANALYSIS);
 }
 
-Token getNextToken(){
+Token getNextToken(ListOfTokens *list){
 
     Token newToken;
     newToken.type = T_UNKNOW;
@@ -213,9 +447,11 @@ Token getNextToken(){
     //printf("Read character: %c\n", c);  
     bool escapeSequence = false;
     bool isEmptyString = true;
+    bool test = true;
 
     if (c == EOF){
         newToken.type = T_EOF;
+        insert_in_list_of_tokens(list, newToken);
         return newToken;
     }
     
@@ -241,34 +477,42 @@ Token getNextToken(){
         /* : */
         case S_COLON:
             newToken.type = T_COLON;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* . */
         case S_DOT:
             newToken.type = T_DOT;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* , */
         case S_COMMA:
             newToken.type = T_COMMA;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* ; */
         case S_SEMICOLON:
             newToken.type = T_SEMICOLON;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* } */
         case S_CLOSE_BRACKET:
             newToken.type = T_CLOSE_BRACKET;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* { */
         case S_OPEN_BRACKET:
             newToken.type = T_OPEN_BRACKET;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* ) */
         case S_CLOSE_PARENTHESES:
             newToken.type = T_CLOSE_PARENTHESES;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* ( */
         case S_OPEN_PARENTHESES:
             newToken.type = T_OPEN_PARENTHESES;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* [ */
         case S_SQUQRE_BRACKET_OPEN:
@@ -284,6 +528,7 @@ Token getNextToken(){
         case S_EQUALS:
             if (c == '=') newToken.type = T_EQUALS;
             else ungetc(c, SOURCE);
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* > */
         case S_GREATER_THAN:
@@ -294,6 +539,7 @@ Token getNextToken(){
         case S_GREATER_OR_EQUAL:
             if (c == '=') newToken.type = T_GREATER_OR_EQUAL;
             else ungetc(c, SOURCE);
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* < */
         case S_LESS_THAN:
@@ -304,6 +550,7 @@ Token getNextToken(){
         case S_LESS_OR_EQUAL:
             if (c == '=') newToken.type = T_LESS_OR_EQUAL;
             else ungetc(c, SOURCE);
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* ! */
         case S_EXCLA: 
@@ -317,17 +564,21 @@ Token getNextToken(){
                 ungetc(c,SOURCE);
                 exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
             }
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* @ */
         case S_AT:
             newToken.type = T_AT;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         case S_VERTICAL_BAR:
             newToken.type = T_VERTICAL_BAR;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* * */
         case S_MUL:
             newToken.type = T_MUL;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* / */
         case S_SLASH:
@@ -338,6 +589,7 @@ Token getNextToken(){
                 break;
             }
             ungetc(c,SOURCE);
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* // */
         case S_LINE_COMMENT:
@@ -352,10 +604,12 @@ Token getNextToken(){
         /* + */
         case S_ADD:
             newToken.type = T_ADD;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* - */
         case S_SUB:
             newToken.type = T_SUB;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* "..." */
         case S_QUOTE:
@@ -366,6 +620,7 @@ Token getNextToken(){
                 if (c == '"')
                 {
                    newToken.type = T_STRING_TYPE_EMPTY;
+                   insert_in_list_of_tokens(list, newToken);
                    return newToken;
                 }
                 ungetc(c, SOURCE);
@@ -394,27 +649,7 @@ Token getNextToken(){
                         break;
                     case 'x':
                         char nextChar = fgetc(SOURCE);
-                        if (nextChar == '{') {
-                            // Pripad s slozenymi zavorkami
-                            char hex[3] = {0};
-                            int i = 0;
-                            while (i < 2) {  // Omezujeme delku na dva znaky
-
-                                char hexChar = fgetc(SOURCE);
-                                if (hexChar == '}') break;  // Ukoncujeme pri setkani s '}'
-                                else if (isxdigit(hexChar)) hex[i++] = hexChar;  // Cteme sestnactkove cislice
-                                else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Neplatny znak v sestnactkove sekvenci
-                            }
-
-                            if (i == 2) {
-                                // Prevadime sestnactkove cislice na hodnotu znaku
-                                int value = strtol(hex, NULL, 16);
-                                loadSymbol(&newToken, (char)value, &init_count);
-                                fgetc(SOURCE);  // Preskakujeme znak uzavirajici zavorky '}'
-                            } 
-                            else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Nedostatek sestnactkovych cislic nebo spatny format
-                        } 
-                        else if (isxdigit(nextChar)) {
+                        if (isxdigit(nextChar)) {
                             // Pripad bez slozenych zavorek
                             char hex[3] = {0};
                             hex[0] = nextChar;  // Ukladame prvni znak
@@ -436,7 +671,7 @@ Token getNextToken(){
                         exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
                 }
                 escapeSequence = false;  // Resetování flagu escape sekvence
-            } 
+            }
             else if (c == '\\') {  // Narazili jsme na escape sekvenci nebo pokračování víceřádkového řetězce
                 char nextChar = fgetc(SOURCE);  // Čteme další znak
                 if (nextChar == '\n') {  // Víceřádkové pokračování řetězce
@@ -464,6 +699,7 @@ Token getNextToken(){
                 newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
                 init_count = 0;
                 newToken.type = T_STRING_TYPE;
+                insert_in_list_of_tokens(list, newToken);
                 return newToken;
             }
             else if (c == '\n') exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Chyba: není dovoleno přenášet řetězec na nový řádek
@@ -480,6 +716,7 @@ Token getNextToken(){
                 newToken.type = isKeyWord(newToken.data.u8->data);
                 ungetc(c, SOURCE);
                 init_count = 0;
+                insert_in_list_of_tokens(list, newToken);
                 return newToken;
             }
             //newToken.type = T_ID;
@@ -499,6 +736,7 @@ Token getNextToken(){
                 ungetc(c, SOURCE);
                 init_count = 0;
                 isNullType(&newToken);
+                insert_in_list_of_tokens(list, newToken);
                 return newToken;
             }
             break;
@@ -519,6 +757,7 @@ Token getNextToken(){
                 stringToNum(&newToken);
                 ungetc(c, SOURCE);
                 init_count = 0;
+                insert_in_list_of_tokens(list, newToken);
                 return newToken;
             }
             break;
@@ -534,6 +773,7 @@ Token getNextToken(){
                 stringToNum(&newToken);
                 ungetc(c, SOURCE);
                 init_count = 0;
+                insert_in_list_of_tokens(list, newToken);
                 return newToken;
             }
             break;
@@ -560,6 +800,7 @@ Token getNextToken(){
         default:
             //printf("bread pit\n");
             newToken.type = T_UNKNOW;
+            insert_in_list_of_tokens(list, newToken);
             return newToken;
 
         }
@@ -575,7 +816,7 @@ Token getNextToken(){
     else if (STATE == S_TYPE_ID) isNullType(&newToken);
     else if (c == EOF) newToken.type = T_EOF;
     else if(newToken.type == T_UNKNOW || newToken.type == T_ERROR) exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
-
+    insert_in_list_of_tokens(list, newToken);
     return newToken;
 }
 
