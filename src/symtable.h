@@ -67,10 +67,10 @@ typedef struct frameStack{
 } tFrameStack;
 
 /**
- * @brief Funkce pro inicializaci zásobníku úrovní TS
- * @param fs Ukazatel na zásobník úrovní TS
+ * @brief Funkce pro vytvoření a inicializaci zásobníku úrovní TS
+ * @return Ukazatel na zásobník úrovní TS
  */
-tFrameStack* init_frame_stack (tFrameStack *fs);
+tFrameStack* create_frame_stack ();
 
 /**
  * @brief Funkce pro vložení nové úrovně TS do zásobníku úrovní
@@ -164,5 +164,23 @@ tSymTabNode* create_fun_node ();
  * @return True při úspěšném vložení. False když byl nalezen duplicitní identifikátor
  */
 bool insert_symbol (tFrameStack *fs, tSymTabNode *node);
+
+/**
+ * @brief Funkce pro zrušení tabulky symbolú
+ * @param root Kořen tabulky (avl stromu)
+ */
+void dispose_avl (tSymTabNode *root);
+
+/**
+ * @brief Funkce pro zrušení úrovně tabulky symbolú
+ * @param frame Úroveň tabulky
+ */
+void dispose_frame(tFrame *frame);
+
+/**
+ * @brief Funkce pro zrušení zásobníku úrovní tabulky symbolú
+ * @param fs Zásobník úrovní tabulky symbolú
+ */
+void dispose_frame_stack(tFrameStack *fs);
 
 /* Konec souboru symtable.h */
