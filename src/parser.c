@@ -15,11 +15,10 @@
 #include "semantic.h"
 
 Token CurrentToken;
-tFrameStack symtable;
-tSymTabNode *CurrentSymbol;  // Pro uchování nového symbolu, který ještě nemá ID
+const ListOfTokens LIST;
 
 Token getCurrentToken() {
-    Token token = getNextToken();
+    Token token = get_token_from_list(&LIST);
     CurrentToken = token;
     return token;
 }
@@ -577,6 +576,12 @@ void expression() {
 }
 
 int main() {
+    init_list_of_tokens(&LIST);
+
+    i_want_to_get_tokens(&LIST);
+
     syntax_analysis();  // Spustí se syntaktická analýza
+
+    free_list_of_tokens(&LIST);
     return 0;
 }
