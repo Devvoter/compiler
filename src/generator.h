@@ -1,55 +1,82 @@
 /**
  * @file generator.h
  * @author Polina Ustiuzhantseva(xustiup00)
- * @brief definice struktur pro generator
+ * @brief definice struktur funkci volani pro generovani kodu
  * 
  * @date 1.11.2024
  */
 
-/**
- * @brief struktura elementu pro ukladani mezikodu
- */
-typedef struct codeBufElem {
-    char *code;
-    struct codeBufElem *next;
-} *codeBufElemPtr;
+#include <stdbool.h>
+#include <stdio.h>
+
+
+typedef enum {
+    variable_t,    
+    string_t,
+    null_t,
+    float_t,
+    bool_t,
+    int_t
+} assignType;
 
 /**
- * @brief struktura jednosmerneho seznamu pro ukladani mezikodu
+ * @brief vytvori zacatek kodu IFJcode24
  */
-typedef struct {
-    codeBufElemPtr first;
-    codeBufElemPtr active;
-} codeBuf;
+bool startGen();
 
 /**
- * @brief inicializace buffer pro ukladani mezikodu
+ * @brief vytvori konec kodu IFJcode24 
  */
-void bufInit(codeBuf** buffer);
+bool endGen();
 
 /**
- * @brief pridani polozky do bufferu
+ * @brief uvolni veskerou pamet, alokovanou pro generator,
+ * zachodi vytvoreny kod
+ * 
+ * @param done v pripade true vypise kod na stdout
  */
-void addCodeBufferElement(codeBuf **buffer, char instr[10], char* firstArg, char* secondArg, char* thirdArg);
+void disposeGen(bool done);
 
 /**
- * @brief uvolni veskerou pamet alokovanou pro codeBuffer
+ * @brief vytvori zacatek funkce main 
  */
-void bufDestroy(codeBuf* buffer);
-
-
+bool startMainGen();
 
 /**
- * @brief element struktury zásobníku rámců
+ * @brief vytvori konec funkce main
  */
-typedef struct framesStackElement{
-    //nejaka data
-    struct framesStackElement *next;
-} *framesStackElementPtr;
+bool endMainGen();
 
 /**
- *  struktura zasobniku rámců
+ * @brief vytvori novou promennou
  */
-typedef struct {
-    framesStackElementPtr *top;
-} framesStack;
+bool defVarGen(char *ID);
+
+/**
+ * @brief definuje promennou
+ */
+bool assignVarGen(char *ID, assignType type, char *value);
+
+/**
+ * @brief volani vestavene funkce
+ * @param assign vesledek funkce se priradi promenne pokud true
+ * 
+ */
+bool callStandFuncGen(bool assign, char *ID, char *params);
+
+/**
+ * @brief zacatek zpracovani vyrazu, hodnota ktereho se prirazuje k promenne
+ */
+bool startAssignGen(char *ID);
+
+/**
+ * @brief jeden krok zpracovani vyrazu
+ */
+bool addTermGen(char *operator, char *operand1, char *operand2, char *result);
+
+/**
+ * @brief konec zpracovani vyrazu
+ */
+bool endAssignGen();
+
+

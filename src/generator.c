@@ -7,6 +7,7 @@
  */
 
 #include "generator.h"
+#include "generatorBuf.h"
 #include "error.h"
 
 #include <stdio.h>
