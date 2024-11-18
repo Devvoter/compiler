@@ -9,9 +9,13 @@
 
 #include "symtable.h"
 
-void init_frame_stack (tFrameStack *fs) {
-    fs->current = NULL;
-    fs->global = NULL;
+tFrameStack* create_frame_stack () {
+    tFrameStack *newStack = malloc(sizeof(tFrameStack));
+    if (newStack == NULL) return NULL;
+    
+    newStack->current = NULL;
+    newStack->global = NULL;
+    return newStack;
 }
 
 tFrame* push_frame (tFrameStack *fs, bool isFun) {
@@ -21,11 +25,15 @@ tFrame* push_frame (tFrameStack *fs, bool isFun) {
     newFrame->prev = fs->current;
     newFrame->symTable = NULL;
     newFrame->isFun = isFun;
-    newFrame->retType = NOT_DEF;
+    newFrame->funDecl = NULL;
     newFrame->calledReturn = false;
 
+    if (fs->global == NULL) {
+        fs->global = newFrame;
+        newFrame->level = 0;
+    }
+    else newFrame->level = (fs->current->level)++;
     fs->current = newFrame;
-    if (fs->global == NULL) fs->global = newFrame;
     return newFrame;
 }
 
@@ -187,7 +195,7 @@ tSymTabNode* create_var_node (bool isConst) {
     newVar->varData->isUsed = false;
     newVar->varData->isDef = false;
     newVar->varData->isNull = false;
-    newVar->varData->dataType = NOT_DEF;
+    newVar->varData->dataType = T_UNKNOW; //NOT_DEF;
 
     newVar->id = NULL;
     newVar->isFun = false;
@@ -209,9 +217,9 @@ tSymTabNode* create_fun_node () {
         free(newFun);
         return NULL;
     }
-    newFun->paramCnt = 0;
-    newFun->paramTypes = NULL;
-    newFun->retType = NOT_DEF;
+    newFun->funData->paramCnt = 0;
+    newFun->funData->paramTypes = NULL;
+    newFun->funData->retType = T_UNKNOW; //NOT_DEF;
 
     newFun->isFun = true;
     newFun->id = NULL;

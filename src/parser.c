@@ -11,8 +11,12 @@
 #include "error.h"
 #include "stack.h"
 #include "precedence.h"
+#include "symtable.h"
+#include "semantic.h"
 
 Token CurrentToken;
+tFrameStack *Symtable;       // Symtable init a push_frame v 1.prechode
+tSymTabNode *CurrentSymbol;  // Pro uchování nového symbolu, který ještě nemá ID
 
 Token getCurrentToken() {
     Token token = getNextToken();
@@ -25,6 +29,7 @@ void syntax_analysis() {
         fprintf(stderr, "Syntax error: invalid prologue\n");
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+
     Token token = code(getCurrentToken());
     if (token.type != T_EOF) {
         exitWithError(&token, ERR_SYNTAX_ANALYSIS);
@@ -64,12 +69,18 @@ int parse_prolog() {
 Token code(Token token) {
     switch (token.type) {
         case T_IF:
+            push_frame (Symtable, false);
             return code(parse_if());
         case T_WHILE:
+            push_frame(Symtable, false);
             return code(parse_while());
         case T_VAR:
+            tSymTabNode *symbol = create_var_node (false);
+            CurrentSymbol = symbol;
             return code(parse_variable_definition());
         case T_CONST:
+            tSymTabNode *symbol = create_var_node (true);
+            CurrentSymbol = symbol;
             return code(parse_variable_definition());
         case T_RETURN:
             return code(parse_return());
@@ -78,6 +89,8 @@ Token code(Token token) {
         case T_IFJ: // volani vestavene funkce
             return code(parse_assignment_or_function_call());
         case T_PUB:
+            // Symbol funkce bude vložen v prvním přechodu
+            push_frame(Symtable, true);
             return code(parse_function_definition());
         default:
             return token;
@@ -157,6 +170,10 @@ Token parse_variable_definition() {
     if (token.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+    CurrentSymbol->id = token.data.u8;
+    if(!insert_symbol(Symtable, CurrentSymbol)) {
+        exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
+    }
     token = getCurrentToken();
     if (token.type != T_COLON && token.type != T_ASSIGN) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -171,6 +188,7 @@ Token parse_variable_definition() {
         token.type != T_U8_NULLABLE) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+        CurrentSymbol->varData->dataType = token.type;
         if (getCurrentToken().type != T_ASSIGN) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }

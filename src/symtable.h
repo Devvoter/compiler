@@ -10,23 +10,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-
-enum dataType {
-    NOT_DEF,
-    VOID,
-    T_I32;
-    T_F64,
-    T_U8,
-    T_I32_NULLABLE,
-    T_F64_NULLABLE,
-    T_U8_NULLABLE
-};
+#include "scanner.h"
 
 /** 
  * @brief Prvek TS - proměnná
  */
 typedef struct var{
-    int dataType;
+    TokenType dataType;
     bool isDef; 
     bool isConst;
     bool isNull;
@@ -61,7 +51,8 @@ typedef struct symTabNode{
  */
 typedef struct frame{
     bool isFun;               // zda blok kodu patri funkci nebo while,if,..
-    int retType;              // pro kontrolu návratové hodnoty funkce
+    tSymTabNode *funDecl;     // pro kontrolu návratové hodnoty funkce
+    int level;
     bool calledReturn;
     tSymTabNode *symTable;    // lokalni TS
     tFrame *prev;             // nadrazeny blok kodu
@@ -79,7 +70,7 @@ typedef struct frameStack{
  * @brief Funkce pro inicializaci zásobníku úrovní TS
  * @param fs Ukazatel na zásobník úrovní TS
  */
-void init_frame_stack (tFrameStack *fs);
+tFrameStack* init_frame_stack (tFrameStack *fs);
 
 /**
  * @brief Funkce pro vložení nové úrovně TS do zásobníku úrovní
