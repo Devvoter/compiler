@@ -23,6 +23,48 @@ Token getCurrentToken() {
     return token;
 }
 
+void global_symtable(tFrameStack *fs) {
+    Token token = getNextToken(&LIST);
+    while (CurrentToken.type != T_EOF) {
+        if (token.type == T_FN) {
+            token = getNextToken(&LIST);
+            if (token.type != T_ID) {
+                exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+            }
+            else {
+                tSymTabNode *node = create_fun_node();
+                if (node == NULL) {
+                    exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+                }
+                node->id = token.data.u8->data;
+                getNextToken(&LIST);
+                token = getNextToken(&LIST);
+                int numOfParams = 0;
+                int *paramTypes = malloc(sizeof(int));
+                while (token.type != T_CLOSE_PARENTHESES && token.type != T_EOF) {
+                    if (token.type == T_I32_ID || token.type == T_I32_NULLABLE ||
+                        token.type == T_F64_ID || token.type == T_F64_NULLABLE ||
+                        token.type == T_U8_ID || token.type == T_U8_NULLABLE) {
+                        paramTypes = realloc(paramTypes, (numOfParams + 1) * sizeof(int));
+                        if (paramTypes == NULL) {
+                            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+                        }
+                        paramTypes[numOfParams] = token.type;
+                        numOfParams++;
+                        }
+                    token = getNextToken(&LIST);
+                }
+                node->paramCnt = numOfParams;               // pozor tady chyba
+                node->paramTypes = paramTypes;
+                free(paramTypes);
+                if (!insert_symbol(fs, node)) {
+                    exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
+                }
+            }
+        }
+    }
+}
+
 void syntax_analysis() {
     if (parse_prolog() != 0) {
         fprintf(stderr, "Syntax error: invalid prologue\n");
@@ -577,6 +619,11 @@ void expression() {
 
 int main() {
     init_list_of_tokens(&LIST);
+
+    tFrameStack symtable;
+    init_frame_stack(&symtable);
+    tFrame *global = push_frame(&symtable, false);
+    global_symtable(&symtable);  
 
     i_want_to_get_tokens(&LIST);
 
