@@ -1,7 +1,7 @@
 /**
  * @file generator.h
  * @author Polina Ustiuzhantseva(xustiup00)
- * @brief definice struktur funkci volani pro generovani kodu
+ * @brief definice funkci pro generovani kodu
  * 
  * @date 1.11.2024
  */
@@ -17,7 +17,14 @@ typedef enum {
     float_t,
     bool_t,
     int_t
-} assignType;
+} t_Type;
+
+typedef enum {
+    plus,
+    minus,
+    mul,
+    div
+} t_operationType;
 
 /**
  * @brief vytvori zacatek kodu IFJcode24
@@ -32,7 +39,6 @@ bool endGen();
 /**
  * @brief uvolni veskerou pamet, alokovanou pro generator,
  * zachodi vytvoreny kod
- * 
  * @param done v pripade true vypise kod na stdout
  */
 void disposeGen(bool done);
@@ -49,34 +55,49 @@ bool endMainGen();
 
 /**
  * @brief vytvori novou promennou
+ * @param ID nazev promenne
  */
 bool defVarGen(char *ID);
 
 /**
  * @brief definuje promennou
+ * @param ID nazev promenne
+ * @param t typ hodnoty
+ * @param value hodnota
  */
-bool assignVarGen(char *ID, assignType type, char *value);
+bool assignVarGen(char *ID, t_Type t, char *value);
 
 /**
  * @brief volani vestavene funkce
- * @param assign vesledek funkce se priradi promenne pokud true
  * 
+ * @param assign vesledek funkce se priradi promenne pokud true
+ * @param ID promenna, kam se priradi vysledek(pripadne NULL)
+ * @param param1 prvni parametr standardni funkce(pripadne NULL)
+ * @param param2 druhy parametr standardni funkce(pripadne NULL)
  */
-bool callStandFuncGen(bool assign, char *ID, char *params);
+bool callStandFuncGen(bool assign, char *ID, char *param1, char *param2);
+
 
 /**
- * @brief zacatek zpracovani vyrazu, hodnota ktereho se prirazuje k promenne
+ * @brief prida na datovy zasobnik hodnotu
+ * 
+ * @param ID hodnota 
+ * @param t typ posilane hodnoty
  */
-bool startAssignGen(char *ID);
+bool pushOnStackGen(char *ID, t_Type t);
 
 /**
- * @brief jeden krok zpracovani vyrazu
+ * @brief provede operaci s hodnotami na zasobniku 
+ * 
+ * @param t typ operace, ktera se ma provest
  */
-bool addTermGen(char *operator, char *operand1, char *operand2, char *result);
+bool makeOperationStackGen(t_operationType t);
 
 /**
- * @brief konec zpracovani vyrazu
+ * @brief konec zpracovani vyrazu, pripsani hodnoty z datoveho zasobniku promenne
  */
-bool endAssignGen();
+bool endAssignGen(char *ID);
+
+
 
 
