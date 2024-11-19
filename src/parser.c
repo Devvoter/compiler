@@ -24,7 +24,203 @@ Token getCurrentToken() {
     return token;
 }
 
+void addStandardFunctionsToTS(tFrameStack *symtable) {
+    tSymTabNode *node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "readstr";
+    node->funData->retType = T_U8_NULLABLE;
+    node->funData->paramCnt = 0;
+    node->funData->paramTypes = NULL;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "readi32";
+    node->funData->retType = T_I32_NULLABLE;
+    node->funData->paramCnt = 0;
+    node->funData->paramTypes = NULL;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "readf64";
+    node->funData->retType = T_F64_NULLABLE;
+    node->funData->paramCnt = 0;
+    node->funData->paramTypes = NULL;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "write";
+    node->funData->retType = T_VOID;
+    node->funData->paramCnt = 1;
+    node->funData->paramTypes = NULL;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "i2f";
+    node->funData->retType = T_F64_ID;
+    node->funData->paramCnt = 1;
+    node->funData->paramTypes = malloc(sizeof(int));
+    if (node->funData->paramTypes == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->funData->paramTypes[0] = T_I32_ID;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "f2i";
+    node->funData->retType = T_I32_ID;
+    node->funData->paramCnt = 1;
+    node->funData->paramTypes = malloc(sizeof(int));
+    if (node->funData->paramTypes == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->funData->paramTypes[0] = T_F64_ID;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "string";
+    node->funData->retType = T_U8_ID;
+    node->funData->paramCnt = 1;
+    node->funData->paramTypes = NULL;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "length";
+    node->funData->retType = T_I32_ID;
+    node->funData->paramCnt = 1;
+    node->funData->paramTypes = malloc(sizeof(int));
+    if (node->funData->paramTypes == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->funData->paramTypes[0] = T_U8_ID;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "concat";
+    node->funData->retType = T_U8_ID;
+    node->funData->paramCnt = 2;
+    node->funData->paramTypes = malloc(2 * sizeof(int));
+    if (node->funData->paramTypes == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->funData->paramTypes[0] = T_U8_ID;
+    node->funData->paramTypes[1] = T_U8_ID;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "substr";
+    node->funData->retType = T_U8_ID;
+    node->funData->paramCnt = 3;
+    node->funData->paramTypes = malloc(3 * sizeof(int));
+    if (node->funData->paramTypes == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->funData->paramTypes[0] = T_U8_ID;
+    node->funData->paramTypes[1] = T_I32_ID;
+    node->funData->paramTypes[2] = T_I32_ID;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "compare";
+    node->funData->retType = T_I32_ID;
+    node->funData->paramCnt = 2;
+    node->funData->paramTypes = malloc(2 * sizeof(int));
+    if (node->funData->paramTypes == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->funData->paramTypes[0] = T_U8_ID;
+    node->funData->paramTypes[1] = T_U8_ID;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "ord";
+    node->funData->retType = T_I32_ID;
+    node->funData->paramCnt = 2;
+    node->funData->paramTypes = malloc(2 * sizeof(int));
+    if (node->funData->paramTypes == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->funData->paramTypes[0] = T_U8_ID;
+    node->funData->paramTypes[1] = T_I32_ID;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
+    node = create_fun_node();
+    if (node == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "chr";
+    node->funData->retType = T_U8_ID;
+    node->funData->paramCnt = 1;
+    node->funData->paramTypes = malloc(sizeof(int));
+    if (node->funData->paramTypes == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    node->funData->paramTypes[0] = T_I32_ID;
+    if (!insert_symbol(symtable, node)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+}
+
 void global_symtable(tFrameStack *fs) {
+    addStandardFunctionsToTS(fs);
     Token token = getNextToken(&LIST);
     bool mainPresent = false;
     bool inMain = false;
