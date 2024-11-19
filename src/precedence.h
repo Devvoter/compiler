@@ -55,6 +55,7 @@ PrecedenceToken tokenWrapper(Token token) {
     pt.token = token;
     pt.isTerminal = true;
     pt.reduction = false;
+    pt.type = token.type;
     return pt;
 }
 
@@ -66,18 +67,24 @@ void ruleReduce(Stack *stack) {
         tokenTop->token.type == T_F64_VAR ||
         tokenTop->token.type == T_NULL) {                                 // E -> id
             Token expr;
+            PrecedenceToken reducedTop;
             expr.type = T_EXPRESSION_NONTERMINAL;
             expr.line = tokenTop->token.line;
             if (tokenTop->token.type == T_ID) {
                 expr.data.u8 = tokenTop->token.data.u8;
+                // !!! zjistit typ promenne z tabulky symbolu !!!
             }
             else if (tokenTop->token.type == T_I32_VAR) {
                 expr.data.i32 = tokenTop->token.data.i32;
+                reducedTop.type = T_I32_VAR;
             }
             else if (tokenTop->token.type == T_F64_VAR) {
                 expr.data.f64 = tokenTop->token.data.f64;
+                reducedTop.type = T_F64_VAR;
             }
-            PrecedenceToken reducedTop;
+            else if (tokenTop->token.type == T_NULL) {
+                reducedTop.type = T_NULL;
+            }
             reducedTop.token = expr;
             reducedTop.isTerminal = false;
             reducedTop.reduction = false;
@@ -88,11 +95,13 @@ void ruleReduce(Stack *stack) {
             return;
         }
         else if (tokenTop->token.type == T_CLOSE_PARENTHESES) {             // E -> (E)
+            PrecedenceToken reducedTop;
             S_Pop(stack);
             PrecedenceToken *exprInParenth = S_Top(stack);
             if (exprInParenth->isTerminal) {
                 exitWithError(&exprInParenth->token, ERR_SYNTAX_ANALYSIS);
             }
+            reducedTop.type = exprInParenth->type;
             S_Pop(stack);
             PrecedenceToken *openParenth = S_Top(stack);
             if (openParenth->token.type != T_OPEN_PARENTHESES) {
@@ -103,7 +112,7 @@ void ruleReduce(Stack *stack) {
             Token expr;
             expr.type = T_EXPRESSION_NONTERMINAL;
             expr.data.u8 = tokenTop->token.data.u8; //? not sure
-            PrecedenceToken reducedTop;
+
             reducedTop.token = expr;
             reducedTop.isTerminal = false;
             reducedTop.reduction = false;
@@ -114,28 +123,36 @@ void ruleReduce(Stack *stack) {
         }
     }
     else if (tokenTop->token.type == T_EXPRESSION_NONTERMINAL) {             // E -> E op E
+        int operandType1 = tokenTop->type;
         S_Pop(stack);
         PrecedenceToken *op = S_Top(stack);
         if (!op->isTerminal) {
             exitWithError(&op->token, ERR_SYNTAX_ANALYSIS);
         }
+        // pridat nejakou kontrolu jestli lze operator pouzit pro tento typ operandu ?
         if (op->token.type != T_ADD && op->token.type != T_SUB && op->token.type != T_MUL && op->token.type != T_DIV &&
             op->token.type != T_EQUALS && op->token.type != T_NOT_EQUALS && op->token.type != T_LESS_THAN && op->token.type != T_GREATER_THAN &&
             op->token.type != T_LESS_OR_EQUAL && op->token.type != T_GREATER_OR_EQUAL) {
             exitWithError(&op->token, ERR_SYNTAX_ANALYSIS);
         }
         S_Pop(stack);
-        PrecedenceToken *left = S_Top(stack);
-        if (left->isTerminal) {
-            exitWithError(&left->token, ERR_SYNTAX_ANALYSIS);
+        PrecedenceToken *secondOperand = S_Top(stack);
+        int operandType2 = secondOperand->type;                            // typ 2. vyrazu
+        if (secondOperand->isTerminal) {
+            exitWithError(&secondOperand->token, ERR_SYNTAX_ANALYSIS);
         }
         S_Pop(stack);
 
+        if (operandType1 != operandType2) {
+            // PRIDAT LEPSI KONTROLU VCETNE PRIPADNYCH KONVERZI !!!
+            exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
+        }
         Token expr;
         expr.type = T_EXPRESSION_NONTERMINAL;
-        expr.data.u8 = bufferInit();
-        expr.data.u8->data = "E"; //? not sure maybe E op E?
+        // expr.data.u8 = bufferInit();                           //idk what is this
+        // expr.data.u8->data = "E"; //? not sure maybe E op E?
         PrecedenceToken reducedTop;
+        reducedTop.type = operandType1;
         reducedTop.token = expr;
         reducedTop.isTerminal = false;
         reducedTop.reduction = false;

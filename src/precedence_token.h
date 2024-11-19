@@ -7,6 +7,7 @@ typedef struct {
     Token token;
     bool isTerminal;
     bool reduction;
+    int type;
 } PrecedenceToken;
 
 #endif //_PRECEDENCE_TOKEN_H_
