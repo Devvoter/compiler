@@ -15,7 +15,7 @@
 #include "semantic.h"
 
 Token CurrentToken;
-const ListOfTokens LIST;
+ListOfTokens LIST;
 
 Token getCurrentToken() {
     Token token = get_token_from_list(&LIST);
@@ -29,12 +29,12 @@ void global_symtable(tFrameStack *fs) {
         if (token.type == T_FN) {
             token = getNextToken(&LIST);
             if (token.type != T_ID) {
-                exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+                exitWithError(&token, ERR_SYNTAX_ANALYSIS);
             }
             else {
                 tSymTabNode *node = create_fun_node();
                 if (node == NULL) {
-                    exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+                    exitWithError(&token, ERR_INTERNAL_COMPILER);
                 }
                 node->id = token.data.u8->data;
                 getNextToken(&LIST);
@@ -47,18 +47,45 @@ void global_symtable(tFrameStack *fs) {
                         token.type == T_U8_ID || token.type == T_U8_NULLABLE) {
                         paramTypes = realloc(paramTypes, (numOfParams + 1) * sizeof(int));
                         if (paramTypes == NULL) {
-                            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+                            exitWithError(&token, ERR_INTERNAL_COMPILER);
                         }
                         paramTypes[numOfParams] = token.type;
                         numOfParams++;
                         }
                     token = getNextToken(&LIST);
                 }
-                node->paramCnt = numOfParams;               // pozor tady chyba
-                node->paramTypes = paramTypes;
-                free(paramTypes);
+                token = getNextToken(&LIST);
+                switch (token.type)
+                {
+                case T_I32_ID:
+                    node->funData->retType = T_I32_ID;
+                    break;
+                case T_F64_ID:
+                    node->funData->retType = T_F64_ID;
+                    break;
+                case T_U8_ID:
+                    node->funData->retType = T_U8_ID;
+                    break;
+                case T_I32_NULLABLE:
+                    node->funData->retType = T_I32_NULLABLE;
+                    break;
+                case T_F64_NULLABLE:
+                    node->funData->retType = T_F64_NULLABLE;
+                    break;
+                case T_U8_NULLABLE:
+                    node->funData->retType = T_U8_NULLABLE;
+                    break;
+                case T_VOID:
+                    node->funData->retType = T_VOID;
+                    break;
+                default:
+                    exitWithError(&token, ERR_SYNTAX_ANALYSIS);
+                    break;
+                }
+                node->funData->paramCnt = numOfParams;
+                node->funData->paramTypes = paramTypes;
                 if (!insert_symbol(fs, node)) {
-                    exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
+                    exitWithError(&token, ERR_SEM_REDEFINITION);
                 }
             }
         }
@@ -622,7 +649,7 @@ int main() {
 
     tFrameStack symtable;
     init_frame_stack(&symtable);
-    tFrame *global = push_frame(&symtable, false);
+    //tFrame *global = push_frame(&symtable, false);
     global_symtable(&symtable);  
 
     i_want_to_get_tokens(&LIST);
