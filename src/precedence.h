@@ -45,6 +45,7 @@ int getOperatorIndex(Token token) {
         case T_I32_VAR: return 12;
         case T_F64_VAR: return 12;
         case T_NULL: return 12;
+        case T_IFJ: return 12;
         case T_SEMICOLON: return 13;
         default: return -1;         // Invalid operator
     }
@@ -59,7 +60,7 @@ PrecedenceToken tokenWrapper(Token token) {
     return pt;
 }
 
-void ruleReduce(Stack *stack) {
+void ruleReduce(Stack *stack, tFrameStack *symtable) {
     PrecedenceToken *tokenTop = S_Top(stack);
     if (tokenTop->isTerminal) {
         if (tokenTop->token.type == T_ID ||
@@ -72,7 +73,13 @@ void ruleReduce(Stack *stack) {
             expr.line = tokenTop->token.line;
             if (tokenTop->token.type == T_ID) {
                 expr.data.u8 = tokenTop->token.data.u8;
-                // !!! zjistit typ promenne z tabulky symbolu !!!
+                tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
+                if (idTS->isFun) {
+                    reducedTop.type = idTS->funData->retType;
+                }
+                else {
+                    reducedTop.type = idTS->varData->dataType;
+                }
             }
             else if (tokenTop->token.type == T_I32_VAR) {
                 expr.data.i32 = tokenTop->token.data.i32;
@@ -84,6 +91,13 @@ void ruleReduce(Stack *stack) {
             }
             else if (tokenTop->token.type == T_NULL) {
                 reducedTop.type = T_NULL;
+            }
+            else if (tokenTop->token.type == T_IFJ) {
+                tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
+                reducedTop.type = idTS->funData->retType;
+                if (reducedTop.type == T_VOID) {
+                    exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
+                }
             }
             reducedTop.token = expr;
             reducedTop.isTerminal = false;
@@ -203,4 +217,4 @@ bool checkExprEnd(Stack *stack) {
     return true;
 }
 
-#endif
+#endif //_PRECEDENCE_H_

@@ -16,6 +16,7 @@
 
 Token CurrentToken;
 ListOfTokens LIST;
+tFrameStack symtable;
 
 Token getCurrentToken() {
     Token token = get_token_from_list(&LIST);
@@ -385,6 +386,11 @@ Token parse_assignment_or_function_call() {
         }
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
+    else {
+        if (search_symbol(&symtable, CurrentToken.data.u8->data) == NULL) {
+            exitWithError(&CurrentToken, ERR_SEM_UNDEFINED_FUNC_VAR);
+        }
+    }
     Token token = getCurrentToken();
     if (token.type != T_ASSIGN && token.type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -632,6 +638,18 @@ void expression() {
             }
         }
         
+        if (next_token.type == T_ID) {
+            tSymTabNode *idTS = search_symbol(&symtable, next_token.data.u8->data);
+            if (idTS == NULL) {
+                exitWithError(&next_token, ERR_SEM_UNDEFINED_FUNC_VAR);
+            }
+            else {
+                if (!idTS->isFun) {
+                    idTS->varData->isUsed = true;
+                }
+            }
+        }
+        
         // porovnavame priority posledniho terminalu na zasobniku s prave nactenym tokenem
         if (getOperatorIndex(next_token)==-1) {
             exitWithError(&next_token, ERR_SYNTAX_ANALYSIS);
@@ -642,7 +660,7 @@ void expression() {
         }
         if (relation == '>') {
             if (S_topTerminalReduce(&stack)) {       // vrati znak pred poslednim terminalem na zasobniku pro overeni redukce
-                ruleReduce(&stack);
+                ruleReduce(&stack, &symtable);       // provede redukci
                 alreadyRead = true;
                 continue;                            // pokud lze provest redukci, pokracujeme dal se stejnym tokenem na vstupu
             }
@@ -667,7 +685,6 @@ void expression() {
 int main() {
     init_list_of_tokens(&LIST);
 
-    tFrameStack symtable;
     init_frame_stack(&symtable);
     push_frame(&symtable, false);
     global_symtable(&symtable);  
