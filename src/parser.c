@@ -582,18 +582,19 @@ Token parse_assignment_or_function_call() {
         }
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
+    char *id = CurrentToken.data.u8->data;
     else {
-        if (search_symbol(&symtable, CurrentToken.data.u8->data) == NULL) {
+        if (search_symbol(&symtable, id) == NULL) {
             exitWithError(&CurrentToken, ERR_SEM_UNDEFINED_FUNC_VAR);
         }
     }
+
     Token token = getCurrentToken();
     if (token.type != T_ASSIGN && token.type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     if (token.type == T_ASSIGN) {
         getCurrentToken();
-        expression();               // Parsování výrazu na pravé straně přiřazení
         if (CurrentToken.type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -706,11 +707,16 @@ void arguments(Token token) {
 }
 
 Token parse_function_definition() {
+    bool inMain = false;
     if (getCurrentToken().type != T_FN) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     if (getCurrentToken().type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+    }
+    if (CurrentToken.data.u8->data == "main") {
+        startMainGen();
+        inMain = true;
     }
     tFrame *frameTS = push_frame(&symtable, true);  // Začátek nového bloku - FUNKCE
     if(frameTS == NULL) {
@@ -743,6 +749,9 @@ Token parse_function_definition() {
     Token token = code(getCurrentToken());  // Parsování těla funkce
     if (token.type != T_CLOSE_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+    }
+    if (inMain) {
+        endMainGen();
     }
     /**
      * VYSTUP Z FUNKCE => OVĚŘIT: 
@@ -888,8 +897,11 @@ int main() {
 
     i_want_to_get_tokens(&LIST);
 
+    start_gen();        // OVERIT USPESNOST ALOKACE
+
     syntax_analysis();  // Spustí se syntaktická analýza
 
+    end_gen();
     free_list_of_tokens(&LIST);
     return 0;
 }

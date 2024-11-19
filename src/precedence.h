@@ -8,6 +8,7 @@
 #include "precedence_token.h"
 #include "stack.h"
 #include "error.h"
+#include "generator.h"
 
 char precedenceTable[NUM_OPERATORS][NUM_OPERATORS] = {
     //        +    -    *    /    ==   !=   <    >    <=   >=   (    )   term   ;    
@@ -79,18 +80,22 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                 }
                 else {
                     reducedTop.type = idTS->varData->dataType;
+                    pushOnStackGen(expr.data.u8, variable_t);
                 }
             }
             else if (tokenTop->token.type == T_I32_VAR) {
                 expr.data.i32 = tokenTop->token.data.i32;
                 reducedTop.type = T_I32_VAR;
+                pushOnStackGen(expr.data.i32, int_t);
             }
             else if (tokenTop->token.type == T_F64_VAR) {
                 expr.data.f64 = tokenTop->token.data.f64;
                 reducedTop.type = T_F64_VAR;
+                pushOnStackGen(expr.data.i32, float_t);
             }
             else if (tokenTop->token.type == T_NULL) {
                 reducedTop.type = T_NULL;
+                pushOnStackGen(expr.data.i32, null_t);
             }
             else if (tokenTop->token.type == T_IFJ) {
                 tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
@@ -149,6 +154,42 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
             op->token.type != T_LESS_OR_EQUAL && op->token.type != T_GREATER_OR_EQUAL) {
             exitWithError(&op->token, ERR_SYNTAX_ANALYSIS);
         }
+        t_operationType operation;
+        switch (op->token.type) {
+            case T_ADD:
+                operation = plus;
+                break;
+            case T_SUB:
+                operation = minus;
+                break;
+            case T_MUL:
+                operation = mul;
+                break;
+            case T_DIV:
+                operation = div;
+                break;
+            case T_EQUALS:
+                operation = EQ;
+                break;
+            case T_NOT_EQUALS:
+                operation = NEQ;
+                break;
+            case T_LESS_THAN:
+                operation = LT;
+                break;
+            case T_GREATER_THAN:
+                operation = GT;
+                break;
+            case T_LESS_OR_EQUAL:
+                operation = LEQ;
+                break;
+            case T_GREATER_OR_EQUAL:
+                operation = GEQ;
+                break;
+            default:
+                exitWithError(&op->token, ERR_INTERNAL_COMPILER);
+        }
+        makeOperationStackGen(op->token.type);
         S_Pop(stack);
         PrecedenceToken *secondOperand = S_Top(stack);
         int operandType2 = secondOperand->type;                            // typ 2. vyrazu
