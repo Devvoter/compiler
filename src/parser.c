@@ -25,12 +25,19 @@ Token getCurrentToken() {
 
 void global_symtable(tFrameStack *fs) {
     Token token = getNextToken(&LIST);
+    bool mainPresent = false;
+    bool inMain = false;
     while (CurrentToken.type != T_EOF) {
         if (token.type == T_FN) {
             token = getNextToken(&LIST);
             if (token.type != T_ID) {
                 exitWithError(&token, ERR_SYNTAX_ANALYSIS);
             }
+            if (strcmp(token.data.u8->data, "main")==0) {
+                mainPresent = true;
+                inMain = true;
+            }
+
             else {
                 tSymTabNode *node = create_fun_node();
                 if (node == NULL) {
@@ -41,6 +48,9 @@ void global_symtable(tFrameStack *fs) {
                 token = getNextToken(&LIST);
                 int numOfParams = 0;
                 int *paramTypes = malloc(sizeof(int));
+                if (token.type != T_CLOSE_PARENTHESES) {
+                    exitWithError(&token, ERR_SEM_INVALID_FUNC_PARAMS);
+                }
                 while (token.type != T_CLOSE_PARENTHESES && token.type != T_EOF) {
                     if (token.type == T_I32_ID || token.type == T_I32_NULLABLE ||
                         token.type == T_F64_ID || token.type == T_F64_NULLABLE ||
@@ -55,6 +65,13 @@ void global_symtable(tFrameStack *fs) {
                     token = getNextToken(&LIST);
                 }
                 token = getNextToken(&LIST);
+                if (inMain) {
+                    if (token.type != T_VOID) {
+                        exitWithError(&token, ERR_SEM_INVALID_FUNC_PARAMS);
+                    }
+                    inMain = false;
+                }
+                
                 switch (token.type)
                 {
                 case T_I32_ID:
@@ -89,6 +106,9 @@ void global_symtable(tFrameStack *fs) {
                 }
             }
         }
+    }
+    if (!mainPresent) {
+        exitWithError(&token, ERR_SEM_UNDEFINED_FUNC_VAR);
     }
 }
 
@@ -649,7 +669,7 @@ int main() {
 
     tFrameStack symtable;
     init_frame_stack(&symtable);
-    //tFrame *global = push_frame(&symtable, false);
+    push_frame(&symtable, false);
     global_symtable(&symtable);  
 
     i_want_to_get_tokens(&LIST);
