@@ -595,6 +595,11 @@ Token parse_assignment_or_function_call() {
     }
     if (token.type == T_ASSIGN) {
         getCurrentToken();
+        // TokenType type = expression();               // Parsování výrazu na pravé straně přiřazení
+        // if (type != search_symbol(&symtable, id)->type) {
+        //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        // }
+        expression();
         if (CurrentToken.type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
