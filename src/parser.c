@@ -610,7 +610,7 @@ Token parse_assignment_or_function_call() {
     return getCurrentToken();       // Vrátíme token pro další zpracování
 }
 
-void parse_standard_function_call() {
+char *parse_standard_function_call() {
     if (getCurrentToken().type != T_DOT) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -618,21 +618,22 @@ void parse_standard_function_call() {
     if (token.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-if (!(strcmp(token.data.u8->data, "readstr") == 0 ||
-      strcmp(token.data.u8->data, "readi32") == 0 ||
-      strcmp(token.data.u8->data, "readf64") == 0 ||
-      strcmp(token.data.u8->data, "write") == 0 ||
-      strcmp(token.data.u8->data, "i2f") == 0 ||
-      strcmp(token.data.u8->data, "f2i") == 0 ||
-      strcmp(token.data.u8->data, "string") == 0 ||
-      strcmp(token.data.u8->data, "length") == 0 ||
-      strcmp(token.data.u8->data, "concat") == 0 ||
-      strcmp(token.data.u8->data, "substrin") == 0 ||
-      strcmp(token.data.u8->data, "strcmp") == 0 ||
-      strcmp(token.data.u8->data, "ord") == 0 ||
-      strcmp(token.data.u8->data, "chr") == 0)) {
-    exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-}
+    char *functionName = token.data.u8->data;
+    if (!(strcmp(token.data.u8->data, "readstr") == 0 ||
+        strcmp(token.data.u8->data, "readi32") == 0 ||
+        strcmp(token.data.u8->data, "readf64") == 0 ||
+        strcmp(token.data.u8->data, "write") == 0 ||
+        strcmp(token.data.u8->data, "i2f") == 0 ||
+        strcmp(token.data.u8->data, "f2i") == 0 ||
+        strcmp(token.data.u8->data, "string") == 0 ||
+        strcmp(token.data.u8->data, "length") == 0 ||
+        strcmp(token.data.u8->data, "concat") == 0 ||
+        strcmp(token.data.u8->data, "substrin") == 0 ||
+        strcmp(token.data.u8->data, "strcmp") == 0 ||
+        strcmp(token.data.u8->data, "ord") == 0 ||
+        strcmp(token.data.u8->data, "chr") == 0)) {
+        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+    }
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -640,7 +641,7 @@ if (!(strcmp(token.data.u8->data, "readstr") == 0 ||
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    return;
+    return functionName;
 }
 
 void arguments(Token token) {
@@ -803,8 +804,8 @@ void expression() {
             break;
         }
         if (next_token.type == T_IFJ) {
-            parse_standard_function_call();
-            next_token.type = T_ID;
+            next_token.data.u8 = parse_standard_function_call();
+            // next_token.type = T_IFJ;
             alreadyRead = false;
             continue;
         }
