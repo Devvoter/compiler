@@ -513,19 +513,17 @@ Token parse_while() {
 }
 
 Token parse_variable_definition() {
-    Token token = getCurrentToken();
+    Token id = getCurrentToken();
     if (token.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    CurrentSymbol->id = token.data.u8->data;
-    if(!insert_symbol(&symtable, CurrentSymbol)) {
-        exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
-    }
-    token = getCurrentToken();
+    Token token = getCurrentToken();
     if (token.type != T_COLON && token.type != T_ASSIGN) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+    bool autoType = true;
     else if (token.type == T_COLON) {
+        autoType = false;
         token = getCurrentToken();
         if (token.type != T_I32_ID && 
         token.type != T_F64_ID &&
@@ -550,7 +548,18 @@ Token parse_variable_definition() {
         }
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
-    expression();                   // Parsování výrazu na pravé straně přiřazení
+    TokenType exprType = expression();                   // Parsování výrazu na pravé straně přiřazení
+    if (exprType == T_NULL) {
+        if (autoType) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_DERIVATION);
+        }
+        tSymTabNode *node = search_symbol(&symtable, id.data.u8->data);
+        if (node->varData->dataType != T_F64_NULLABLE &&
+            node->varData->dataType != T_I32_NULLABLE &&
+            node->varData->dataType != T_U8_NULLABLE) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+    }
     if (CurrentToken.type != T_SEMICOLON) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -606,11 +615,10 @@ Token parse_assignment_or_function_call() {
     }
     if (token.type == T_ASSIGN) {
         getCurrentToken();
-        // TokenType type = expression();               // Parsování výrazu na pravé straně přiřazení
-        // if (type != search_symbol(&symtable, id)->type) {
-        //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-        // }
-        expression();
+        TokenType exprType = expression();               // Parsování výrazu na pravé straně přiřazení
+        if (exprType != search_symbol(&symtable, id)->type) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
         if (CurrentToken.type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -785,11 +793,15 @@ Token parse_function_definition() {
     return getCurrentToken();               // Vrátíme token pro další zpracování
 }
 
-void parse_function_call() {
+void parse_function_call(Token id) {
     getCurrentToken();
+    int currentArgument = 0;
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
         if (CurrentToken.type != T_STRING_TYPE && CurrentToken.type != T_STRING_TYPE_EMPTY) {
-            expression();                   // Parsování argumentů funkce
+            TokenType exprType = expression();                   // Parsování argumentů funkce
+            if (search_symbol(&symtable, id.data.u8->data)->funData->paramTypes[currentArgument] != exprType) {
+                exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+            }
         }
         else {
             getCurrentToken();
@@ -800,6 +812,7 @@ void parse_function_call() {
         else if (CurrentToken.type == T_COMMA) {
             getCurrentToken();
         }
+        currentArgument++;
     }
 }
 
@@ -838,7 +851,7 @@ TokenType expression() {
             if (next_token.type == T_OPEN_PARENTHESES) {
                 PrecedenceToken *function_call_check = S_getTopTerminal(&stack);
                 if (function_call_check->token.type == T_ID) {            // pokud pred zavorkou je ID, jedna se o volani funkce
-                    parse_function_call();                                // prepneme se na ll1 analyzu
+                    parse_function_call(function_call_check->token);                                // prepneme se na ll1 analyzu
                     next_token = getCurrentToken();
                     alreadyRead = false;
                     continue;                                             // na zasobniku zustane pouze id funkce a nikoliv zavorka a jeji argumenty
