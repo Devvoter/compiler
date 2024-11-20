@@ -155,40 +155,6 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
             exitWithError(&op->token, ERR_SYNTAX_ANALYSIS);
         }
         t_operationType operation;
-        switch (op->token.type) {
-            case T_ADD:
-                operation = plus;
-                break;
-            case T_SUB:
-                operation = minus;
-                break;
-            case T_MUL:
-                operation = mul;
-                break;
-            case T_DIV:
-                operation = div;
-                break;
-            case T_EQUALS:
-                operation = EQ;
-                break;
-            case T_NOT_EQUALS:
-                operation = NEQ;
-                break;
-            case T_LESS_THAN:
-                operation = LT;
-                break;
-            case T_GREATER_THAN:
-                operation = GT;
-                break;
-            case T_LESS_OR_EQUAL:
-                operation = LEQ;
-                break;
-            case T_GREATER_OR_EQUAL:
-                operation = GEQ;
-                break;
-            default:
-                exitWithError(&op->token, ERR_INTERNAL_COMPILER);
-        }
         makeOperationStackGen(op->token.type);
         S_Pop(stack);
         PrecedenceToken *secondOperand = S_Top(stack);
@@ -207,7 +173,13 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
         // expr.data.u8 = bufferInit();                           //idk what is this
         // expr.data.u8->data = "E"; //? not sure maybe E op E?
         PrecedenceToken reducedTop;
-        reducedTop.type = operandType1;
+        if (op->token.type == T_EQUALS || op->token.type == T_NOT_EQUALS || op->token.type == T_LESS_THAN || op->token.type == T_GREATER_THAN ||
+            op->token.type == T_LESS_OR_EQUAL || op->token.type == T_GREATER_OR_EQUAL) {
+            reducedTop.type = T_COMPARASION;
+        }
+        else {
+            reducedTop.type = operandType1;
+        }
         reducedTop.token = expr;
         reducedTop.isTerminal = false;
         reducedTop.reduction = false;

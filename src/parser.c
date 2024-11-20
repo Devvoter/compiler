@@ -414,7 +414,10 @@ Token parse_if() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
-    expression();                                                            // Parsování výrazu uvnitř závorek
+    TokenType exprType = expression();                                       // Parsování výrazu uvnitř závorek
+    if (exprType != T_COMPARASION) {
+        exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+    }
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -475,7 +478,10 @@ Token parse_while() {
        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
-    expression();  
+    TokenType exprType = expression();                                       // Parsování výrazu uvnitř závorek
+    if (exprType != T_COMPARASION) {
+        exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+    }
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -485,7 +491,7 @@ Token parse_while() {
     }
     getCurrentToken();
     if (CurrentToken.type == T_VERTICAL_BAR) {                           // if (...) | id_bez_null |
-        if (getCurrentToken().type != T_ID || getCurrentToken().type != T_VERTICAL_BAR) {
+        if (getCurrentToken().type != T_ID || getCurrentToken().type != T_VERTICAL_BAR) { //!!! predelat
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
         getCurrentToken();
@@ -586,6 +592,11 @@ Token parse_assignment_or_function_call() {
     else {
         if (search_symbol(&symtable, id) == NULL) {
             exitWithError(&CurrentToken, ERR_SEM_UNDEFINED_FUNC_VAR);
+        }
+        if (!search_symbol(&symtable, id)->isFun) {
+            if (search_symbol(&symtable, id)->varData->isConst) {
+                exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
+            }
         }
     }
 
@@ -792,7 +803,7 @@ void parse_function_call() {
     }
 }
 
-void expression() {
+TokenType expression() {
     Stack stack;
     S_Init(&stack);
     Token Semicolon;
@@ -813,13 +824,13 @@ void expression() {
         }
         PrecedenceToken *tokenTop = S_getTopTerminal(&stack);           // zjistime posledni terminal na zasobniku
         // pokud na zasobniku neni zadny terminal, overujeme zda jsme narazili na konec vyrazu
-        if (tokenTop == NULL) {
-            exprEnd = checkExprEnd(&stack);
-            break;
-        }
+        // if (tokenTop == NULL) {
+        //     if (checkExprEnd(&stack));
+        //     return S_Top(&stack)->type;
+        // }
         if (next_token.type == T_IFJ) {
             next_token.data.u8 = parse_standard_function_call();
-            // next_token.type = T_IFJ;
+            next_token.type = T_IFJ;
             alreadyRead = false;
             continue;
         }
@@ -844,7 +855,7 @@ void expression() {
         else {
             if (next_token.type == T_SEMICOLON) {                         // overime zda mame zredukovany cely vyraz
                 if(checkExprEnd(&stack)) {
-                    break;
+                    return S_Top(&stack)->type;
                 }
             }
         }
