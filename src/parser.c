@@ -272,22 +272,20 @@ Token parse_variable_definition() {
 }
 
 Token parse_return() {
-    TokenType expRet = symtable.current->funDecl->funData->retType;
+    TokenType expRetVal = symtable.current->funDecl->funData->retType;
     getCurrentToken();
     if (CurrentToken.type == T_SEMICOLON) {
-        if(expRet != T_VOID) {
+        if(expRetVal != T_VOID) {
             exitWithError(&CurrentToken, ERR_SEM_RETURN_EXPRESSION);
         }
         symtable.current->funDecl->funData->hasReturned = true;
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
     else {
-        expression();               // Parsování výrazu, který se má vrátit
-        /**
-        if() {
-            exitWithError(&token, ERR_SEM_RETURN_EXPRESSION);
+        TokenType retVal = expression();               // Parsování výrazu, který se má vrátit
+        if(!semcheck_compare_dtypes(expRetVal, retVal)) {
+            exitWithError(&CurrentToken, ERR_SEM_RETURN_EXPRESSION);
         }
-        */
         if (CurrentToken.type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
