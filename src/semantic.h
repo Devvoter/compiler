@@ -12,11 +12,11 @@
 #include <stdbool.h>
 
 extern Token CurrentToken;
-extern tFrameStack *Symtable;
+extern tFrameStack symtable;
 extern tSymTabNode *CurrentSymbol;
 
 bool semcheck_in_global() {
-    if (Symtable->current == Symtable->global) {
+    if (symtable.current == symtable.global) {
         return true;
     }
     return false;
@@ -27,7 +27,7 @@ bool semcheck_is_const() {
     return false;
 }
 
-bool semcheck_assign_string() {
+bool semcheck_define_string() {
     tVar *var = CurrentSymbol->varData;
     if (var->dataType == T_UNKNOW) {
         var->dataType = T_U8_ID;
@@ -39,7 +39,35 @@ bool semcheck_assign_string() {
     else return false;
 }
 
-//bool data_type_compatible(tVar var, Token *token) {}
+/**
+ * @brief Když je ve výrazu porovnávací operátor, jeho hodnota bude boolovského typu
+ * @param opIdx getOperatorIndex(Token token)
+ * @return True když je prvek výrazu porovnávací operátor
+ */
+bool semcheck_bool_expr(int opIdx) {
+    if (opIdx >= 4 && opIdx <= 9) return true;
+    return false;
+}
 
+/**
+ * @brief Funkce inicializuje symbol pro argument v hlavičke funkce a vloží ho do tabulky
+ * @return True při úspěšném vložení. False 
+ */
+bool init_insert_argument() {
+    if(!insert_symbol(&symtable, CurrentSymbol)) return false;
+    CurrentSymbol->varData->isConst = true;
+    CurrentSymbol->varData->isDef = true;
+    CurrentSymbol->varData->dataType = CurrentToken.type;
+    return true;
+}
 
-/* Konec souboru symtable.c */
+bool semcheck_var_usage(tSymTabNode *root) {
+    if(root != NULL) {
+        if(!root->varData->isUsed) return false;
+        if(!semcheck_var_usage(root->left)) return false;
+        if(!semcheck_var_usage(root->right)) return false;
+    }
+    return true;
+}
+
+/* Konec souboru semantic.h */

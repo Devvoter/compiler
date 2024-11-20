@@ -15,7 +15,7 @@
 #include "semantic.h"
 
 Token CurrentToken;
-tFrameStack *Symtable;       // Symtable init a push_frame v 1.prechode
+tFrameStack symtable;
 tSymTabNode *CurrentSymbol;  // Pro uchování nového symbolu, který ještě nemá ID
 
 Token getCurrentToken() {
@@ -67,30 +67,69 @@ int parse_prolog() {
 
 // code() bude volat konkrétní funkci dle typu tokenu
 Token code(Token token) {
+    tFrame *frameTS;
     switch (token.type) {
         case T_IF:
-            push_frame (Symtable, false);
+            if(semcheck_in_global()) {
+                exitWithError(&token, ERR_SEM_OTHER);
+            }
+            frameTS = push_frame (&symtable, false);
+            if(frameTS == NULL) {
+                exitWithError(&token, ERR_INTERNAL_COMPILER);
+            }
             return code(parse_if());
         case T_WHILE:
-            push_frame(Symtable, false);
+            if(semcheck_in_global()) {
+                exitWithError(&token, ERR_SEM_OTHER);
+            }
+            frameTS = push_frame(&symtable, false);
+            if(frameTS == NULL) {
+                exitWithError(&token, ERR_INTERNAL_COMPILER);
+            }
             return code(parse_while());
         case T_VAR:
+            if(semcheck_in_global()) {
+                exitWithError(&token, ERR_SEM_OTHER);
+            }
             tSymTabNode *symbol = create_var_node (false);
+            if(symbol == NULL) {
+                exitWithError(&token, ERR_INTERNAL_COMPILER);
+            }
             CurrentSymbol = symbol;
             return code(parse_variable_definition());
         case T_CONST:
+            if(semcheck_in_global()) {
+                exitWithError(&token, ERR_SEM_OTHER);
+            }
             tSymTabNode *symbol = create_var_node (true);
+            if(symbol == NULL) {
+                exitWithError(&token, ERR_INTERNAL_COMPILER);
+            }
             CurrentSymbol = symbol;
             return code(parse_variable_definition());
         case T_RETURN:
+            if(semcheck_in_global()) {
+                exitWithError(&token, ERR_SEM_OTHER);
+            }
             return code(parse_return());
         case T_ID: // přiřazení nebo volání funkce
+            if(semcheck_in_global()) {
+                exitWithError(&token, ERR_SEM_OTHER);
+            }
             return code(parse_assignment_or_function_call());
         case T_IFJ: // volani vestavene funkce
+            if(semcheck_in_global()) {
+                exitWithError(&token, ERR_SEM_OTHER);
+            }
             return code(parse_assignment_or_function_call());
         case T_PUB:
-            // Symbol funkce bude vložen v prvním přechodu
-            push_frame(Symtable, true);
+            if(!semcheck_in_global()){
+                // Chyba - vnořená funkce je zakázaná
+            }
+            frameTS = push_frame(&symtable, true);
+            if(frameTS == NULL) {
+                exitWithError(&token, ERR_INTERNAL_COMPILER);
+            }
             return code(parse_function_definition());
         default:
             return token;
@@ -121,10 +160,20 @@ Token parse_if() {
     if (token.type != T_CLOSE_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+    //VYSTUP Z IF: 
+    tFrame *tmpFrameIf = pop_frame(&symtable);
+    if(!semcheck_var_usage(tmpFrameIf->symTable)) {
+        exitWithError(&token, ERR_SEM_UNUSED_VAR);
+    }
+    dispose_frame(tmpFrameIf);
 
     // Zpracování volitelného else
     token = getCurrentToken();
     if (token.type == T_ELSE) {
+        tFrame *frameElse = push_frame(&symtable, false);   // Nová úroveň tabulky symbolú
+        if(frameElse == NULL) {
+            exitWithError(&token, ERR_INTERNAL_COMPILER);
+        }
         if (getCurrentToken().type != T_OPEN_BRACKET) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -132,6 +181,12 @@ Token parse_if() {
         if (token_2.type != T_CLOSE_BRACKET) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+        // VÝSTUP Z ELSE bloku: 
+        tFrame *tmpFrameElse = pop_frame(&symtable);
+        if(!semcheck_var_usage(tmpFrameElse->symTable)) {
+            exitWithError(&token_2, ERR_SEM_UNUSED_VAR);
+        }
+        dispose_frame(tmpFrameElse);
         return getCurrentToken();                                           // Načteme token pro další zpracování
     } else {
         return token;
@@ -162,6 +217,12 @@ Token parse_while() {
     if (token.type != T_CLOSE_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS); 
     }
+    //VYSTUP Z WHILE: 
+    tFrame *tmpFrame = pop_frame(&symtable);
+    if(!semcheck_var_usage(tmpFrame->symTable)) {
+        exitWithError(&token, ERR_SEM_UNUSED_VAR);
+    }
+    dispose_frame(tmpFrame);
     return getCurrentToken();                                           // Vrátíme token pro další zpracování
 }
 
@@ -170,8 +231,8 @@ Token parse_variable_definition() {
     if (token.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    CurrentSymbol->id = token.data.u8;
-    if(!insert_symbol(Symtable, CurrentSymbol)) {
+    CurrentSymbol->id = token.data.u8->data;
+    if(!insert_symbol(&symtable, CurrentSymbol)) {
         exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
     }
     token = getCurrentToken();
@@ -195,6 +256,9 @@ Token parse_variable_definition() {
     }
     getCurrentToken();
     if (CurrentToken.type == T_STRING_TYPE || CurrentToken.type == T_STRING_TYPE_EMPTY) {
+        if(!semcheck_define_string()) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
         if (getCurrentToken().type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -208,15 +272,26 @@ Token parse_variable_definition() {
 }
 
 Token parse_return() {
+    TokenType expRet = symtable.current->funDecl->funData->retType;
     getCurrentToken();
     if (CurrentToken.type == T_SEMICOLON) {
+        if(expRet != T_VOID) {
+            exitWithError(&CurrentToken, ERR_SEM_RETURN_EXPRESSION);
+        }
+        symtable.current->funDecl->funData->hasReturned = true;
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
     else {
         expression();               // Parsování výrazu, který se má vrátit
+        /**
+        if() {
+            exitWithError(&token, ERR_SEM_RETURN_EXPRESSION);
+        }
+        */
         if (CurrentToken.type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+        symtable.current->funDecl->funData->hasReturned = true;
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
 }
@@ -301,6 +376,14 @@ void arguments(Token token) {
         CurrentToken.type != T_U8_NULLABLE) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+    CurrentSymbol = create_var_node(true);
+    if(CurrentSymbol == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    CurrentSymbol->id = token.data.u8->data;
+    if (!init_insert_argument()) {
+        exitWithError(&token, ERR_SEM_REDEFINITION);
+    }
     getCurrentToken();
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
         if (CurrentToken.type != T_COMMA) {
@@ -313,6 +396,12 @@ void arguments(Token token) {
         else if (CurrentToken.type != T_ID) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+        CurrentSymbol = create_var_node(true);
+        if(CurrentSymbol == NULL) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+        CurrentSymbol->id = CurrentToken.data.u8->data;
+
         if (getCurrentToken().type != T_COLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -325,6 +414,9 @@ void arguments(Token token) {
             CurrentToken.type != T_U8_NULLABLE) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+        if (!init_argument()) {
+            exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
+        }
         getCurrentToken();
     }
 }
@@ -336,6 +428,7 @@ Token parse_function_definition() {
     if (getCurrentToken().type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+    symtable.current->funDecl = search_symbol(&symtable, CurrentToken.data.u8->data);
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -353,6 +446,9 @@ Token parse_function_definition() {
         CurrentToken.type != T_VOID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+    if(CurrentToken.type == T_VOID) {
+        symtable.current->funDecl->funData->hasReturned = true;
+    }
     if (getCurrentToken().type != T_OPEN_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -360,6 +456,19 @@ Token parse_function_definition() {
     if (token.type != T_CLOSE_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+    /**
+     * VYSTUP Z FUNKCE => OVĚŘIT: 
+     * zda byl volaný return
+     * zda byly všechny proměnné použity
+     */
+    tFrame *tmpFrame = pop_frame(&symtable);
+    if(!tmpFrame->funDecl->funData->hasReturned) {
+        exitWithError(&token, ERR_SEM_OTHER); // Chybi navrat z funkce
+    }
+    if(!semcheck_var_usage(tmpFrame->symTable)) {
+        exitWithError(&token, ERR_SEM_UNUSED_VAR);
+    }
+    dispose_frame(tmpFrame);
     return getCurrentToken();               // Vrátíme token pro další zpracování
 }
 
