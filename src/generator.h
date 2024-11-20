@@ -9,22 +9,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-
-typedef enum {
-    variable_t,    
-    string_t,
-    null_t,
-    float_t,
-    bool_t,
-    int_t
-} t_Type;
-
-typedef enum {
-    plus,
-    minus,
-    mul,
-    div
-} t_operationType;
+#include "scanner.h"
 
 /**
  * @brief vytvori zacatek kodu IFJcode24
@@ -37,8 +22,7 @@ bool startGen();
 bool endGen();
 
 /**
- * @brief uvolni veskerou pamet, alokovanou pro generator,
- * zachodi vytvoreny kod
+ * @brief uvolni veskerou pamet, alokovanou pro generator, zachodi vytvoreny kod
  * @param done v pripade true vypise kod na stdout
  */
 void disposeGen(bool done);
@@ -56,8 +40,9 @@ bool endMainGen();
 /**
  * @brief vytvori novou promennou
  * @param ID nazev promenne
+ * @param LF v pripade true, promenna se zapise do lokalniho framu
  */
-bool defVarGen(char *ID);
+bool defVarGen(char *ID, bool LF);
 
 /**
  * @brief definuje promennou
@@ -65,7 +50,7 @@ bool defVarGen(char *ID);
  * @param t typ hodnoty
  * @param value hodnota
  */
-bool assignVarGen(char *ID, t_Type t, char *value);
+bool assignVarGen(char *ID, TokenType t, char *value);
 
 /**
  * @brief volani vestavene funkce
@@ -75,7 +60,7 @@ bool assignVarGen(char *ID, t_Type t, char *value);
  * @param param1 prvni parametr standardni funkce(pripadne NULL)
  * @param param2 druhy parametr standardni funkce(pripadne NULL)
  */
-bool callStandFuncGen(bool assign, char *ID, char *param1, char *param2);
+bool callStandFuncGen(bool assign, char *ID, char *param1, char *param2, char *param3);
 
 
 /**
@@ -84,14 +69,14 @@ bool callStandFuncGen(bool assign, char *ID, char *param1, char *param2);
  * @param ID hodnota 
  * @param t typ posilane hodnoty
  */
-bool pushOnStackGen(char *ID, t_Type t);
+bool pushOnStackGen(char *ID, TokenType t);
 
 /**
  * @brief provede operaci s hodnotami na zasobniku 
  * 
  * @param t typ operace, ktera se ma provest
  */
-bool makeOperationStackGen(t_operationType t);
+bool makeOperationStackGen(TokenType t);
 
 /**
  * @brief konec zpracovani vyrazu, pripsani hodnoty z datoveho zasobniku promenne

@@ -1,10 +1,12 @@
 /**
- * @file generator.h
+ * @file generatorBuf.h
  * @author Polina Ustiuzhantseva(xustiup00)
- * @brief definice struktur pro generator
+ * @brief definice struktur a funkci pro buffer generatoru
  * 
  * @date 18.11.2024
  */
+
+#include <stdbool.h>
 
 /**
  * @brief struktura elementu pro ukladani mezikodu
@@ -25,29 +27,22 @@ typedef struct {
 /**
  * @brief inicializace buffer pro ukladani mezikodu
  */
-void bufInit(codeBuf** buffer);
+bool bufInit(codeBuf** buffer);
+
 
 /**
- * @brief pridani polozky do bufferu
+ * @brief prida string do buffru s kodem
  */
-void addCodeBufferElement(codeBuf **buffer, char instr[10], char* firstArg, char* secondArg, char* thirdArg);
+bool addCodeToBuf(codeBuf **buffer, char *str);
+
+
+
+/**
+ * @brief vytiskne vytvoreny kod na stdout
+ */
+void bufPrint(codeBuf** buffer);
 
 /**
  * @brief uvolni veskerou pamet alokovanou pro codeBuffer
  */
 void bufDestroy(codeBuf* buffer);
-
-/**
- * @brief element struktury zásobníku rámců
- */
-typedef struct framesStackElement{
-    //nejaka data
-    struct framesStackElement *next;
-} *framesStackElementPtr;
-
-/**
- *  struktura zasobniku rámců
- */
-typedef struct {
-    framesStackElementPtr *top;
-} framesStack;
