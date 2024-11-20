@@ -129,6 +129,7 @@ typedef enum {
     T_ERROR,
 
     T_EXPRESSION_NONTERMINAL,
+    T_COMPARASION,
 } TokenType;
 
 
