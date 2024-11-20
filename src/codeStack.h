@@ -69,7 +69,7 @@ void CodeStack_Pop(Stack *s);
  * @param s ukazatel na zásobník
  * @return ukazatel na data uložená ve vrcholu zásobníku nebo NULL pokud je zásobník prázdný
  */
-int *CodeStack_Top(int *s);
+int *CodeStack_Top(Stack *s);
 
 
 /**
