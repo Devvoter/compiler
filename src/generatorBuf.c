@@ -25,7 +25,7 @@ bool bufInit(codeBuf **buffer)
     {
         return false;
     }
-    firstElem->code = ".IFJcode24\n";
+    firstElem->code = ".IFJcode24";
     firstElem->next = NULL;
     (*buffer)->first = firstElem;
     (*buffer)->active = firstElem;

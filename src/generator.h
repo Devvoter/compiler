@@ -11,6 +11,23 @@
 
 #include "scanner.h"
 
+typedef enum {
+    T_WRITE,
+    T_READSTR,
+    T_READI32,
+    T_READF64,
+    T_STRING,
+    T_LENGTH,
+    T_CONCAT,
+    T_SUBSTRING,
+    T_STRCMP,
+    T_ORD,
+    T_CHR,
+    T_I2F,
+    T_F2I,
+} standFunc_t;
+
+
 /**
  * @brief vytvori zacatek kodu IFJcode24
  */
@@ -49,19 +66,46 @@ bool defVarGen(char *ID, bool LF);
  * @param ID nazev promenne
  * @param t typ hodnoty
  * @param value hodnota
+ * @param fromLF v pripade true pripisuje hodnotu z LF
+ * @param toLF v pripade true pripisuje do LF
  */
-bool assignVarGen(char *ID, TokenType t, char *value);
+bool assignVarGen(char *ID, TokenType t, char *value2, bool fromLF, bool toLF);
 
 /**
  * @brief volani vestavene funkce
  * 
+ * @param t typ volane funkce 
  * @param assign vesledek funkce se priradi promenne pokud true
+ * @param pushOnStack zapise vysledek na datovy zasobnik
  * @param ID promenna, kam se priradi vysledek(pripadne NULL)
  * @param param1 prvni parametr standardni funkce(pripadne NULL)
  * @param param2 druhy parametr standardni funkce(pripadne NULL)
  */
-bool callStandFuncGen(bool assign, char *ID, char *param1, char *param2, char *param3);
+bool callStandFuncGen(standFunc_t t ,bool assign, bool pushOnStack, char *ID, char *param1, char *param2, char *param3);
 
+/**
+ * @brief volani pomocne funkce
+ * @param name nazev funkce
+ */
+bool callFuncGen(char *name); //TODO doplnit parametry(parametry funkce, jejich pocet)
+
+/**
+ * @brief pripsani navratove hodnoty z pomocne funkce do promenne, pripadne na zasobnik
+ * @param ID nazev promenne, kam se ma ulozit hodnota
+ * @param pushOnStack v pripade true, prida se hodnota na vrchol zasobniku
+ */
+bool retValGen(char *ID, bool pushOnStack);
+
+/**
+ * @brief vygeneruje zacatek pomocne funkce 
+ * @param 
+ */
+bool FuncStartGen(char *name); //TODO parametrs
+
+/**
+ * @brief vygeneruje konec pomocne funkce 
+ */
+bool FuncEndGen();
 
 /**
  * @brief prida na datovy zasobnik hodnotu
@@ -69,7 +113,7 @@ bool callStandFuncGen(bool assign, char *ID, char *param1, char *param2, char *p
  * @param ID hodnota 
  * @param t typ posilane hodnoty
  */
-bool pushOnStackGen(char *ID, TokenType t);
+bool pushOnStackGen(char *ID, TokenType t);  //TODO S na dne zasobniku?
 
 /**
  * @brief provede operaci s hodnotami na zasobniku 
@@ -79,7 +123,7 @@ bool pushOnStackGen(char *ID, TokenType t);
 bool makeOperationStackGen(TokenType t);
 
 /**
- * @brief konec zpracovani vyrazu, pripsani hodnoty z datoveho zasobniku promenne
+ * @brief konec zpracovani vyrazu, pripsani hodnoty z datoveho zasobniku do promenne
  */
 bool endAssignGen(char *ID);
 

@@ -17,8 +17,8 @@ codeBuf *buffer;
 
 bool startGen()
 {
-    if (bufInit(&buffer) && addCodeToBuf(&buffer, "CREATEFRAME\n") &&
-        addCodeToBuf(&buffer, "PUSHFRAME\n"))
+    if (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME") &&
+        addCodeToBuf(&buffer, "\nPUSHFRAME"))
     {
         return true;
     } 
@@ -27,7 +27,7 @@ bool startGen()
 
 bool endGen()
 {
-    if (addCodeToBuf(&buffer, "POPFRAME\n")) {
+    if (addCodeToBuf(&buffer, "\nPOPFRAME\n")) {
         return true;
     }
     return false;
@@ -41,30 +41,98 @@ void disposeGen(bool done) {
 }
 
 bool startMainGen() {
-    if (addCodeToBuf(&buffer, "CREATEFRAME\n") && addCodeToBuf(&buffer, "PUSHFRAME\n")) {
+    if (addCodeToBuf(&buffer, "\nCREATEFRAME") && addCodeToBuf(&buffer, "\nPUSHFRAME")) {
         return true;
     }
     return false;
 }
 
 bool endMainGen() {
-    if (addCodeToBuf(&buffer, "POPFRAME\n")) {
+    if (addCodeToBuf(&buffer, "\nPOPFRAME")) {
         return true;
     }
     return false;
 }
 
 bool defVarGen(char* ID, bool LF) {
-    if (addCodeToBuf(&buffer, "DEFVAR ")) {
+    if (addCodeToBuf(&buffer, "\nDEFVAR ")) {
         if (LF == true) {
             if (addCodeToBuf(&buffer, "LF@")) {
                 if (addCodeToBuf(&buffer, ID)) {
-                    if (addCodeToBuf(&buffer, "\n")) {
                         return true;
-                    }
+                }
+            }
+        } else {
+            if (addCodeToBuf(&buffer, "TF@")) {
+                if (addCodeToBuf(&buffer, ID)) {
+                    return true;
                 }
             }
         }
+    }
+    return false;
+}
+
+bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF) {
+    if (addCodeToBuf(&buffer, "\nMOVE ")) {
+        if (toLF == true) {  
+            if (addCodeToBuf(&buffer, "LF@")) {
+                if (addCodeToBuf(&buffer, ID)) {
+                    if (toLF == true) {
+                        if (addCodeToBuf(&buffer, " LF@")) {
+                            if (addCodeToBuf(&buffer, value)) {
+                                return true;                     //MOVE LF@ LF@
+                            }
+                        }
+                    } else {
+                        //todo for string@, int@ and others
+                    }
+                }
+            }
+        } else if(addCodeToBuf(&buffer, "TF@")) {
+            if (addCodeToBuf(&buffer, ID)) {
+                if (toLF == true) {
+                    //TODO
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool callStandFuncGen(standFunc_t t,bool assign, bool pushOnStack, char *ID, char *param1, char *param2, char *param3) {
+    if (t == T_WRITE) {
+        //TODO
+    } else if (t == T_READSTR) {
+
+    } else if (t == T_READI32) {
+        
+    } else if (t == T_READF64) {
+
+    } else if (t == T_STRING) {
+
+    } else if (t == T_LENGTH) {
+        
+    } else if (t == T_CONCAT) {
+
+    } else if (t == T_SUBSTRING) {
+
+    } else if (t == T_STRCMP) {
+
+    } else if (t == T_ORD) {
+
+    } else if (t == T_CHR) {
+
+    } else if (t == T_I2F) {
+
+    } else if (t == T_F2I) {
+
+    }
+}
+
+bool FuncEndGen() {
+    if (addCodeToBuf(&buffer, "\nPOPFRAME") && addCodeToBuf(&buffer, "\nRETURN")) {
+        return true;
     }
     return false;
 }
