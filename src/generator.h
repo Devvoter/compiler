@@ -69,7 +69,7 @@ bool defVarGen(char *ID, bool LF);
  * @param fromLF v pripade true pripisuje hodnotu z LF
  * @param toLF v pripade true pripisuje do LF
  */
-bool assignVarGen(char *ID, TokenType t, char *value2, bool fromLF, bool toLF);
+bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF);
 
 /**
  * @brief volani vestavene funkce
