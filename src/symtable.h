@@ -70,7 +70,7 @@ typedef struct frameStack{
  * @brief Funkce pro vytvoření a inicializaci zásobníku úrovní TS
  * @return Ukazatel na zásobník úrovní TS
  */
-tFrameStack* create_frame_stack ();
+tFrameStack* init_frame_stack (tFrameStack *fs);
 
 /**
  * @brief Funkce pro vložení nové úrovně TS do zásobníku úrovní

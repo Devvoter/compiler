@@ -9,13 +9,13 @@
 
 #include "symtable.h"
 
-tFrameStack* create_frame_stack () {
-    tFrameStack *newStack = malloc(sizeof(tFrameStack));
-    if (newStack == NULL) return NULL;
+tFrameStack* init_frame_stack (tFrameStack *fs) {
+    fs = malloc(sizeof(tFrameStack));
+    if (fs == NULL) return NULL;
     
-    newStack->current = NULL;
-    newStack->global = NULL;
-    return newStack;
+    fs->current = NULL;
+    fs->global = NULL;
+    return fs;
 }
 
 tFrame* push_frame (tFrameStack *fs, bool isFun) {
