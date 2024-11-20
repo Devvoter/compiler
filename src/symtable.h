@@ -28,6 +28,7 @@ typedef struct var{
  */
 typedef struct fun{
     int retType;
+    bool hasReturned;
     int *paramTypes; // typy parametrú funkce - pole?
     int paramCnt;    // pocet parametru
 } tFun;
@@ -53,7 +54,6 @@ typedef struct frame{
     bool isFun;               // zda blok kodu patri funkci nebo while,if,..
     tSymTabNode *funDecl;     // pro kontrolu návratové hodnoty funkce
     int level;
-    bool calledReturn;
     tSymTabNode *symTable;    // lokalni TS
     tFrame *prev;             // nadrazeny blok kodu
 } tFrame;

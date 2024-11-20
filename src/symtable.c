@@ -26,8 +26,9 @@ tFrame* push_frame (tFrameStack *fs, bool isFun) {
     newFrame->symTable = NULL;
     newFrame->isFun = isFun;
     newFrame->funDecl = NULL;
-    newFrame->calledReturn = false;
-
+    if(!isFun) {
+        newFrame->funDecl = fs->current->funDecl;
+    }
     if (fs->global == NULL) {
         fs->global = newFrame;
         newFrame->level = 0;
@@ -220,6 +221,7 @@ tSymTabNode* create_fun_node () {
     newFun->funData->paramCnt = 0;
     newFun->funData->paramTypes = NULL;
     newFun->funData->retType = T_UNKNOW; //NOT_DEF;
+    newFun->funData->hasReturned = false;
 
     newFun->isFun = true;
     newFun->id = NULL;
