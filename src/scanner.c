@@ -433,12 +433,57 @@ void stringToNum(Token* token) {
     exitWithError(token, ERR_LEXICAL_ANALYSIS);
 }
 
+
+void escape_Sequence(Token newToken, unsigned long *init_count, char c){
+    switch (c) {
+        case 'n':
+            loadSymbol(&newToken, '\n', init_count);  // Znak nového řádku
+            break;
+        case 'r':
+            loadSymbol(&newToken, '\r', init_count);  // Návrat na začátek řádku
+            break;
+        case 't':
+            loadSymbol(&newToken, '\t', init_count);  // Tabulace
+            break;
+        case '\\':
+            loadSymbol(&newToken, '\\', init_count);  // Escape sekvence pro znak '\'
+            break;
+        case '"':
+            loadSymbol(&newToken, '"', init_count);   // Escape sekvence pro uvozovky
+            break;
+        case 'x':
+            char nextChar = fgetc(SOURCE);
+            if (isxdigit(nextChar)) {
+                // Pripad bez slozenych zavorek
+                char hex[3] = {0};
+                hex[0] = nextChar;  // Ukladame prvni znak
+                hex[1] = fgetc(SOURCE);  // Cteme druhy znak
+
+                if (isxdigit(hex[1])) {
+                    // Pokud jsou oba znaky platne, prevadime je
+                    int value = strtol(hex, NULL, 16);
+                    loadSymbol(&newToken, (char)value, init_count);
+                } 
+                else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);// Pokud druhy znak neni sestnactkovy
+            } 
+            else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Pokud po 'x' neni '{' a ani sestnactkovy znak
+
+            break;
+
+        default:
+            // Pokud znak po '\' není platná escape sekvence
+            exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
+    }
+}
+
+
 Token getNextToken(ListOfTokens *list){
 
     Token newToken;
     newToken.type = T_UNKNOW;
 
     static unsigned long init_count;
+    int counter = 0;
 
 
     newToken.line = line_count;
@@ -447,7 +492,6 @@ Token getNextToken(ListOfTokens *list){
     //printf("Read character: %c\n", c);  
     bool escapeSequence = false;
     bool isEmptyString = true;
-    bool test = true;
 
     if (c == EOF){
         newToken.type = T_EOF;
@@ -631,48 +675,10 @@ Token getNextToken(ListOfTokens *list){
 
             if (escapeSequence) {
                 // Zpracování standardních escape sekvencí
-                switch (c) {
-                    case 'n':
-                        loadSymbol(&newToken, '\n', &init_count);  // Znak nového řádku
-                        break;
-                    case 'r':
-                        loadSymbol(&newToken, '\r', &init_count);  // Návrat na začátek řádku
-                        break;
-                    case 't':
-                        loadSymbol(&newToken, '\t', &init_count);  // Tabulace
-                        break;
-                    case '\\':
-                        loadSymbol(&newToken, '\\', &init_count);  // Escape sekvence pro znak '\'
-                        break;
-                    case '"':
-                        loadSymbol(&newToken, '"', &init_count);   // Escape sekvence pro uvozovky
-                        break;
-                    case 'x':
-                        char nextChar = fgetc(SOURCE);
-                        if (isxdigit(nextChar)) {
-                            // Pripad bez slozenych zavorek
-                            char hex[3] = {0};
-                            hex[0] = nextChar;  // Ukladame prvni znak
-                            hex[1] = fgetc(SOURCE);  // Cteme druhy znak
-
-                            if (isxdigit(hex[1])) {
-                                // Pokud jsou oba znaky platne, prevadime je
-                                int value = strtol(hex, NULL, 16);
-                                loadSymbol(&newToken, (char)value, &init_count);
-                            } 
-                            else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);// Pokud druhy znak neni sestnactkovy
-                        } 
-                        else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Pokud po 'x' neni '{' a ani sestnactkovy znak
-
-                        break;
-
-                    default:
-                        // Pokud znak po '\' není platná escape sekvence
-                        exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
-                }
+                escape_Sequence(newToken, &init_count, c);
                 escapeSequence = false;  // Resetování flagu escape sekvence
             }
-            else if (c == '\\') {  // Narazili jsme na escape sekvenci nebo pokračování víceřádkového řetězce
+            else if (c == '\\') {  // Narazili jsme na zacatek víceřádkového řetězce   \\ text 
                 char nextChar = fgetc(SOURCE);  // Čteme další znak
                 if (nextChar == '\n') {  // Víceřádkové pokračování řetězce
                     // Přeskakujeme bílé znaky na dalším řádku
