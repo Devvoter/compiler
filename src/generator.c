@@ -91,13 +91,12 @@ bool defVarGen(char *ID, bool LF)
 
 bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
 {
-    if (addCodeToBuf(&buffer, "\nMOVE"))
+    if (addCodeToBuf(&buffer, "\nMOVE "))
     {
         if (toLF == true)
         {
-            if (addCodeToBuf(&buffer, " LF@") && addCodeToBuf(&buffer, ID))
+            if (addCodeToBuf(&buffer, "LF@") && addCodeToBuf(&buffer, ID))
             {
-                
                 if (t == T_VAR)
                 {
                     if (fromLF == true)
@@ -116,24 +115,69 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
                 {
                     // TODO
                 }
-                else if (t == T_I32_ID) {   //ID?
-                    //TODO
+                else if (t == T_I32_ID)
+                {
+                    if (addCodeToBuf(&buffer, " int@") && addCodeToBuf(&buffer, value))
+                    {
+                        return true;
+                    }
+                }
+                else if (t == T_F64_ID)
+                {
+                    if (addCodeToBuf(&buffer, " float@") && addCodeToBuf(&buffer, value))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (addCodeToBuf(&buffer, " nil@nil"))
+                    {
+                        return true;
+                    }
                 }
             }
         }
-        else if (addCodeToBuf(&buffer, " TF@") && addCodeToBuf(&buffer, ID))
+        else if (addCodeToBuf(&buffer, "TF@") && addCodeToBuf(&buffer, ID))
         {
             if (t == T_VAR)
             {
-                if (fromLF == true) {
-                    if (addCodeToBuf(&buffer, " LF@") && addCodeToBuf(&buffer, value)) {
+                if (fromLF == true)
+                {
+                    if (addCodeToBuf(&buffer, " LF@") && addCodeToBuf(&buffer, value))
+                    {
                         return true;
                     }
-                } else if (addCodeToBuf(&buffer, " TF@") && addCodeToBuf(&buffer, value)) {
+                }
+                else if (addCodeToBuf(&buffer, " TF@") && addCodeToBuf(&buffer, value))
+                {
                     return true;
                 }
-            } else if (t == T_STRING) {
-                //TODO
+            }
+            else if (t == T_STRING)
+            {
+                // TODO
+            }
+            else if (t == T_I32_ID)
+            {
+                if (addCodeToBuf(&buffer, " int@") && addCodeToBuf(&buffer, value))
+                {
+                    return true;
+                }
+            }
+            else if (t == T_F64_ID)
+            {
+                if (addCodeToBuf(&buffer, " float@") && addCodeToBuf(&buffer, value))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (addCodeToBuf(&buffer, " nil@nil"))
+                {
+                    return true;
+                }
             }
         }
     }
@@ -144,7 +188,7 @@ bool callStandFuncGen(standFunc_t t, bool assign, bool pushOnStack, char *ID, ch
 {
     if (t == T_WRITE)
     {
-        // TODO
+        //TODO
     }
     else if (t == T_READSTR)
     {
