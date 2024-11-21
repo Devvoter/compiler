@@ -415,9 +415,6 @@ Token parse_if() {
     }
     getCurrentToken();
     TokenType exprType = expression();                                       // Parsování výrazu uvnitř závorek
-    if (exprType != T_COMPARASION) {
-        exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-    }
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -427,8 +424,31 @@ Token parse_if() {
     }
     getCurrentToken();
     if (CurrentToken.type == T_VERTICAL_BAR) {                               // if (...) | id_bez_null |
-        if (getCurrentToken().type != T_ID || getCurrentToken().type != T_VERTICAL_BAR) {
+                if (getCurrentToken().type != T_ID) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        tSymTabNode newNode = create_var_node();
+        if (newNode == NULL) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+        newNode->id = CurrentToken.data.u8->data;
+        switch (exprType) {
+            case T_I32_NULLABLE:
+                newNode->varData->dataType = T_I32_VAR;
+                break;
+            case T_F64_NULLABLE:
+                newNode->varData->dataType = T_F64_VAR;
+                break;
+            case T_U8_NULLABLE:
+                newNode->varData->dataType = T_U8_ID;
+                break;
+            default:
+                exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        newNode->varData->isConst = false;
+        newNode->varData->isUsed = false;
+        if (!insert_symbol(&symtable, newNode)) {
+            exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
         }
         getCurrentToken();
     }
@@ -478,7 +498,7 @@ Token parse_while() {
        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
-    TokenType exprType = expression();                                       // Parsování výrazu uvnitř závorek
+    TokenType exprType = expression();                                   // Parsování výrazu uvnitř závorek
     if (exprType != T_COMPARASION) {
         exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
     }
@@ -491,7 +511,36 @@ Token parse_while() {
     }
     getCurrentToken();
     if (CurrentToken.type == T_VERTICAL_BAR) {                           // if (...) | id_bez_null |
-        if (getCurrentToken().type != T_ID || getCurrentToken().type != T_VERTICAL_BAR) { //!!! predelat
+        if (getCurrentToken().type != T_ID) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        tSymTabNode newNode = create_var_node();
+        if (newNode == NULL) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+        newNode->id = CurrentToken.data.u8->data;
+        switch exprType {
+            case T_I32_NULLABLE:
+                newNode->varData->dataType = T_I32_VAR;
+                break;
+            case T_F64_NULLABLE:
+                newNode->varData->dataType = T_F64_VAR;
+                break;
+            case T_U8_NULLABLE:
+                newNode->varData->dataType = T_U8_VAR;
+                break;
+            default:
+                exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        newNode->varData->isDef = true;
+        newNode->varData->isConst = false;              // ???
+        newNode->varData->isNull = false;
+        newNode->varData->isUsed = false;
+        if (!insert_symbol(&symtable, newNode)) {
+            exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
+        }
+
+        if (getCurrentToken().type != T_VERTICAL_BAR) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
         getCurrentToken();
