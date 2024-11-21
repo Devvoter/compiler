@@ -9,9 +9,13 @@
 
 #include "symtable.h"
 
-void init_frame_stack (tFrameStack *fs) {
+tFrameStack* init_frame_stack (tFrameStack *fs) {
+    fs = malloc(sizeof(tFrameStack));
+    if (fs == NULL) return NULL;
+    
     fs->current = NULL;
     fs->global = NULL;
+    return fs;
 }
 
 tFrame* push_frame (tFrameStack *fs, bool isFun) {
@@ -21,11 +25,16 @@ tFrame* push_frame (tFrameStack *fs, bool isFun) {
     newFrame->prev = fs->current;
     newFrame->symTable = NULL;
     newFrame->isFun = isFun;
-    newFrame->retType = NOT_DEF;
-    newFrame->calledReturn = false;
-
+    newFrame->funDecl = NULL;
+    if(!isFun) {
+        newFrame->funDecl = fs->current->funDecl;
+    }
+    if (fs->global == NULL) {
+        fs->global = newFrame;
+        newFrame->level = 0;
+    }
+    else newFrame->level = (fs->current->level)++;
     fs->current = newFrame;
-    if (fs->global == NULL) fs->global = newFrame;
     return newFrame;
 }
 
@@ -185,9 +194,7 @@ tSymTabNode* create_var_node (bool isConst) {
     }
     newVar->varData->isConst = isConst;
     newVar->varData->isUsed = false;
-    newVar->varData->isDef = false;
-    newVar->varData->isNull = false;
-    newVar->varData->dataType = NOT_DEF;
+    newVar->varData->dataType = T_UNKNOW; //NOT_DEF;
 
     newVar->id = NULL;
     newVar->isFun = false;
@@ -204,14 +211,15 @@ tSymTabNode* create_fun_node () {
     tSymTabNode *newFun = malloc(sizeof(tSymTabNode));
     if (newFun == NULL) return NULL;
 
-    newFun->funData = malloc(sizeof(tVar));
+    newFun->funData = malloc(sizeof(tFun));
     if (newFun->funData == NULL) { 
         free(newFun);
         return NULL;
     }
-    newFun->paramCnt = 0;
-    newFun->paramTypes = NULL;
-    newFun->retType = NOT_DEF;
+    newFun->funData->paramCnt = 0;
+    newFun->funData->paramTypes = NULL;
+    newFun->funData->retType = T_UNKNOW; //NOT_DEF;
+    newFun->funData->hasReturned = false;
 
     newFun->isFun = true;
     newFun->id = NULL;
@@ -231,6 +239,30 @@ bool insert_symbol (tFrameStack *fs, tSymTabNode *node) {
     bool heightChange = false;
     fs->current->symTable = insert_avl(fs->current->symTable, node, &heightChange);
     return true;
+}
+
+void dispose_avl (tSymTabNode *root) {
+    if(root != NULL) {
+        free(root->funData);
+        free(root->varData);
+        dispose_avl(root->left);
+        dispose_avl(root->right);
+        free(root);
+    }
+}
+
+void dispose_frame(tFrame *frame) {
+    dispose_avl(frame->symTable);
+    free(frame);
+}
+
+void dispose_frame_stack(tFrameStack *fs) {
+    tFrame *tmp;
+    while(fs->current != NULL) {
+        tmp = pop_frame(fs);
+        dispose_frame(tmp);
+    }
+    free(fs);
 }
 
 /* Konec souboru symtable.c */
