@@ -17,21 +17,13 @@ codeBuf *buffer;
 
 bool startGen()
 {
-    if (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME", false) &&
-        addCodeToBuf(&buffer, "\nPUSHFRAME", false))
-    {
-        return true;
-    }
-    return false;
+    return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME", false) &&
+            addCodeToBuf(&buffer, "\nPUSHFRAME", false));
 }
 
 bool endGen()
 {
-    if (addCodeToBuf(&buffer, "\nPOPFRAME\n", false))
-    {
-        return true;
-    }
-    return false;
+    return addCodeToBuf(&buffer, "\nPOPFRAME\n", false);
 }
 
 void disposeGen(bool done)
@@ -45,20 +37,12 @@ void disposeGen(bool done)
 
 bool startMainGen()
 {
-    if (addCodeToBuf(&buffer, "\nCREATEFRAME", false) && addCodeToBuf(&buffer, "\nPUSHFRAME", false))
-    {
-        return true;
-    }
-    return false;
+    return (addCodeToBuf(&buffer, "\nCREATEFRAME", false) && addCodeToBuf(&buffer, "\nPUSHFRAME", false));
 }
 
 bool endMainGen()
 {
-    if (addCodeToBuf(&buffer, "\nPOPFRAME", false))
-    {
-        return true;
-    }
-    return false;
+    return addCodeToBuf(&buffer, "\nPOPFRAME", false);
 }
 
 bool defVarGen(char *ID, bool LF)
@@ -69,20 +53,14 @@ bool defVarGen(char *ID, bool LF)
         {
             if (addCodeToBuf(&buffer, "LF@", false))
             {
-                if (addCodeToBuf(&buffer, ID, false))
-                {
-                    return true;
-                }
+                return (addCodeToBuf(&buffer, ID, false));
             }
         }
         else
         {
             if (addCodeToBuf(&buffer, "TF@", false))
             {
-                if (addCodeToBuf(&buffer, ID, false))
-                {
-                    return true;
-                }
+                return (addCodeToBuf(&buffer, ID, false));
             }
         }
     }
@@ -101,14 +79,11 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
                 {
                     if (fromLF == true)
                     {
-                        if (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, value, false))
-                        {
-                            return true;
-                        }
+                        return (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, value, false));
                     }
-                    else if (addCodeToBuf(&buffer, " TF@", false) && addCodeToBuf(&buffer, value, false))
+                    else
                     {
-                        return true;
+                        return (addCodeToBuf(&buffer, " TF@", false) && addCodeToBuf(&buffer, value, false));
                     }
                 }
                 else if (t == T_STRING_TYPE)
@@ -118,31 +93,19 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
                     {
                         return false;
                     }
-                    if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, value, false))
-                    {
-                        return true;
-                    }
+                    return (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, value, false));
                 }
                 else if (t == T_I32_ID)
                 {
-                    if (addCodeToBuf(&buffer, " int@", false) && addCodeToBuf(&buffer, value, false))
-                    {
-                        return true;
-                    }
+                    return (addCodeToBuf(&buffer, " int@", false) && addCodeToBuf(&buffer, value, false));
                 }
                 else if (t == T_F64_ID)
                 {
-                    if (addCodeToBuf(&buffer, " float@", false) && addCodeToBuf(&buffer, value, true))
-                    {
-                        return true;
-                    }
+                    return (addCodeToBuf(&buffer, " float@", false) && addCodeToBuf(&buffer, value, true));
                 }
                 else if (t == T_NULL)
                 {
-                    if (addCodeToBuf(&buffer, " nil@nil", false))
-                    {
-                        return true;
-                    }
+                    return addCodeToBuf(&buffer, " nil@nil", false);
                 }
             }
         }
@@ -152,14 +115,11 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
             {
                 if (fromLF == true)
                 {
-                    if (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, value, false))
-                    {
-                        return true;
-                    }
+                    return (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, value, false));
                 }
-                else if (addCodeToBuf(&buffer, " TF@", false) && addCodeToBuf(&buffer, value, false))
+                else
                 {
-                    return true;
+                    return (addCodeToBuf(&buffer, " TF@", false) && addCodeToBuf(&buffer, value, false));
                 }
             }
             else if (t == T_STRING_TYPE)
@@ -169,31 +129,19 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
                 {
                     return false;
                 }
-                if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, value, false))
-                {
-                    return true;
-                }
+                return (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, value, false));
             }
             else if (t == T_I32_ID)
             {
-                if (addCodeToBuf(&buffer, " int@", false) && addCodeToBuf(&buffer, value, false))
-                {
-                    return true;
-                }
+                return (addCodeToBuf(&buffer, " int@", false) && addCodeToBuf(&buffer, value, false));
             }
             else if (t == T_F64_ID)
             {
-                if (addCodeToBuf(&buffer, " float@", false) && addCodeToBuf(&buffer, value, true))
-                {
-                    return true;
-                }
+                return (addCodeToBuf(&buffer, " float@", false) && addCodeToBuf(&buffer, value, true));
             }
             else if (t == T_NULL)
             {
-                if (addCodeToBuf(&buffer, " nil@nil", false))
-                {
-                    return true;
-                }
+                return (addCodeToBuf(&buffer, " nil@nil", false));
             }
         }
     }
@@ -206,24 +154,15 @@ bool WriteStandFuncGen(TokenType t, char *param)
     {
         if (t == T_VAR)
         {
-            if (addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, param, false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, param, false));
         }
         else if (t == T_I32_ID)
         {
-            if (addCodeToBuf(&buffer, "int@", false) && addCodeToBuf(&buffer, param, false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "int@", false) && addCodeToBuf(&buffer, param, false));
         }
         else if (t == T_F64_ID)
         {
-            if (addCodeToBuf(&buffer, "float@", false) && addCodeToBuf(&buffer, param, true))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "float@", false) && addCodeToBuf(&buffer, param, true));
         }
         else if (t == T_STRING_TYPE)
         {
@@ -232,10 +171,7 @@ bool WriteStandFuncGen(TokenType t, char *param)
             {
                 return false;
             }
-            if (addCodeToBuf(&buffer, "string@", false) && addCodeToBuf(&buffer, param, false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "string@", false) && addCodeToBuf(&buffer, param, false));
         }
     }
     return false;
@@ -247,25 +183,15 @@ bool ReadStandFuncGen(readFunc_t t, char *ID)
     {
         if (t == T_READSTR)
         {
-
-            if (addCodeToBuf(&buffer, "@LF", false) && addCodeToBuf(&buffer, ID, false) && addCodeToBuf(&buffer, " string", false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "@LF", false) && addCodeToBuf(&buffer, ID, false) && addCodeToBuf(&buffer, " string", false));
         }
         else if (t == T_READI32)
         {
-            if (addCodeToBuf(&buffer, "@LF", false) && addCodeToBuf(&buffer, ID, false) && addCodeToBuf(&buffer, " int", false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "@LF", false) && addCodeToBuf(&buffer, ID, false) && addCodeToBuf(&buffer, " int", false));
         }
         else if (t == T_READF64)
         {
-            if (addCodeToBuf(&buffer, "@LF", false) && addCodeToBuf(&buffer, ID, false) && addCodeToBuf(&buffer, " float", false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "@LF", false) && addCodeToBuf(&buffer, ID, false) && addCodeToBuf(&buffer, " float", false));
         }
     }
     return false;
@@ -278,12 +204,11 @@ bool StringStandFuncGen(char *ID, char *param)
     {
         return false;
     }
-    if (addCodeToBuf(&buffer, "\nMOVE ", false) && addCodeToBuf(&buffer, "LF@", false) &&
-        addCodeToBuf(&buffer, ID, false) && addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param, false))
-    {
-        return true;
-    }
-    return false;
+    return (addCodeToBuf(&buffer, "\nMOVE ", false) && 
+            addCodeToBuf(&buffer, "LF@", false) &&
+            addCodeToBuf(&buffer, ID, false) && 
+            addCodeToBuf(&buffer, " string@", false) && 
+            addCodeToBuf(&buffer, param, false));
 }
 
 bool LengthStandFuncGen(char *ID, char *param, bool isVar)
@@ -298,17 +223,11 @@ bool LengthStandFuncGen(char *ID, char *param, bool isVar)
             {
                 return false;
             }
-            if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param, false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param, false));
         }
         else if (isVar == true)
         {
-            if (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, param, false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, param, false));
         }
     }
     return false;
@@ -324,10 +243,7 @@ bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
             {
                 if (isVar2 == true)
                 {
-                    if (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, param2, false))
-                    {
-                        return true;
-                    }
+                    return (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, param2, false));
                 }
                 else
                 {
@@ -336,10 +252,7 @@ bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
                     {
                         return false;
                     }
-                    if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param2, false))
-                    {
-                        return true;
-                    }
+                    return (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param2, false));
                 }
             }
         }
@@ -354,10 +267,7 @@ bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
             {
                 if (isVar2 == true)
                 {
-                    if (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, param2, false))
-                    {
-                        return true;
-                    }
+                    return (addCodeToBuf(&buffer, " LF@", false) && addCodeToBuf(&buffer, param2, false));
                 }
                 else
                 {
@@ -366,10 +276,7 @@ bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
                     {
                         return false;
                     }
-                    if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param2, false))
-                    {
-                        return true;
-                    }
+                    return (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param2, false));
                 }
             }
         }
@@ -383,24 +290,15 @@ bool pushOnStackGen(char *param, TokenType t)
     {
         if (t == T_VAR)
         {
-            if (addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, param, false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, param, false));
         }
         else if (t == T_I32_ID)
         {
-            if (addCodeToBuf(&buffer, "int@", false) && addCodeToBuf(&buffer, param, false))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "int@", false) && addCodeToBuf(&buffer, param, false));
         }
         else if (t == T_F64_ID)
         {
-            if (addCodeToBuf(&buffer, "float@", false) && addCodeToBuf(&buffer, param, true))
-            {
-                return true;
-            }
+            return (addCodeToBuf(&buffer, "float@", false) && addCodeToBuf(&buffer, param, true));
         }
     }
     return false;
@@ -410,49 +308,46 @@ bool makeOperationStackGen(TokenType t, bool idiv)
 {
     if (t == T_ADD)
     {
-        if (addCodeToBuf(&buffer, "\nADDS", false))
-            return true;
+        return addCodeToBuf(&buffer, "\nADDS", false);
     }
     else if (t == T_SUB)
     {
-        if (addCodeToBuf(&buffer, "\nSUBS", false))
-            return true;
+        return addCodeToBuf(&buffer, "\nSUBS", false);
     }
     else if (t == T_MUL)
     {
-        if (addCodeToBuf(&buffer, "\nMULS", false))
-            return true;
+        return addCodeToBuf(&buffer, "\nMULS", false);
     }
     else if (t == T_DIV)
     {
         if (idiv == false)
         {
-            if (addCodeToBuf(&buffer, "\nDIVS", false))
-                return true;
+            return addCodeToBuf(&buffer, "\nDIVS", false);
         }
         else
         {
-            if (addCodeToBuf(&buffer, "\nIDIVS", false))
-                return true;
+            return addCodeToBuf(&buffer, "\nIDIVS", false);
         }
+    }
+    else if (t == T_LESS_THAN)
+    {
+        return addCodeToBuf(&buffer, "\nLTS", false);
+    }
+    else if (t == T_GREATER_THAN)
+    {
+        return addCodeToBuf(&buffer, "\nGTS", false);
     }
     return false;
 }
 
-bool endExpAssignGen(char *ID) {
-    if (addCodeToBuf(&buffer, "\nPOPS ", false) && addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, ID, false)) {
-        return true;
-    }
-    return false;
+bool endExpAssignGen(char *ID)
+{
+    return (addCodeToBuf(&buffer, "\nPOPS ", false) && addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, ID, false));
 }
 
 bool FuncEndGen()
 {
-    if (addCodeToBuf(&buffer, "\nPOPFRAME", false) && addCodeToBuf(&buffer, "\nRETURN", false))
-    {
-        return true;
-    }
-    return false;
+    return (addCodeToBuf(&buffer, "\nPOPFRAME", false) && addCodeToBuf(&buffer, "\nRETURN", false));
 }
 
 char *replace_special_characters(const char *input)
