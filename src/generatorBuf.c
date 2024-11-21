@@ -35,7 +35,12 @@ bool bufInit(codeBuf **buffer)
 void bufPrint(codeBuf **buffer) {
     (*buffer)->active = (*buffer)->first;
         while ((*buffer)->active != NULL) {
-            fprintf(stdout, "%s", (*buffer)->active->code);
+            if ((*buffer)->active->hex_form == true) {
+                double f =atof((*buffer)->active->code);
+                fprintf(stdout, "%a", f);
+            } else {
+                fprintf(stdout, "%s", (*buffer)->active->code);
+            }
             (*buffer)->active = (*buffer)->active->next;
         }
 }
@@ -55,13 +60,14 @@ void bufDestroy(codeBuf *buffer)
     free(buffer);
 }
 
-bool addCodeToBuf(codeBuf **buffer, char *str) {
+bool addCodeToBuf(codeBuf **buffer, char *str, bool f) {
     codeBufElemPtr elem = malloc(sizeof(struct codeBufElem));
     if (elem == NULL)
     {
         return false;
     }
     elem->code = str;
+    elem->hex_form = f;
     (*buffer)->active->next = elem;
     (*buffer)->active = elem;
     elem->next = NULL;

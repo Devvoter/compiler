@@ -13,6 +13,7 @@
  */
 typedef struct codeBufElem {
     char *code;
+    bool hex_form;
     struct codeBufElem *next;
 } *codeBufElemPtr;
 
@@ -33,7 +34,7 @@ bool bufInit(codeBuf** buffer);
 /**
  * @brief prida string do buffru s kodem
  */
-bool addCodeToBuf(codeBuf **buffer, char *str);
+bool addCodeToBuf(codeBuf **buffer, char *str, bool f);
 
 
 

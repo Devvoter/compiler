@@ -6,8 +6,11 @@
  * @date 1.11.2024
  */
 
-#include <stdbool.h>
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 
 #include "scanner.h"
 
@@ -75,13 +78,14 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF);
  * @brief volani vestavene funkce
  * 
  * @param t typ volane funkce 
+ * @param t2 v pripade funkce write typ hodnoty, ktera se ma vypsat
  * @param assign vesledek funkce se priradi promenne pokud true
  * @param pushOnStack zapise vysledek na datovy zasobnik
  * @param ID promenna, kam se priradi vysledek(pripadne NULL)
  * @param param1 prvni parametr standardni funkce(pripadne NULL)
  * @param param2 druhy parametr standardni funkce(pripadne NULL)
  */
-bool callStandFuncGen(standFunc_t t ,bool assign, bool pushOnStack, char *ID, char *param1, char *param2, char *param3);
+bool callStandFuncGen(standFunc_t t, TokenType  t2,bool assign, bool pushOnStack, char *ID, char *param1, char *param2, char *param3);
 
 /**
  * @brief volani pomocne funkce
@@ -127,6 +131,11 @@ bool makeOperationStackGen(TokenType t);
  */
 bool endAssignGen(char *ID);
 
+/**
+ * @brief zmeni string na vhodny retezec pro IFJcode24
+ * @param input vstupni string
+ */
+char *replace_special_characters(const char *input);
 
 
 
