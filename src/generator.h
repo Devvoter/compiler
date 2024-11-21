@@ -15,20 +15,10 @@
 #include "scanner.h"
 
 typedef enum {
-    T_WRITE,
     T_READSTR,
     T_READI32,
-    T_READF64,
-    T_STRING,
-    T_LENGTH,
-    T_CONCAT,
-    T_SUBSTRING,
-    T_STRCMP,
-    T_ORD,
-    T_CHR,
-    T_I2F,
-    T_F2I,
-} standFunc_t;
+    T_READF64
+} readFunc_t;
 
 
 /**
@@ -75,17 +65,45 @@ bool defVarGen(char *ID, bool LF);
 bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF);
 
 /**
- * @brief volani vestavene funkce
- * 
- * @param t typ volane funkce 
- * @param t2 v pripade funkce write typ hodnoty, ktera se ma vypsat
- * @param assign vesledek funkce se priradi promenne pokud true
- * @param pushOnStack zapise vysledek na datovy zasobnik
- * @param ID promenna, kam se priradi vysledek(pripadne NULL)
- * @param param1 prvni parametr standardni funkce(pripadne NULL)
- * @param param2 druhy parametr standardni funkce(pripadne NULL)
+ * @brief funkce pro vypis, kompatibilni funkce ifj.write
+ * @param t typ hodnoty, ktera bude vypsana(var, int, string, float)
+ * @param param hodnota, ktera se ma vypsat
  */
-bool callStandFuncGen(standFunc_t t, TokenType  t2,bool assign, bool pushOnStack, char *ID, char *param1, char *param2, char *param3);
+bool WriteStandFuncGen(TokenType t, char* param);
+
+/**
+ * @brief funkce pro nacitani znaku
+ * @param t typ funkce(i32, f64, string)
+ * @param ID nazev promenne, kam se zapise nactena data
+ */
+bool ReadStandFuncGen(readFunc_t t, char *ID);
+
+/**
+ * @brief funkce pro prirazeni stringu
+ * @param t typ prirazovane hodnoty(var nebo string)
+ * @param ID nazev promenne, kam se ma priradit string
+ * @param param hodnota, ktera se ma pripsat
+ */
+bool StringStandFuncGen(char *ID, char *param);
+
+/**
+ * @brief funkce pro nalezeni delky retezce
+ * @param ID promenna, kam se ulozi vysledek
+ * @param param argument funkce
+ * @param isVar true, pokud je argument promenna, jinak retezec
+ */
+bool LengthStandFuncGen(char *ID, char *param, bool isVar);
+
+/**
+ * @brief funkce pro konkatenaci retezcu 
+ * @param ID nazev promenne, kam se ulozi vysledek
+ * @param param1 prvni argument funkce
+ * @param isVar1 v pripade true prvni argument je promenna
+ * @param param2 druhy argument funkce
+ * @param isVar2 v pripade true druhy argument je promenna
+ */
+bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2)
+
 
 /**
  * @brief volani pomocne funkce
