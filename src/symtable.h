@@ -7,10 +7,17 @@
  * @date 2024-10-19
  */
 
+#ifndef _SYMTABLE_H_
+#define _SYMTABLE_H_
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include "scanner.h"
+
+typedef struct symTabNode tSymTabNode;
+typedef struct frame tFrame;
+typedef struct frameStack tFrameStack;
 
 /** 
  * @brief Prvek TS - proměnná
@@ -182,3 +189,4 @@ void dispose_frame(tFrame *frame);
 void dispose_frame_stack(tFrameStack *fs);
 
 /* Konec souboru symtable.h */
+#endif

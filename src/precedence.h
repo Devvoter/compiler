@@ -8,6 +8,7 @@
 #include "precedence_token.h"
 #include "stack.h"
 #include "error.h"
+#include "symtable.h"
 //#include "generator.h"
 
 char precedenceTable[NUM_OPERATORS][NUM_OPERATORS] = {

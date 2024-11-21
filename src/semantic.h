@@ -30,25 +30,25 @@ bool semcheck_in_global() {
  * @brief Funkce kontroluje, zda je proměnná konstantní
  * @return True, když je proměnná konstantní
  */
-bool semcheck_is_const() {
-    if (CurrentSymbol->varData->isConst == true) return true;
+bool semcheck_is_const(tSymTabNode *symNode) {
+    if (symNode->varData->isConst == true) return true;
     return false;
 }
 
-/**
- * @brief Funkce kontroluje přiřazení řeťezce do proměnné
- * @return False, když datové typy nesedí, jinak true
- */
-bool semcheck_define_string() {
-    tVar *var = CurrentSymbol->varData;
-    if (var->dataType == T_UNKNOW) {
-        var->dataType = T_U8_ID;
-    }
-    if (var->dataType == T_U8_ID || var->dataType == T_U8_NULLABLE) {
-        return true;
-    }
-    else return false;
-}
+// /**
+//  * @brief Funkce kontroluje přiřazení řeťezce do proměnné
+//  * @return False, když datové typy nesedí, jinak true
+//  */
+// bool semcheck_define_string(tSymTabNode *symNode) {
+//     tVar *var = symNode->varData;
+//     if (var->dataType == T_UNKNOW) {
+//         var->dataType = T_U8_ID;
+//     }
+//     if (var->dataType == T_U8_ID || var->dataType == T_U8_NULLABLE) {
+//         return true;
+//     }
+//     else return false;
+// }
 
 /**
  * @brief Když je ve výrazu porovnávací operátor, jeho hodnota bude boolovského typu
@@ -64,10 +64,10 @@ bool semcheck_bool_expr(int opIdx) {
  * @brief Funkce inicializuje symbol pro argument v hlavičke funkce a vloží ho do tabulky
  * @return True při úspěšném vložení. False když se našel duplicitní ID
  */
-bool init_insert_argument() {
-    if(!insert_symbol(&symtable, CurrentSymbol)) return false;
-    CurrentSymbol->varData->isConst = true;
-    CurrentSymbol->varData->dataType = CurrentToken.type;
+bool init_insert_argument(tSymTabNode *symNode) {
+    if(!insert_symbol(&symtable, symNode)) return false;
+    symNode->varData->isConst = true;
+    symNode->varData->dataType = CurrentToken.type;
     return true;
 }
 

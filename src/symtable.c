@@ -26,14 +26,18 @@ tFrame* push_frame (tFrameStack *fs, bool isFun) {
     newFrame->symTable = NULL;
     newFrame->isFun = isFun;
     newFrame->funDecl = NULL;
-    if(!isFun) {
-        newFrame->funDecl = fs->current->funDecl;
-    }
+    
     if (fs->global == NULL) {
+        newFrame->funDecl = NULL;
         fs->global = newFrame;
         newFrame->level = 0;
     }
-    else newFrame->level = (fs->current->level)++;
+    else {
+        if(!isFun) {
+            newFrame->funDecl = fs->current->funDecl;
+        }
+        newFrame->level = (fs->current->level)++;
+    }
     fs->current = newFrame;
     return newFrame;
 }

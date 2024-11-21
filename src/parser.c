@@ -24,7 +24,7 @@ Token getCurrentToken() {
     return token;
 }
 
-void addStandardFunctionsToTS(tFrameStack *symtable) {
+void addStandardFunctionsToTS() {
     tSymTabNode *node = create_fun_node();
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
@@ -33,7 +33,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     node->funData->retType = T_U8_NULLABLE;
     node->funData->paramCnt = 0;
     node->funData->paramTypes = NULL;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -45,7 +45,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     node->funData->retType = T_I32_NULLABLE;
     node->funData->paramCnt = 0;
     node->funData->paramTypes = NULL;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -57,7 +57,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     node->funData->retType = T_F64_NULLABLE;
     node->funData->paramCnt = 0;
     node->funData->paramTypes = NULL;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -69,7 +69,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     node->funData->retType = T_VOID;
     node->funData->paramCnt = 1;
     node->funData->paramTypes = NULL;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -85,7 +85,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
     node->funData->paramTypes[0] = T_I32_ID;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -101,7 +101,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
     node->funData->paramTypes[0] = T_F64_ID;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -113,7 +113,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     node->funData->retType = T_U8_ID;
     node->funData->paramCnt = 1;
     node->funData->paramTypes = NULL;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -129,7 +129,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
     node->funData->paramTypes[0] = T_U8_ID;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -146,7 +146,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     }
     node->funData->paramTypes[0] = T_U8_ID;
     node->funData->paramTypes[1] = T_U8_ID;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -164,7 +164,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     node->funData->paramTypes[0] = T_U8_ID;
     node->funData->paramTypes[1] = T_I32_ID;
     node->funData->paramTypes[2] = T_I32_ID;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -181,7 +181,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     }
     node->funData->paramTypes[0] = T_U8_ID;
     node->funData->paramTypes[1] = T_U8_ID;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -198,7 +198,7 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
     }
     node->funData->paramTypes[0] = T_U8_ID;
     node->funData->paramTypes[1] = T_I32_ID;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -214,17 +214,17 @@ void addStandardFunctionsToTS(tFrameStack *symtable) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
     node->funData->paramTypes[0] = T_I32_ID;
-    if (!insert_symbol(symtable, node)) {
+    if (!insert_symbol(&symtable, node)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 }
 
-void global_symtable(tFrameStack *fs) {
-    addStandardFunctionsToTS(fs);
+void global_symtable() {
+    addStandardFunctionsToTS();
     Token token = getNextToken(&LIST);
     bool mainPresent = false;
     bool inMain = false;
-    while (CurrentToken.type != T_EOF) {
+    while (token.type != T_EOF) {
         if (token.type == T_FN) {
             token = getNextToken(&LIST);
             if (token.type != T_ID) {
@@ -298,11 +298,12 @@ void global_symtable(tFrameStack *fs) {
                 }
                 node->funData->paramCnt = numOfParams;
                 node->funData->paramTypes = paramTypes;
-                if (!insert_symbol(fs, node)) {
+                if (!insert_symbol(&symtable, node)) {
                     exitWithError(&token, ERR_SEM_REDEFINITION);
                 }
             }
         }
+        token = getNextToken(&LIST);
     }
     if (!mainPresent) {
         exitWithError(&token, ERR_SEM_UNDEFINED_FUNC_VAR);
@@ -417,7 +418,7 @@ Token parse_if() {
                 if (getCurrentToken().type != T_ID) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        tSymTabNode newNode = create_var_node();
+        tSymTabNode *newNode = create_var_node(false);
         if (newNode == NULL) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
@@ -504,12 +505,12 @@ Token parse_while() {
         if (getCurrentToken().type != T_ID) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        tSymTabNode newNode = create_var_node();
+        tSymTabNode *newNode = create_var_node(false);
         if (newNode == NULL) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
         newNode->id = CurrentToken.data.u8->data;
-        switch exprType {
+        switch (exprType) {
             case T_I32_NULLABLE:
                 newNode->varData->dataType = T_I32_VAR;
                 break;
@@ -517,14 +518,12 @@ Token parse_while() {
                 newNode->varData->dataType = T_F64_VAR;
                 break;
             case T_U8_NULLABLE:
-                newNode->varData->dataType = T_U8_VAR;
+                newNode->varData->dataType = T_U8_ID;
                 break;
             default:
                 exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
-        newNode->varData->isDef = true;
         newNode->varData->isConst = false;              // ???
-        newNode->varData->isNull = false;
         newNode->varData->isUsed = false;
         if (!insert_symbol(&symtable, newNode)) {
             exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
@@ -552,12 +551,12 @@ Token parse_while() {
 }
 
 Token parse_variable_definition() {
-    tSymTableNode *newNode = create_var_node();
+    tSymTabNode *newNode;
     if (CurrentToken.type == T_CONST) {
-        newNode->varData->isConst = true;
+        newNode = create_var_node(true);
     }
     else {
-        newNode->varData->isConst = false;
+        newNode = create_var_node(false);
     }
     Token id = getCurrentToken();
     if (id.type != T_ID) {
@@ -586,9 +585,9 @@ Token parse_variable_definition() {
     }
     getCurrentToken();
     if (CurrentToken.type == T_STRING_TYPE || CurrentToken.type == T_STRING_TYPE_EMPTY) {
-        if(!semcheck_define_string()) {
-            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-        }
+        // if(!semcheck_define_string()) {
+        //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        // }
         if (getCurrentToken().type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -600,12 +599,12 @@ Token parse_variable_definition() {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_DERIVATION);
         }
         if (newNode->varData->dataType != T_F64_NULLABLE &&
-            node->varData->dataType != T_I32_NULLABLE &&
-            node->varData->dataType != T_U8_NULLABLE) {
+            newNode->varData->dataType != T_I32_NULLABLE &&
+            newNode->varData->dataType != T_U8_NULLABLE) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
     }
-    else if (autotype) {
+    else if (autoType) {
         newNode->varData->dataType = exprType;
     }
     // else if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
@@ -665,7 +664,7 @@ Token parse_assignment_or_function_call() {
     if (token.type == T_ASSIGN) {
         getCurrentToken();
         TokenType exprType = expression();               // Parsování výrazu na pravé straně přiřazení
-        if (exprType != search_symbol(&symtable, id)->type) {
+        if (exprType != search_symbol(&symtable, id)->varData->dataType) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
         if (CurrentToken.type != T_SEMICOLON) {
@@ -673,7 +672,7 @@ Token parse_assignment_or_function_call() {
         }
     }
     else {
-        parse_function_call();
+        parse_function_call(id);
         if (CurrentToken.type != T_CLOSE_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -711,7 +710,7 @@ char *parse_standard_function_call() {
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    parse_function_call();
+    parse_function_call(functionName);
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -734,7 +733,12 @@ void arguments(Token token) {
         CurrentToken.type != T_U8_NULLABLE) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    if (!init_insert_argument()) {
+    tSymTabNode *newNode = create_var_node(true);
+    if(newNode == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    newNode->id = token.data.u8->data;
+    if (!init_insert_argument(newNode)) {
         exitWithError(&token, ERR_SEM_REDEFINITION);
     }
     getCurrentToken();
@@ -749,11 +753,16 @@ void arguments(Token token) {
         else if (CurrentToken.type != T_ID) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        CurrentSymbol = create_var_node(true);
-        if(CurrentSymbol == NULL) {
+        tSymTabNode *newNode = create_var_node(true);
+        if(newNode == NULL) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
-        CurrentSymbol->id = CurrentToken.data.u8->data;
+        newNode->id = CurrentToken.data.u8->data;
+        newNode->varData->isConst = true;
+        newNode->varData->isUsed = false;
+        if (!insert_symbol(&symtable, newNode)) {
+            exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
+        }
 
         if (getCurrentToken().type != T_COLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -767,25 +776,22 @@ void arguments(Token token) {
             CurrentToken.type != T_U8_NULLABLE) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        if (!init_argument()) {
-            exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
-        }
         getCurrentToken();
     }
 }
 
 Token parse_function_definition() {
-    bool inMain = false;
+    //bool inMain = false;
     if (getCurrentToken().type != T_FN) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     if (getCurrentToken().type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    if (CurrentToken.data.u8->data == "main") {
-        startMainGen();
-        inMain = true;
-    }
+    // if (CurrentToken.data.u8->data == "main") {
+    //     //startMainGen();
+    //     inMain = true;
+    // }
     tFrame *frameTS = push_frame(&symtable, true);  // Začátek nového bloku - FUNKCE
     if(frameTS == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
@@ -809,7 +815,7 @@ Token parse_function_definition() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     if(CurrentToken.type == T_VOID) {   // Void funkce nepotřebuje volat return
-        symtable.current->funDecl->funData->hasReturned = true;
+        //symtable.current->funDecl->funData->hasReturned = true;
     }
     if (getCurrentToken().type != T_OPEN_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -818,9 +824,9 @@ Token parse_function_definition() {
     if (token.type != T_CLOSE_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    if (inMain) {
-        endMainGen();
-    }
+    // if (inMain) {
+    //     endMainGen();
+    // }
     /**
      * VYSTUP Z FUNKCE => OVĚŘIT: 
      * zda byl volaný return
@@ -837,13 +843,13 @@ Token parse_function_definition() {
     return getCurrentToken();               // Vrátíme token pro další zpracování
 }
 
-void parse_function_call(Token id) {
+void parse_function_call(char *id) {
     getCurrentToken();
     int currentArgument = 0;
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
         if (CurrentToken.type != T_STRING_TYPE && CurrentToken.type != T_STRING_TYPE_EMPTY) {
             TokenType exprType = expression();                   // Parsování argumentů funkce
-            if (search_symbol(&symtable, id.data.u8->data)->funData->paramTypes[currentArgument] != exprType) {
+            if (search_symbol(&symtable, id)->funData->paramTypes[currentArgument] != exprType) {
                 exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
             }
         }
@@ -886,7 +892,7 @@ TokenType expression() {
         //     return S_Top(&stack)->type;
         // }
         if (next_token.type == T_IFJ) {
-            next_token.data.u8 = parse_standard_function_call();
+            next_token.data.u8->data = parse_standard_function_call();
             next_token.type = T_IFJ;
             alreadyRead = false;
             continue;
@@ -895,7 +901,7 @@ TokenType expression() {
             if (next_token.type == T_OPEN_PARENTHESES) {
                 PrecedenceToken *function_call_check = S_getTopTerminal(&stack);
                 if (function_call_check->token.type == T_ID) {            // pokud pred zavorkou je ID, jedna se o volani funkce
-                    parse_function_call(function_call_check->token);                                // prepneme se na ll1 analyzu
+                    parse_function_call(function_call_check->token.data.u8->data);       // prepneme se na ll1 analyzu
                     next_token = getCurrentToken();
                     alreadyRead = false;
                     continue;                                             // na zasobniku zustane pouze id funkce a nikoliv zavorka a jeji argumenty
@@ -959,6 +965,7 @@ TokenType expression() {
         next_token = getCurrentToken();
         alreadyRead = false;
     }
+    return S_Top(&stack)->type;
 }
 
 int main() {
@@ -966,15 +973,15 @@ int main() {
 
     init_frame_stack(&symtable);
     push_frame(&symtable, false);
-    global_symtable(&symtable);  
+    global_symtable();  
 
     i_want_to_get_tokens(&LIST);
 
-    start_gen();        // OVERIT USPESNOST ALOKACE
+    // start_gen();        // OVERIT USPESNOST ALOKACE
 
     syntax_analysis();  // Spustí se syntaktická analýza
 
-    end_gen();
+    // end_gen();
     free_list_of_tokens(&LIST);
     return 0;
 }

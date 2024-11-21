@@ -14,6 +14,8 @@
  */
 Token getCurrentToken();
 
+void addStandardFunctionsToTS();
+
 /**
  * @brief Funkce pro spuštění syntaktické analýzy
  */
@@ -79,9 +81,9 @@ Token parse_assignment_or_function_call();
 /**
  * @brief Funkce pro parsování volání vestavěné funkce
  * 
- * @return Token pro další zpracování
+ * @return Název volané funkce
  */
-void parse_standard_function_call();
+char *parse_standard_function_call();
 
 /**
  * @brief Funkce pro parsování argumentů funkce
@@ -93,7 +95,7 @@ void arguments(Token token);
 /**
  * @brief Funkce pro parsování výrazů
  */
-void expression();
+TokenType expression();
 
 /**
  * @brief Funkce pro parsování argumentů volání funkce uvnitř výrazu
