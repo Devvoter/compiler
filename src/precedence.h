@@ -62,45 +62,73 @@ PrecedenceToken tokenWrapper(Token token) {
     return pt;
 }
 
-TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, PrecedenceToken *operand2) {
+TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, PrecedenceToken *operand2, tFrameStack *symtable) {
     if (operand1->type == T_STRING_TYPE || operand1->type == T_U8_ID || operand1->type == T_U8_NULLABLE || // nelze provadet operace s typy zahrnujici null 
         operand2->type == T_STRING_TYPE || operand2->type == T_U8_ID || operand2->type == T_U8_NULLABLE) {
-        exitWithError(operand1, ERR_SEM_TYPE_COMPATIBILITY);
+        exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
     }
     else if (operation == T_LESS_THAN || operation == T_GREATER_THAN ||        // nelze porovnavat typy zahrnujici null
-            operation == T_LESS_OR_EQUAL || operation == T_GREATER_OR_EQUAL) {
-            if (operand1->type == T_I32_NULLABLE || operand1->type == T_F64_NULLABLE ||
-                operand2->type == T_I32_NULLABLE || operand2->type == T_F64_NULLABLE ||
-                operand1->type == T_NULL || operand2->type == T_NULL) {
-                exitWithError(operand1, ERR_SEM_TYPE_COMPATIBILITY);
-            }
-            if (operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && (operand1->isLiteral || search_symbol(symtable, operand1->token.data.u8->data)->varData->isConst)) {
-                return T_F64_VAR;
-            }
-            else if (operand1->type == T_F64_VAR && operand2->type == T_I32_VAR && (operand2->isLiteral || search_symbol(symtable, operand2->token.data.u8->data)->varData->isConst)) {
-                return T_F64_VAR;
-            }
-            else if (operand1->type != operand2->type) {
-                exitWithError(operand1, ERR_SEM_TYPE_COMPATIBILITY);
-            }
-            else {
-                return operand1->type;
-            }
+        operation == T_LESS_OR_EQUAL || operation == T_GREATER_OR_EQUAL) {
+        if (operand1->type == T_I32_NULLABLE || operand1->type == T_F64_NULLABLE ||
+            operand2->type == T_I32_NULLABLE || operand2->type == T_F64_NULLABLE ||
+            operand1->type == T_NULL || operand2->type == T_NULL) {
+            exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        if (operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && (operand1->isLiteral || search_symbol(symtable, operand1->token.data.u8->data)->varData->isConst)) {
+            return T_F64_VAR;
+        }
+        else if (operand1->type == T_F64_VAR && operand2->type == T_I32_VAR && (operand2->isLiteral || search_symbol(symtable, operand2->token.data.u8->data)->varData->isConst)) {
+            return T_F64_VAR;
+        }
+        else if (operand1->type != operand2->type) {
+            exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        else {
+            return T_COMPARASION;
+        }
     }
     else if (operation == T_ADD || operation == T_SUB || operation == T_MUL) {
         if ((operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && operand1->isLiteral) ||
-                (operand2->type == T_F64_VAR && operand2->type == T_I32_VAR && operand2->isLiteral)) {
-                reducedTop.type = T_F64_VAR; 
+            (operand2->type == T_F64_VAR && operand2->type == T_I32_VAR && operand2->isLiteral)) {
+            return T_F64_VAR; 
         }
-        else if (operandType1 != operandType2) {
-            if (!(operandType1 == T_I32_VAR && operandType2 == T_I32_NULLABLE) &&
-            !(operandType1 == T_F64_VAR && operandType2 == T_F64_NULLABLE) &&
-            !(operandType1 == T_I32_NULLABLE && operandType2 == T_I32_VAR) &&
-            !(operandType1 == T_F64_NULLABLE && operandType2 == T_F64_VAR)) {
-                exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
-            }
+        else if (operand1->type != operand2->type) {
+            exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
         }
     }
+    else if (operation == T_DIV) {         // whats with null types?
+        if (operand1->type != operand2->type) {
+            exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        if (operand1->type != T_I32_VAR && operand1->type != T_F64_VAR) {
+            exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+    }
+    else if (operation == T_EQUALS || operation == T_NOT_EQUALS) {
+        if (operand1->type == T_NULL) {
+            if (!(operand2->type == T_I32_NULLABLE || operand2->type == T_F64_NULLABLE || operand2->type == T_NULL)) {
+                exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
+            }
+        }
+        else if (operand2->type == T_NULL) {
+            if (!(operand1->type == T_I32_NULLABLE || operand1->type == T_F64_NULLABLE || operand1->type == T_NULL)) {
+                exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
+            }
+        }
+        if (operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && (operand1->isLiteral || search_symbol(symtable, operand1->token.data.u8->data)->varData->isConst)) {
+            return T_F64_VAR;
+        }
+        else if (operand1->type == T_F64_VAR && operand2->type == T_I32_VAR && (operand2->isLiteral || search_symbol(symtable, operand2->token.data.u8->data)->varData->isConst)) {
+            return T_F64_VAR;
+        }
+        else if (operand1->type != operand2->type) {
+            exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        else {
+            return T_COMPARASION;
+        }
+    }
+    return operand1->type;
 }
 
 void ruleReduce(Stack *stack, tFrameStack *symtable) {
@@ -109,7 +137,8 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
         if (tokenTop->token.type == T_ID ||
         tokenTop->token.type == T_I32_VAR ||
         tokenTop->token.type == T_F64_VAR ||
-        tokenTop->token.type == T_NULL) {                                 // E -> id
+        tokenTop->token.type == T_NULL ||
+        tokenTop->token.type == T_STRING_TYPE) {                                 // E -> id
             Token expr;
             PrecedenceToken reducedTop;
             expr.type = T_EXPRESSION_NONTERMINAL;
@@ -123,25 +152,25 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                 }
                 else {
                     reducedTop.type = idTS->varData->dataType;
-                    pushOnStackGen(expr.data.u8, variable_t);
+                    //pushOnStackGen(expr.data.u8, variable_t);
                 }
             }
             else if (tokenTop->token.type == T_I32_VAR) {
                 expr.data.i32 = tokenTop->token.data.i32;
                 reducedTop.type = T_I32_VAR;
                 reducedTop.isLiteral = true;
-                pushOnStackGen(expr.data.i32, int_t);
+                //pushOnStackGen(expr.data.i32, int_t);
             }
             else if (tokenTop->token.type == T_F64_VAR) {
                 expr.data.f64 = tokenTop->token.data.f64;
                 reducedTop.type = T_F64_VAR;
                 reducedTop.isLiteral = true;
-                pushOnStackGen(expr.data.i32, float_t);
+                //pushOnStackGen(expr.data.i32, float_t);
             }
             else if (tokenTop->token.type == T_NULL) {
                 reducedTop.type = T_NULL;
                 reducedTop.isLiteral = false;
-                pushOnStackGen(expr.data.i32, null_t);
+                //pushOnStackGen(expr.data.i32, null_t);
             }
             else if (tokenTop->token.type == T_IFJ) {
                 tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
@@ -150,6 +179,12 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                 if (reducedTop.type == T_VOID) {
                     exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
                 }
+            }
+            else if (tokenTop->token.type == T_STRING_TYPE) {
+                expr.data.u8 = tokenTop->token.data.u8;
+                reducedTop.type = T_STRING_TYPE;
+                reducedTop.isLiteral = false;
+                //pushOnStackGen(expr.data.u8, string_t);
             }
             reducedTop.token = expr;
             reducedTop.isTerminal = false;
@@ -211,94 +246,14 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
         }
         S_Pop(stack);
 
-        if (op->token.type == T_LESS_THAN || op->token.type == T_GREATER_THAN ||        // nelze porovnavat typy zahrnujici null
-            op->token.type == T_LESS_OR_EQUAL || op->token.type == T_GREATER_OR_EQUAL) {
-            if (operandType1 == T_I32_NULLABLE || operandType1 == T_F64_NULLABLE ||
-                operandType2 == T_I32_NULLABLE || operandType2 == T_F64_NULLABLE) {
-                exitWithError(&op->token, ERR_SEM_TYPE_COMPATIBILITY);
-            }
-        }
-
-        if (op->token.type == T_EQUALS || op->token.type == T_NOT_EQUALS) {            // null lze porovnavat pouze s nullable
-            if (operandType1 == T_NULL) {
-                if (!(operandType2 == T_I32_NULLABLE || operandType2 == T_F64_NULLABLE || operandType2 == T_NULL)) {
-                    exitWithError(&op->token, ERR_SEM_TYPE_COMPATIBILITY);
-                }
-            }
-            else if (operandType2 == T_NULL) {
-                if (!(operandType1 == T_I32_NULLABLE || operandType1 == T_F64_NULLABLE || operandType1 == T_NULL)) {
-                    exitWithError(&op->token, ERR_SEM_TYPE_COMPATIBILITY);
-                }
-            }
-        }
-
         // vytvarime token pro zredukovany vyraz!!
         Token expr;
         expr.type = T_EXPRESSION_NONTERMINAL;
         // expr.data.u8 = bufferInit();                           //idk what is this
         // expr.data.u8->data = "E"; //? not sure maybe E op E?
         PrecedenceToken reducedTop;
-        if (op->token.type == T_EQUALS || op->token.type == T_NOT_EQUALS || op->token.type == T_LESS_THAN || op->token.type == T_GREATER_THAN ||
-            op->token.type == T_LESS_OR_EQUAL || op->token.type == T_GREATER_OR_EQUAL) {
-            reducedTop.type = T_COMPARASION;
-            //resit konverzi typu ??
-        }
-        else {
-            reducedTop.type = operandType1;
-        }
-
-        if (op->token.type == T_ADD || op->token.type == T_SUB || op->token.type == T_MUL) {{
-            if ((operandType1 == T_I32_VAR && operandType2 == T_F64_VAR && isLiteral1) ||
-                    (operandType1 == T_F64_VAR && operandType2 == T_I32_VAR && isLiteral2)) {
-                    reducedTop.type = T_F64_VAR; 
-            }
-            else if (operandType1 != operandType2) {
-                if (!(operandType1 == T_I32_VAR && operandType2 == T_I32_NULLABLE) &&
-                !(operandType1 == T_F64_VAR && operandType2 == T_F64_NULLABLE) &&
-                !(operandType1 == T_I32_NULLABLE && operandType2 == T_I32_VAR) &&
-                !(operandType1 == T_F64_NULLABLE && operandType2 == T_F64_VAR)) {
-                    exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
-                }
-            }
-        }
-        else if (op->token.type == T_DIV) {         // whats with null types?
-            if (operandType1 != operandType2) {
-                if (!(operandType1 == T_I32_VAR && operandType2 == T_I32_NULLABLE) &&
-                !(operandType1 == T_F64_VAR && operandType2 == T_F64_NULLABLE) &&
-                !(operandType1 == T_I32_NULLABLE && operandType2 == T_I32_VAR) &&
-                !(operandType1 == T_F64_NULLABLE && operandType2 == T_F64_VAR)) {
-                    exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
-                }
-            }
-        }
-        else if (op->token.type == T_EQUALS || op->token.type == T_NOT_EQUALS) {
-            if (operandType1 != operandType2) {
-                if (!(operandType1 == T_I32_VAR && operandType2 == T_I32_NULLABLE) &&
-                !(operandType1 == T_F64_VAR && operandType2 == T_F64_NULLABLE) &&
-                !(operandType1 == T_I32_NULLABLE && operandType2 == T_I32_VAR) &&
-                !(operandType1 == T_F64_NULLABLE && operandType2 == T_F64_VAR)) {
-                    exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
-                }
-            }
-        }
-        else if (op->token.type == T_LESS_THAN || op->token.type == T_GREATER_THAN ||
-                op->token.type == T_LESS_OR_EQUAL || op->token.type == T_GREATER_OR_EQUAL) {
-            if (operandType1 != operandType2) {
-                if (!(operandType1 == T_I32_VAR && operandType2 == T_I32_NULLABLE) &&
-                !(operandType1 == T_F64_VAR && operandType2 == T_F64_NULLABLE) &&
-                !(operandType1 == T_I32_NULLABLE && operandType2 == T_I32_VAR) &&
-                !(operandType1 == T_F64_NULLABLE && operandType2 == T_F64_VAR)) {
-                    exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
-                }
-            }
-        }
-        else if (!(operandType1 == T_I32_VAR && operandType2 == T_I32_NULLABLE) &&
-        !(operandType1 == T_F64_VAR && operandType2 == T_F64_NULLABLE) &&
-        !(operandType1 == T_I32_NULLABLE && operandType2 == T_I32_VAR) &&
-        !(operandType1 == T_F64_NULLABLE && operandType2 == T_F64_VAR)) {
-            exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
-        }
-
+        reducedTop.type = typeConversion(op->token.type, firstOperand, secondOperand, symtable);
+        reducedTop.isLiteral = firstOperand->isLiteral && secondOperand->isLiteral;
         reducedTop.token = expr;
         reducedTop.isTerminal = false;
         reducedTop.reduction = false;

@@ -367,21 +367,11 @@ Token code(Token token) {
             if(semcheck_in_global()) {
                 exitWithError(&token, ERR_SEM_OTHER);
             }
-            tSymTabNode *symbol = create_var_node (false);
-            if(symbol == NULL) {
-                exitWithError(&token, ERR_INTERNAL_COMPILER);
-            }
-            CurrentSymbol = symbol;
             return code(parse_variable_definition());
         case T_CONST:
             if(semcheck_in_global()) {
                 exitWithError(&token, ERR_SEM_OTHER);
             }
-            tSymTabNode *symbol = create_var_node (true);
-            if(symbol == NULL) {
-                exitWithError(&token, ERR_INTERNAL_COMPILER);
-            }
-            CurrentSymbol = symbol;
             return code(parse_variable_definition());
         case T_RETURN:
             if(semcheck_in_global()) {
@@ -562,8 +552,15 @@ Token parse_while() {
 }
 
 Token parse_variable_definition() {
+    tSymTableNode *newNode = create_var_node();
+    if (CurrentToken.type == T_CONST) {
+        newNode->varData->isConst = true;
+    }
+    else {
+        newNode->varData->isConst = false;
+    }
     Token id = getCurrentToken();
-    if (token.type != T_ID) {
+    if (id.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     Token token = getCurrentToken();
@@ -571,7 +568,7 @@ Token parse_variable_definition() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     bool autoType = true;
-    else if (token.type == T_COLON) {
+    if (token.type == T_COLON) {
         autoType = false;
         token = getCurrentToken();
         if (token.type != T_I32_ID && 
@@ -582,7 +579,7 @@ Token parse_variable_definition() {
         token.type != T_U8_NULLABLE) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
-        CurrentSymbol->varData->dataType = token.type;
+        newNode->varData->dataType = token.type;
         if (getCurrentToken().type != T_ASSIGN) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -602,13 +599,18 @@ Token parse_variable_definition() {
         if (autoType) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_DERIVATION);
         }
-        tSymTabNode *node = search_symbol(&symtable, id.data.u8->data);
-        if (node->varData->dataType != T_F64_NULLABLE &&
+        if (newNode->varData->dataType != T_F64_NULLABLE &&
             node->varData->dataType != T_I32_NULLABLE &&
             node->varData->dataType != T_U8_NULLABLE) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
     }
+    else if (autotype) {
+        newNode->varData->dataType = exprType;
+    }
+    // else if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
+    //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+    // }
     if (CurrentToken.type != T_SEMICOLON) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -647,14 +649,12 @@ Token parse_assignment_or_function_call() {
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
     char *id = CurrentToken.data.u8->data;
-    else {
-        if (search_symbol(&symtable, id) == NULL) {
-            exitWithError(&CurrentToken, ERR_SEM_UNDEFINED_FUNC_VAR);
-        }
-        if (!search_symbol(&symtable, id)->isFun) {
-            if (search_symbol(&symtable, id)->varData->isConst) {
-                exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
-            }
+    if (search_symbol(&symtable, id) == NULL) {
+        exitWithError(&CurrentToken, ERR_SEM_UNDEFINED_FUNC_VAR);
+    }
+    if (!search_symbol(&symtable, id)->isFun) {
+        if (search_symbol(&symtable, id)->varData->isConst) {
+            exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
         }
     }
 
@@ -734,11 +734,6 @@ void arguments(Token token) {
         CurrentToken.type != T_U8_NULLABLE) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    CurrentSymbol = create_var_node(true);
-    if(CurrentSymbol == NULL) {
-        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
-    }
-    CurrentSymbol->id = token.data.u8->data;
     if (!init_insert_argument()) {
         exitWithError(&token, ERR_SEM_REDEFINITION);
     }
