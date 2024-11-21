@@ -1,6 +1,6 @@
 /**
  * Project : Prekladac imperativniho jazyka IFJ24
- * @file semantic.c
+ * @file semantic.h
  * @brief Funkce pro sémantickou analýzu
  * 
  * @author Michaela Capíková (xcapikm00)
@@ -36,7 +36,7 @@ bool semcheck_is_const() {
 }
 
 /**
- * @brief Funkce nastaví příznak isDef pro proměnnou typu []u8 / ?[]u8
+ * @brief Funkce kontroluje přiřazení řeťezce do proměnné
  * @return False, když datové typy nesedí, jinak true
  */
 bool semcheck_define_string() {
@@ -45,7 +45,6 @@ bool semcheck_define_string() {
         var->dataType = T_U8_ID;
     }
     if (var->dataType == T_U8_ID || var->dataType == T_U8_NULLABLE) {
-        var->isDef = true;
         return true;
     }
     else return false;
@@ -68,7 +67,6 @@ bool semcheck_bool_expr(int opIdx) {
 bool init_insert_argument() {
     if(!insert_symbol(&symtable, CurrentSymbol)) return false;
     CurrentSymbol->varData->isConst = true;
-    CurrentSymbol->varData->isDef = true;
     CurrentSymbol->varData->dataType = CurrentToken.type;
     return true;
 }

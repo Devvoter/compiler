@@ -194,8 +194,6 @@ tSymTabNode* create_var_node (bool isConst) {
     }
     newVar->varData->isConst = isConst;
     newVar->varData->isUsed = false;
-    newVar->varData->isDef = false;
-    newVar->varData->isNull = false;
     newVar->varData->dataType = T_UNKNOW; //NOT_DEF;
 
     newVar->id = NULL;
