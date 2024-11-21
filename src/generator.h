@@ -141,15 +141,16 @@ bool pushOnStackGen(char *ID, TokenType t);  //TODO S na dne zasobniku?
  * @brief provede operaci s hodnotami na zasobniku 
  * 
  * @param t typ operace, ktera se ma provest
+ * @param idiv v pripade true deleni je celociselne
  */
-bool makeOperationStackGen(TokenType t);
+bool makeOperationStackGen(TokenType t, bool idiv);
 
 /**
  * @brief konec zpracovani vyrazu, pripsani hodnoty z datoveho zasobniku do promenne
  * 
  * @param ID nazev promenne
  */
-bool endAssignGen(char *ID);
+bool endExpAssignGen(char *ID);
 
 /**
  * @brief zmeni string na vhodny retezec pro IFJcode24

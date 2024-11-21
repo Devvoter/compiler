@@ -336,7 +336,8 @@ bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
                     {
                         return false;
                     }
-                    if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param2, false)) {
+                    if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param2, false))
+                    {
                         return true;
                     }
                 }
@@ -365,7 +366,8 @@ bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
                     {
                         return false;
                     }
-                    if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param2, false)) {
+                    if (addCodeToBuf(&buffer, " string@", false) && addCodeToBuf(&buffer, param2, false))
+                    {
                         return true;
                     }
                 }
@@ -375,18 +377,28 @@ bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
     return false;
 }
 
-bool pushOnStackGen(char *param, TokenType t) {
-    if (addCodeToBuf(&buffer, "\nPUSHS ", false)) {
-        if (t == T_VAR) {
-            if (addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, param, false)) {
+bool pushOnStackGen(char *param, TokenType t)
+{
+    if (addCodeToBuf(&buffer, "\nPUSHS ", false))
+    {
+        if (t == T_VAR)
+        {
+            if (addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, param, false))
+            {
                 return true;
             }
-        } else if (t == T_I32_ID) {
-            if (addCodeToBuf(&buffer, "int@", false) && addCodeToBuf(&buffer, param, false)) {
+        }
+        else if (t == T_I32_ID)
+        {
+            if (addCodeToBuf(&buffer, "int@", false) && addCodeToBuf(&buffer, param, false))
+            {
                 return true;
             }
-        } else if (t == T_F64_ID) {
-            if (addCodeToBuf(&buffer, "float@", false) && addCodeToBuf(&buffer, param, true)) {
+        }
+        else if (t == T_F64_ID)
+        {
+            if (addCodeToBuf(&buffer, "float@", false) && addCodeToBuf(&buffer, param, true))
+            {
                 return true;
             }
         }
@@ -394,6 +406,45 @@ bool pushOnStackGen(char *param, TokenType t) {
     return false;
 }
 
+bool makeOperationStackGen(TokenType t, bool idiv)
+{
+    if (t == T_ADD)
+    {
+        if (addCodeToBuf(&buffer, "\nADDS", false))
+            return true;
+    }
+    else if (t == T_SUB)
+    {
+        if (addCodeToBuf(&buffer, "\nSUBS", false))
+            return true;
+    }
+    else if (t == T_MUL)
+    {
+        if (addCodeToBuf(&buffer, "\nMULS", false))
+            return true;
+    }
+    else if (t == T_DIV)
+    {
+        if (idiv == false)
+        {
+            if (addCodeToBuf(&buffer, "\nDIVS", false))
+                return true;
+        }
+        else
+        {
+            if (addCodeToBuf(&buffer, "\nIDIVS", false))
+                return true;
+        }
+    }
+    return false;
+}
+
+bool endExpAssignGen(char *ID) {
+    if (addCodeToBuf(&buffer, "\nPOPS ", false) && addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, ID, false)) {
+        return true;
+    }
+    return false;
+}
 
 bool FuncEndGen()
 {
