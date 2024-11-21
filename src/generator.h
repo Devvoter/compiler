@@ -102,7 +102,7 @@ bool LengthStandFuncGen(char *ID, char *param, bool isVar);
  * @param param2 druhy argument funkce
  * @param isVar2 v pripade true druhy argument je promenna
  */
-bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2)
+bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2);
 
 
 /**
@@ -146,6 +146,8 @@ bool makeOperationStackGen(TokenType t);
 
 /**
  * @brief konec zpracovani vyrazu, pripsani hodnoty z datoveho zasobniku do promenne
+ * 
+ * @param ID nazev promenne
  */
 bool endAssignGen(char *ID);
 

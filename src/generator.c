@@ -238,6 +238,7 @@ bool WriteStandFuncGen(TokenType t, char *param)
             }
         }
     }
+    return false;
 }
 
 bool ReadStandFuncGen(readFunc_t t, char *ID)
@@ -267,6 +268,7 @@ bool ReadStandFuncGen(readFunc_t t, char *ID)
             }
         }
     }
+    return false;
 }
 
 bool StringStandFuncGen(char *ID, char *param)
@@ -281,6 +283,7 @@ bool StringStandFuncGen(char *ID, char *param)
     {
         return true;
     }
+    return false;
 }
 
 bool LengthStandFuncGen(char *ID, char *param, bool isVar)
@@ -308,6 +311,7 @@ bool LengthStandFuncGen(char *ID, char *param, bool isVar)
             }
         }
     }
+    return false;
 }
 
 bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2)
@@ -368,6 +372,26 @@ bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
             }
         }
     }
+    return false;
+}
+
+bool pushOnStackGen(char *param, TokenType t) {
+    if (addCodeToBuf(&buffer, "\nPUSHS ", false)) {
+        if (t == T_VAR) {
+            if (addCodeToBuf(&buffer, "LF@", false) && addCodeToBuf(&buffer, param, false)) {
+                return true;
+            }
+        } else if (t == T_I32_ID) {
+            if (addCodeToBuf(&buffer, "int@", false) && addCodeToBuf(&buffer, param, false)) {
+                return true;
+            }
+        } else if (t == T_F64_ID) {
+            if (addCodeToBuf(&buffer, "float@", false) && addCodeToBuf(&buffer, param, true)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 
