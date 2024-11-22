@@ -163,7 +163,22 @@ bool makeOperationStackGen(TokenType t, bool idiv);
  */
 bool endExpAssignGen(char *ID);
 
-bool StartIfGen(bool withNull);
+/**
+ * @brief vygeneruje zacatek if blocku, zpracovani podminky probiha pred touto funkci, funkce pouze posoudi, jestli podminka plati
+ * 
+ * @param withNull v pripade true, v blocku if probehne definice a prepsani 
+ */
+bool startIfGen(bool withNull, char *ID);
+
+/**
+ * @brief vygeneruje konec if a zacatek else
+ */
+bool startElseGen();
+
+/**
+ * @brief vygeneruje konec if-else statmentu
+ */
+bool endIfElseGen();
 
 /**
  * @brief zmeni string na vhodny retezec pro IFJcode24
