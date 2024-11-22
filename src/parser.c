@@ -234,73 +234,70 @@ void global_symtable() {
                 mainPresent = true;
                 inMain = true;
             }
-
-            else {
-                tSymTabNode *node = create_fun_node();
-                if (node == NULL) {
-                    exitWithError(&token, ERR_INTERNAL_COMPILER);
-                }
-                node->id = token.data.u8->data;
-                getNextToken(&LIST);
+            tSymTabNode *node = create_fun_node();
+            if (node == NULL) {
+                exitWithError(&token, ERR_INTERNAL_COMPILER);
+            }
+            node->id = token.data.u8->data;
+            getNextToken(&LIST);
+            token = getNextToken(&LIST);
+            int numOfParams = 0;
+            int *paramTypes = malloc(sizeof(int));
+            if (token.type != T_CLOSE_PARENTHESES) {
+                exitWithError(&token, ERR_SEM_INVALID_FUNC_PARAMS);
+            }
+            while (token.type != T_CLOSE_PARENTHESES && token.type != T_EOF) {
+                if (token.type == T_I32_ID || token.type == T_I32_NULLABLE ||
+                    token.type == T_F64_ID || token.type == T_F64_NULLABLE ||
+                    token.type == T_U8_ID || token.type == T_U8_NULLABLE) {
+                    paramTypes = realloc(paramTypes, (numOfParams + 1) * sizeof(int));
+                    if (paramTypes == NULL) {
+                        exitWithError(&token, ERR_INTERNAL_COMPILER);
+                    }
+                    paramTypes[numOfParams] = token.type;
+                    numOfParams++;
+                    }
                 token = getNextToken(&LIST);
-                int numOfParams = 0;
-                int *paramTypes = malloc(sizeof(int));
-                if (token.type != T_CLOSE_PARENTHESES) {
+            }
+            token = getNextToken(&LIST);
+            if (inMain) {
+                if (token.type != T_VOID) {
                     exitWithError(&token, ERR_SEM_INVALID_FUNC_PARAMS);
                 }
-                while (token.type != T_CLOSE_PARENTHESES && token.type != T_EOF) {
-                    if (token.type == T_I32_ID || token.type == T_I32_NULLABLE ||
-                        token.type == T_F64_ID || token.type == T_F64_NULLABLE ||
-                        token.type == T_U8_ID || token.type == T_U8_NULLABLE) {
-                        paramTypes = realloc(paramTypes, (numOfParams + 1) * sizeof(int));
-                        if (paramTypes == NULL) {
-                            exitWithError(&token, ERR_INTERNAL_COMPILER);
-                        }
-                        paramTypes[numOfParams] = token.type;
-                        numOfParams++;
-                        }
-                    token = getNextToken(&LIST);
-                }
-                token = getNextToken(&LIST);
-                if (inMain) {
-                    if (token.type != T_VOID) {
-                        exitWithError(&token, ERR_SEM_INVALID_FUNC_PARAMS);
-                    }
-                    inMain = false;
-                }
-                
-                switch (token.type)
-                {
-                case T_I32_ID:
-                    node->funData->retType = T_I32_ID;
-                    break;
-                case T_F64_ID:
-                    node->funData->retType = T_F64_ID;
-                    break;
-                case T_U8_ID:
-                    node->funData->retType = T_U8_ID;
-                    break;
-                case T_I32_NULLABLE:
-                    node->funData->retType = T_I32_NULLABLE;
-                    break;
-                case T_F64_NULLABLE:
-                    node->funData->retType = T_F64_NULLABLE;
-                    break;
-                case T_U8_NULLABLE:
-                    node->funData->retType = T_U8_NULLABLE;
-                    break;
-                case T_VOID:
-                    node->funData->retType = T_VOID;
-                    break;
-                default:
-                    exitWithError(&token, ERR_SYNTAX_ANALYSIS);
-                    break;
-                }
-                node->funData->paramCnt = numOfParams;
-                node->funData->paramTypes = paramTypes;
-                if (!insert_symbol(&symtable, node)) {
-                    exitWithError(&token, ERR_SEM_REDEFINITION);
-                }
+                inMain = false;
+            }
+            
+            switch (token.type)
+            {
+            case T_I32_ID:
+                node->funData->retType = T_I32_ID;
+                break;
+            case T_F64_ID:
+                node->funData->retType = T_F64_ID;
+                break;
+            case T_U8_ID:
+                node->funData->retType = T_U8_ID;
+                break;
+            case T_I32_NULLABLE:
+                node->funData->retType = T_I32_NULLABLE;
+                break;
+            case T_F64_NULLABLE:
+                node->funData->retType = T_F64_NULLABLE;
+                break;
+            case T_U8_NULLABLE:
+                node->funData->retType = T_U8_NULLABLE;
+                break;
+            case T_VOID:
+                node->funData->retType = T_VOID;
+                break;
+            default:
+                exitWithError(&token, ERR_SYNTAX_ANALYSIS);
+                break;
+            }
+            node->funData->paramCnt = numOfParams;
+            node->funData->paramTypes = paramTypes;
+            if (!insert_symbol(&symtable, node)) {
+                exitWithError(&token, ERR_SEM_REDEFINITION);
             }
         }
         token = getNextToken(&LIST);
@@ -443,6 +440,11 @@ Token parse_if() {
         }
         getCurrentToken();
     }
+    else {
+        if (exprType != T_COMPARASION) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+    }
     if (CurrentToken.type != T_OPEN_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -490,9 +492,9 @@ Token parse_while() {
     }
     getCurrentToken();
     TokenType exprType = expression();                                   // Parsování výrazu uvnitř závorek
-    if (exprType != T_COMPARASION) {
-        exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-    }
+    // if (exprType != T_COMPARASION) {
+    //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+    // }
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -534,6 +536,11 @@ Token parse_while() {
         }
         getCurrentToken();
     }
+    else {
+        if (exprType != T_COMPARASION) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+    }
     if (CurrentToken.type != T_OPEN_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -562,6 +569,8 @@ Token parse_variable_definition() {
     if (id.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
+    newNode->id = id.data.u8->data;
+    newNode->varData->isUsed = false;
     Token token = getCurrentToken();
     if (token.type != T_COLON && token.type != T_ASSIGN) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -584,15 +593,15 @@ Token parse_variable_definition() {
         }
     }
     getCurrentToken();
-    if (CurrentToken.type == T_STRING_TYPE || CurrentToken.type == T_STRING_TYPE_EMPTY) {
-        // if(!semcheck_define_string()) {
-        //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-        // }
-        if (getCurrentToken().type != T_SEMICOLON) {
-            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
-        }
-        return getCurrentToken();   // Vrátíme token pro další zpracování
-    }
+    // if (CurrentToken.type == T_STRING_TYPE || CurrentToken.type == T_STRING_TYPE_EMPTY) {
+    //     // if(!semcheck_define_string()) {
+    //     //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+    //     // }
+    //     if (getCurrentToken().type != T_SEMICOLON) {
+    //         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+    //     }
+    //     return getCurrentToken();   // Vrátíme token pro další zpracování
+    // }
     TokenType exprType = expression();                   // Parsování výrazu na pravé straně přiřazení
     if (exprType == T_NULL) {
         if (autoType) {
@@ -607,9 +616,17 @@ Token parse_variable_definition() {
     else if (autoType) {
         newNode->varData->dataType = exprType;
     }
+    else {
+        if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+    }
     // else if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
     //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
     // }
+    if (!insert_symbol(&symtable, newNode)) {
+        exitWithError(&CurrentToken, ERR_SEM_REDEFINITION);
+    }
     if (CurrentToken.type != T_SEMICOLON) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -629,7 +646,7 @@ Token parse_return() {
     else {
         TokenType retVal = expression();               // Parsování výrazu, který se má vrátit
         if(!semcheck_compare_dtypes(expRetVal, retVal)) {
-            exitWithError(&CurrentToken, ERR_SEM_RETURN_EXPRESSION);
+            exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
         }
         if (CurrentToken.type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -797,6 +814,10 @@ Token parse_function_definition() {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
     symtable.current->funDecl = search_symbol(&symtable, CurrentToken.data.u8->data);
+    if (symtable.current->funDecl == NULL) {
+        printf("where is the funcction?\n");
+        exit(99);
+    }
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -815,7 +836,7 @@ Token parse_function_definition() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     if(CurrentToken.type == T_VOID) {   // Void funkce nepotřebuje volat return
-        //symtable.current->funDecl->funData->hasReturned = true;
+        symtable.current->funDecl->funData->hasReturned = true;
     }
     if (getCurrentToken().type != T_OPEN_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -847,14 +868,9 @@ void parse_function_call(char *id) {
     getCurrentToken();
     int currentArgument = 0;
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
-        if (CurrentToken.type != T_STRING_TYPE && CurrentToken.type != T_STRING_TYPE_EMPTY) {
-            TokenType exprType = expression();                   // Parsování argumentů funkce
-            if (search_symbol(&symtable, id)->funData->paramTypes[currentArgument] != exprType) {
-                exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-            }
-        }
-        else {
-            getCurrentToken();
+        TokenType exprType = expression();                   // Parsování argumentů funkce
+        if (search_symbol(&symtable, id)->funData->paramTypes[currentArgument] != exprType) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
         if (CurrentToken.type != T_COMMA && CurrentToken.type != T_CLOSE_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);

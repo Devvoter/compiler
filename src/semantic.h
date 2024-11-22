@@ -7,6 +7,9 @@
  * @date 2024-11-17
  */
 
+#ifndef _SEMANTIC_H_
+#define _SEMANTIC_H_
+
 #include "symtable.h"
 #include "scanner.h"
 #include <stdbool.h>
@@ -108,6 +111,7 @@ bool semcheck_compare_dtypes(TokenType expected, TokenType assigned) {
             if(expected == T_U8_NULLABLE) return true;
         case T_NULL: // Toto neviem ci je spravne...
             if(expected == T_I32_NULLABLE || expected == T_F64_NULLABLE || expected == T_U8_NULLABLE) return true;
+            else return false;
         case T_I32_VAR:
             if(expected == T_I32_ID || expected == T_U8_NULLABLE) return true;
         case T_F64_VAR:
@@ -121,3 +125,5 @@ bool semcheck_compare_dtypes(TokenType expected, TokenType assigned) {
     }
 }
 /* Konec souboru semantic.h */
+
+#endif

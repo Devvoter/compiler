@@ -49,6 +49,7 @@ int getOperatorIndex(Token token) {
         case T_NULL: return 12;
         case T_IFJ: return 12;
         case T_STRING_TYPE: return 12;
+        case T_STRING_TYPE_EMPTY: return 12;
         case T_SEMICOLON: return 13;
         default: return -1;         // Invalid operator
     }
@@ -68,7 +69,7 @@ TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, Precede
         operand2->type == T_STRING_TYPE || operand2->type == T_U8_ID || operand2->type == T_U8_NULLABLE) {
         exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
     }
-    else if (operation == T_LESS_THAN || operation == T_GREATER_THAN ||        // nelze porovnavat typy zahrnujici null
+    if (operation == T_LESS_THAN || operation == T_GREATER_THAN ||        // nelze porovnavat typy zahrnujici null
         operation == T_LESS_OR_EQUAL || operation == T_GREATER_OR_EQUAL) {
         if (operand1->type == T_I32_NULLABLE || operand1->type == T_F64_NULLABLE ||
             operand2->type == T_I32_NULLABLE || operand2->type == T_F64_NULLABLE ||
@@ -76,10 +77,12 @@ TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, Precede
             exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
         }
         if (operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && (operand1->isLiteral || search_symbol(symtable, operand1->token.data.u8->data)->varData->isConst)) {
-            return T_F64_VAR;
+            operand1->type = T_F64_VAR;
+            return T_COMPARASION;
         }
         else if (operand1->type == T_F64_VAR && operand2->type == T_I32_VAR && (operand2->isLiteral || search_symbol(symtable, operand2->token.data.u8->data)->varData->isConst)) {
-            return T_F64_VAR;
+            operand2->type = T_F64_VAR;
+            return T_COMPARASION;
         }
         else if (operand1->type != operand2->type) {
             exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
@@ -117,10 +120,12 @@ TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, Precede
             }
         }
         if (operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && (operand1->isLiteral || search_symbol(symtable, operand1->token.data.u8->data)->varData->isConst)) {
-            return T_F64_VAR;
+            operand1->type = T_F64_VAR;
+            return T_COMPARASION;
         }
         else if (operand1->type == T_F64_VAR && operand2->type == T_I32_VAR && (operand2->isLiteral || search_symbol(symtable, operand2->token.data.u8->data)->varData->isConst)) {
-            return T_F64_VAR;
+            operand2->type = T_F64_VAR;
+            return T_COMPARASION;
         }
         else if (operand1->type != operand2->type) {
             exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
@@ -145,7 +150,11 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
             expr.type = T_EXPRESSION_NONTERMINAL;
             expr.line = tokenTop->token.line;
             if (tokenTop->token.type == T_ID) {
-                expr.data.u8 = tokenTop->token.data.u8;
+                expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
+                if (expr.data.u8 == NULL) {
+                    exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+                }
+                *expr.data.u8 = *tokenTop->token.data.u8;
                 reducedTop.isLiteral = false;
                 tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
                 if (idTS->isFun) {
@@ -181,8 +190,11 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                     exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
                 }
             }
-            else if (tokenTop->token.type == T_STRING_TYPE) {
-                expr.data.u8 = tokenTop->token.data.u8;
+            else if (tokenTop->token.type == T_STRING_TYPE || tokenTop->token.type == T_STRING_TYPE_EMPTY) {
+                expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
+                if (expr.data.u8 == NULL) {
+                    exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+                }
                 reducedTop.type = T_STRING_TYPE;
                 reducedTop.isLiteral = false;
                 //pushOnStackGen(expr.data.u8, string_t);
@@ -226,7 +238,12 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
         }
     }
     else if (tokenTop->token.type == T_EXPRESSION_NONTERMINAL) {             // E -> E op E
-        PrecedenceToken *firstOperand = tokenTop;
+
+        PrecedenceToken *firstOperand = malloc(sizeof(PrecedenceToken));
+        if (firstOperand == NULL) {
+            exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+        }
+        *firstOperand = *tokenTop;
         S_Pop(stack);
         PrecedenceToken *op = S_Top(stack);
         if (!op->isTerminal) {
@@ -239,9 +256,10 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
             exitWithError(&op->token, ERR_SYNTAX_ANALYSIS);
         }
 
-        //makeOperationStackGen(op->token.type);
+        int operation = op->token.type;
         S_Pop(stack);
-        PrecedenceToken *secondOperand = S_Top(stack);
+        PrecedenceToken *secondOperand = malloc(sizeof(PrecedenceToken));
+        *secondOperand = *S_Top(stack);
         if (secondOperand->isTerminal) {
             exitWithError(&secondOperand->token, ERR_SYNTAX_ANALYSIS);
         }
@@ -253,7 +271,7 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
         // expr.data.u8 = bufferInit();                           //idk what is this
         // expr.data.u8->data = "E"; //? not sure maybe E op E?
         PrecedenceToken reducedTop;
-        reducedTop.type = typeConversion(op->token.type, firstOperand, secondOperand, symtable);
+        reducedTop.type = typeConversion(operation, firstOperand, secondOperand, symtable);
         reducedTop.isLiteral = firstOperand->isLiteral && secondOperand->isLiteral;
         reducedTop.token = expr;
         reducedTop.isTerminal = false;
@@ -261,6 +279,8 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
 
         S_Top(stack)->reduction = false;    
         S_Push(stack, reducedTop);
+        free (firstOperand);
+        free (secondOperand);
         return;
     }
     exitWithError(&tokenTop->token, ERR_SYNTAX_ANALYSIS);
