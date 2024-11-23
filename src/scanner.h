@@ -237,7 +237,6 @@ void i_want_to_get_tokens(ListOfTokens *list);
 
 Token get_token_from_list(ListOfTokens *list);
 
-void print_list_of_tokens(ListOfTokens * list);
 
 /**
  * @brief Funkce zpracuje vstup a pošle dál token.
