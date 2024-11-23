@@ -15,10 +15,18 @@
 
 #ifdef USE_FILE
     #define SOURCE source_file
+
+    FILE *source_file; // globální proměna pro soubor
+    void fileInit(FILE *source) {
+        source_file = source;
+    }
 #else
     #define SOURCE stdin
 #endif
 
+static unsigned long line_count = 0;
+
+/*--------------funkce-list--------------*/
 
 void init_list_of_tokens(ListOfTokens *list){
     list->firstToken = NULL;
@@ -43,32 +51,24 @@ void free_list_of_tokens(ListOfTokens *list) {
 	list->currentLength = 0; 
 }
 
-
 void insert_in_list_of_tokens(ListOfTokens *list, Token token){
 
     ListTokenPtr newElemnt = (ListTokenPtr)malloc(sizeof(struct ListToken));
-    if (newElemnt == NULL) exit(42);
+    if (newElemnt == NULL) exitWithError(NULL, ERR_INTERNAL_COMPILER);
 
     newElemnt->token = token;
     newElemnt->nextToken = NULL;
-
-    
-    
 
     if (list->firstToken == NULL)
     {
         list->firstToken = newElemnt;
         list->activeToken = newElemnt;
-        
     }
     else{
         list->activeToken = list->firstToken;
-        while (list->activeToken->nextToken != NULL)
-        {
-            list->activeToken = list->activeToken->nextToken;
-        }
+        while (list->activeToken->nextToken != NULL) list->activeToken = list->activeToken->nextToken;
+
         list->activeToken->nextToken = newElemnt;
-        
     }
 
     list->currentLength++;
@@ -84,13 +84,10 @@ Token get_token_from_list(ListOfTokens *list){
     return list->activeToken->token;
 }
 
+/*--------------konec-funkce-list--------------*/
 
 
-
-
-
-
-static unsigned long line_count = 0;
+/*--------------pomocne-funkce-automat--------------*/
 
 enum automat_state changeAutomatState (char c){
 
@@ -159,13 +156,16 @@ enum automat_state changeAutomatState (char c){
         return S_AT;
     case '|':
         return S_VERTICAL_BAR;
+        break;
     case '[':
         return S_SQUQRE_BRACKET_OPEN;
+        break;
     default:
         return S_ERROR;
         break;
     }
 };
+
 
 void isNullType (Token* newToken){
     if (((strcmp(newToken->data.u8->data, "?[]u8")) == 0)) newToken->type = T_U8_NULLABLE;
@@ -197,6 +197,7 @@ KeywordTokenPair keyword_tokens[] = {
     {"import", T_IMPORT}
 };
 
+
 TokenType isKeyWord(const char* word) {
     
     size_t keywords_count = sizeof(keyword_tokens) / sizeof(keyword_tokens[0]);
@@ -207,12 +208,6 @@ TokenType isKeyWord(const char* word) {
 
     // Pokud slovo není v seznamu klíčových slov nalezeno, vrátí identifikátor
     return T_ID;
-}
-
-FILE *source_file; // globální proměna pro soubor
-
-void fileInit(FILE *source) {
-    source_file = source;
 }
 
 
@@ -312,7 +307,10 @@ void escape_Sequence(Token newToken, unsigned long *init_count, char c){
             exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
     }
 }
+/*--------------konce-pomocne-funkce-automat--------------*/
 
+
+/*--------------hlavni-funkce-souboru--------------*/
 
 Token getNextToken(ListOfTokens *list){
 
@@ -320,7 +318,6 @@ Token getNextToken(ListOfTokens *list){
     newToken.type = T_UNKNOW;
 
     static unsigned long init_count;
-    int counter = 0;
 
 
     newToken.line = line_count;
@@ -662,3 +659,4 @@ Token getNextToken(ListOfTokens *list){
     return newToken;
 }
 
+/*--------------konce-hlavni-funkce-souboru--------------*/

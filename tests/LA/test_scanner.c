@@ -161,13 +161,14 @@ int printTokenType(Token newToken) {
             return -1;
             break;
     }
+    return 42;
 }
 
-void print_list_of_tokens(ListOfTokens * list){
+int print_list_of_tokens(ListOfTokens * list){
     if (list->firstToken == NULL)
     {
         printf("list is empty\n");
-        return;
+        return -1;
     }
     
     list->activeToken = list->firstToken;
@@ -177,7 +178,7 @@ void print_list_of_tokens(ListOfTokens * list){
         switch (newToken.type) {
             case T_EOF:
                 printf("Token type: T_EOF                 line:%ld\n", newToken.line+1);
-                return;
+                return -1;
                 break;
             case T_IMPORT:
                 printf("Token type: T_IMPORT,             line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
@@ -316,16 +317,16 @@ void print_list_of_tokens(ListOfTokens * list){
                 break;
             case T_ERROR:
                 printf("Token type: T_ERROR,              line:%ld\n", newToken.line+1);
-                return;
+                return -1;
             default:
                 printf("im in switch in default - it might be a error, line:%ld\n", newToken.line+1);
-                return ;
+                return -1;
                 break;
         }
         
         list->activeToken = list->activeToken->nextToken;
     }
-    
+    return 42;
 }
 
 int main() {
@@ -342,7 +343,7 @@ int main() {
 #endif
 
     // čteme a výpisujeme tokeny
-    Token newToken;
+    //Token newToken;
     ListOfTokens list;
     init_list_of_tokens(&list);
 

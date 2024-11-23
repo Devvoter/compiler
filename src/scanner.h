@@ -226,15 +226,48 @@ typedef struct {
     int          currentLength;
 }ListOfTokens;
 
+/**
+ * @brief Funkce inicializuje list.
+ * 
+ * @param[in] list Ukazatel na list.
+ * 
+ */
 void init_list_of_tokens(ListOfTokens *list);
 
+/**
+ * @brief Uvolni pamet prvku a vrati list do stavu inicializace.
+ * 
+ * @param[in] list Ukazatel na list.
+ * 
+ */
 void free_list_of_tokens(ListOfTokens *list);
 
-
+/**
+ * @brief Na konec listu prida token.
+ * 
+ * @param[in] list Ukazatel na list.
+ *  
+ */
 void insert_in_list_of_tokens(ListOfTokens *list, Token token);
 
+/**
+ * @brief Funkce vola se jeden krat pred tim jak budete chtit cist tokeny z listu.
+ *        Nastavi potrebne ukazatele na cteni tokenu. Pred opakovanym ctenim tokenu
+ *        od zacatku je potreba znov ji zavota.
+ * 
+ * @param[in] list Ukazatel na list.
+ * 
+ */
 void i_want_to_get_tokens(ListOfTokens *list);
 
+/**
+ * @brief Pri volani funkce, bude vracet token z listu
+ * 
+ * @param[in] list Ukazatel na list.
+ * 
+ * @return Token
+ * 
+ */
 Token get_token_from_list(ListOfTokens *list);
 
 
