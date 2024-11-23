@@ -1,0 +1,24 @@
+// deklarace promnennych
+
+const ifj = @import("ifj24.zig");
+
+
+pub fn main() void {
+    var name1 : i32 = 42;
+    var n_ame2 : f64 = 42.42;
+    var string : []u8 = ifj.string("text");
+
+    ifj.write("var i32:"); ifj.write(name1); ifj.write("\n");
+    ifj.write("var f64:"); ifj.write(n_ame2); ifj.write("\n");
+    ifj.write("string :"); ifj.write(string); ifj.write("\n");
+
+
+    const str = ifj  .     string("texxxxt\n");
+    ifj.write(str);
+
+
+    const kill = ifj.readi32();
+    const me = ifj.readf64();
+    const please = ifj.readstr(); 
+    ifj.write("i32:");ifj.write(kill);  ifj.write("str: "); ifj.write(please);  ifj.write("f64: "); ifj.write(me);
+}

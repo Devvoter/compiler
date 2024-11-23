@@ -1,0 +1,12 @@
+// test zameren na deklarace promnenne, while, a funkci ifj.write
+const ifj = @import("ifj24.zig");
+
+pub fn main() void {
+    var test_variable: i32 = 5;
+    while (test_variable > 0) {
+        ifj.write("newIteration:");
+        ifj.write(test_variable);
+        ifj.write("\n");
+        test_variable = test_variable - 1;
+    }
+}

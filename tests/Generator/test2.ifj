@@ -1,0 +1,21 @@
+// test zamezen pouziti pomocnych funkci
+const ifj = @import("ifj24.zig");
+
+pub fn main() void {
+    var test_increment: i32 = increment(1, 1);
+    var test_decrement: i32 = decrement(2, 5);
+    ifj.write("increment:");
+    ifj.write(test_increment);
+    ifj.write("\n");
+    ifj.write("decrement:");
+    ifj.write(test_decrement);
+    ifj.write("\n");
+}
+
+pub fn increment(n: i32, m: i32) i32 {
+    return n + m;
+}
+
+pub fn decrement(n: i32, m: i32) i32 {
+    return n - m;
+}

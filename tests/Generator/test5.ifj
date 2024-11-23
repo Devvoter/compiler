@@ -1,0 +1,71 @@
+//  vsechny vestavene funkce
+const ifj = @import("ifj24.zig");
+
+pub fn main() void {
+    // funkce pro nacitani hodnot
+    ifj.write("funkce pro nacitani hodnot\n");
+    ifj.write("enter string:\n");
+    var newInput = ifj.readstr();
+    ifj.write("enter i32:\n");
+    var newNum = ifj.readi32();
+    ifj.write("enter f64:\n");
+    var newFloatNum = ifj.readf64();
+
+    // Funkce pro výpis hodnoty
+    ifj.write("Funkce pro výpis hodnoty\n");
+    ifj.write("string : "); ifj.write(newInput); ifj.write("\n");
+    ifj.write("f64: "); ifj.write(newFloatNum); ifj.write("\n");
+    ifj.write("i32: "); ifj.write(newNum); ifj.write("\n");
+
+
+    // Vestavěné funkce pro konverzi číselných typů:
+    ifj.write("Vestavěné funkce pro konverzi číselných typů:\n");
+    var d: f64 = ifj.i2f(newNum); 
+    var o: i32 = ifj.f2i(newFloatNum);
+
+    ifj.write("i2f: "); ifj.write(d); ifj.write("\n");
+    ifj.write("f2i: "); ifj.write(o); ifj.write("\n");
+
+    // Vestavěné funkce pro práci s řezy:
+    ifj.write("Vestavěné funkce pro práci s řezy:\n");
+
+    // def str1 a str2
+    const str1 = ifj.string("text in the first str1");
+    const str2 = ifj.string("test in the second str2");
+
+    // vypis str1 a str2
+    ifj.write("str1:"); ifj.write(str1); ifj.write("\n");
+    ifj.write("str2:"); ifj.write(str2); ifj.write("\n");
+
+    // delka str1
+    ifj.write("length of str1:");
+    var delka = ifj.length(str1);
+    ifj.write(delka); ifj.write("\n");
+
+    // concat str1 a str2
+    ifj.write("concat str1 a str2\n");
+    const str3 = ifj.concat(str1, str2);
+    ifj.write("str3 = ");ifj.write(str3);ifj.write("\n");
+
+
+    // podretezec retezce str3 
+    ifj.write("podretezec retezce str3\n");
+    const str4 = ifj.substring(str3, 12, 15);
+
+    // porovnani retezce
+    ifj.write(" porovnani retezce");
+    var bool: i32 = ifj.strcmp(str1, str2); // 0
+    ifj.write("hodnota: "); ifj.write(bool); ifj.write("\n");
+
+    // ascii hodnota i-teho znaka v srt1;
+    ifj.write("ascii hodnota i-teho znaka v srt1;\n");
+    var hodnota_ascii = ifj.ord(str1, 2); // ascii hodnota x
+    ifj.write("ascii hodnota i-teho znaka: ")ifj.write(x);ifj.write("\n");
+
+
+    // vrati znak odpovidajici zadanemu cislu 0-255 z ascii tabulky
+    ifj.write("vrati znak odpovidajici zadanemu cislu 0-255 z ascii tabulky\n");
+    const char = ifj.chr(65) // A;
+    ifj.write(char);
+
+}

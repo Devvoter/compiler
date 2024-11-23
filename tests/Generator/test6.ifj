@@ -1,0 +1,58 @@
+// if - else 
+const ifj = @import("ifj24.zig");
+
+pub fn main() void {
+    ifj.write("zadej cislo i32:\n");
+    var number: i32 = ifj.readi32();
+
+    // stantdartni if else
+    ifj.write("zkouska na standatni if else\n");
+    if(number > 10){
+        ifj.write("zadane cislo vetsi nez 10, jsem v if-else (vetev if)\n");
+    }
+    else{
+        ifj.write("zadane cislo mensi nez 10, jsem v if-else (vetev else)\n");
+    }
+
+
+    // pokrocili if else
+    ifj.write("zkouska na pokrocili if else\n");
+    ifj.write("zadej retezec:\n");
+    var str = ifj.readstr();
+    
+    if(ifj.length(str) > 4){
+
+        ifj.write("jsem v prvnim if-else (vetev if), delka zadaneho retezce vetsi nez 4\n");
+
+        if(ifj.length(str) >= number){
+            ifj.write("jsem v druhem if-else(vetev if), delka zadaneho retezce vetsi nebo rovno 4\n");
+        }
+        else{
+            ifj.write("jsem v druhem if-else(vetev else), delka zadaneho retezce mensi nez 4\n");
+        }
+    }
+    else{
+        ifj.write("jsem v prvnim if-else (vetev else), delka zadaneho retezce mensi nez 4\n");
+        
+        
+        if(ifj.length(str) == 3){ // mozna zkouska na if bez else, jestli projde
+            ifj.write("jsem v druhem if(vetev if), delka zadaneho je 3\n");
+        }
+
+        if(ifj.length(str) == 2){
+            ifj.write("jsem v druhem if-else(vetev if), delka zadaneho je 2\n");
+        }
+        else{
+            ifj.write("jsem v druhem if-else(vetev else), delka zadaneho neni 2\n");
+        }
+
+        if(ifj.length(str) == 1){
+            ifj.write("jsem v druhem if-else(vetev if), delka zadaneho je 1\n");
+        }
+        else{
+            ifj.write("jsem v druhem if-else(vetev else), delka zadaneho neni 1\n");
+        }
+
+    }
+
+}
