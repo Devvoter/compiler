@@ -26,6 +26,7 @@ bool bufInit(codeBuf **buffer)
         return false;
     }
     firstElem->code = ".IFJcode24";
+    firstElem->t = T_OTHERS;
     firstElem->next = NULL;
     (*buffer)->first = firstElem;
     (*buffer)->active = firstElem;
@@ -35,11 +36,13 @@ bool bufInit(codeBuf **buffer)
 void bufPrint(codeBuf **buffer) {
     (*buffer)->active = (*buffer)->first;
         while ((*buffer)->active != NULL) {
-            if ((*buffer)->active->hex_form == true) {
-                double f =atof((*buffer)->active->code);
+            if ((*buffer)->active->t == T_FLOAT) {
+                double f = atof((*buffer)->active->code);
                 fprintf(stdout, "%a", f);
+            } else if ((*buffer)->active->t == T_INT) {
+                fprintf(stdout, "%d", *(int*)(*buffer)->active->code);
             } else {
-                fprintf(stdout, "%s", (*buffer)->active->code);
+                fprintf(stdout, "%s", (char*)(*buffer)->active->code);
             }
             (*buffer)->active = (*buffer)->active->next;
         }
@@ -55,19 +58,22 @@ void bufDestroy(codeBuf *buffer)
     {
         codeBufElemPtr tmp = elem;
         elem = elem->next;
+        if (tmp->t == T_STRING) {
+            free(tmp->code);
+        }
         free(tmp);
     }
     free(buffer);
 }
 
-bool addCodeToBuf(codeBuf **buffer, char *str, bool f) {
+bool addCodeToBuf(codeBuf **buffer, void *str, PRINT_TYPE t) {
     codeBufElemPtr elem = malloc(sizeof(struct codeBufElem));
     if (elem == NULL)
     {
         return false;
     }
     elem->code = str;
-    elem->hex_form = f;
+    elem->t = t;
     (*buffer)->active->next = elem;
     (*buffer)->active = elem;
     elem->next = NULL;

@@ -8,12 +8,19 @@
 
 #include <stdbool.h>
 
+typedef enum {
+    T_FLOAT,
+    T_INT,
+    T_STRING,
+    T_OTHERS
+} PRINT_TYPE;
+
 /**
  * @brief struktura elementu pro ukladani mezikodu
  */
 typedef struct codeBufElem {
-    char *code;
-    bool hex_form;
+    void *code;
+    PRINT_TYPE t;
     struct codeBufElem *next;
 } *codeBufElemPtr;
 
@@ -34,7 +41,7 @@ bool bufInit(codeBuf** buffer);
 /**
  * @brief prida string do buffru s kodem
  */
-bool addCodeToBuf(codeBuf **buffer, char *str, bool f);
+bool addCodeToBuf(codeBuf **buffer, void *str, PRINT_TYPE t);
 
 
 

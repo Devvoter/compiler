@@ -73,7 +73,7 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF);
  * @param t typ hodnoty, ktera bude vypsana(var, int, string, float)
  * @param param hodnota, ktera se ma vypsat
  */
-bool WriteStandFuncGen(TokenType t, char* param);
+bool writeStandFuncGen(TokenType t, char* param);
 
 /**
  * @brief funkce pro nacitani znaku
@@ -81,7 +81,7 @@ bool WriteStandFuncGen(TokenType t, char* param);
  * @param t typ funkce(i32, f64, string)
  * @param ID nazev promenne, kam se zapise nactena data
  */
-bool ReadStandFuncGen(readFunc_t t, char *ID);
+bool readStandFuncGen(readFunc_t t, char *ID);
 
 /**
  * @brief funkce pro prirazeni stringu
@@ -90,7 +90,7 @@ bool ReadStandFuncGen(readFunc_t t, char *ID);
  * @param ID nazev promenne, kam se ma priradit string
  * @param param hodnota, ktera se ma pripsat
  */
-bool StringStandFuncGen(char *ID, char *param);
+bool stringStandFuncGen(char *ID, char *param);
 
 /**
  * @brief funkce pro nalezeni delky retezce
@@ -99,7 +99,7 @@ bool StringStandFuncGen(char *ID, char *param);
  * @param param argument funkce
  * @param isVar true, pokud je argument promenna, jinak retezec
  */
-bool LengthStandFuncGen(char *ID, char *param, bool isVar);
+bool lengthStandFuncGen(char *ID, char *param, bool isVar);
 
 /**
  * @brief funkce pro konkatenaci retezcu 
@@ -110,8 +110,27 @@ bool LengthStandFuncGen(char *ID, char *param, bool isVar);
  * @param param2 druhy argument funkce
  * @param isVar2 v pripade true druhy argument je promenna
  */
-bool ConcatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2);
+bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2);
 
+/**
+ * @brief funkce vrati ASCII kod zadaneho znaku
+ * 
+ * @param ID promenna, kam se zapise vysledek
+ * @param param1 vstupni string
+ * @param isVar1 true v pripade, ze param1 je promenna
+ * @param param2 index znaku, hodnota ktereho se ma vratit
+ * @param isVar2 true v pripade, ze param2 je promenna
+ */
+bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2);
+
+/**
+ * @brief funkce vrati znak zadaneho ASCII kodu
+ * 
+ * @param ID promenna, kam se zapise hodnota
+ * @param param ASCII hodnota
+ * @param isVar pokud true, parametr je promenna
+ */
+bool chrStandFuncGen(char *ID, char *param, bool isVar);
 
 /**
  * @brief volani pomocne funkce
@@ -133,12 +152,12 @@ bool retValGen(char *ID, bool pushOnStack);
  * 
  * @param 
  */
-bool FuncStartGen(char *name); //TODO parametrs
+bool funcStartGen(char *name); //TODO parametrs
 
 /**
  * @brief vygeneruje konec pomocne funkce 
  */
-bool FuncEndGen();
+bool funcEndGen();
 
 /**
  * @brief prida na datovy zasobnik hodnotu
