@@ -79,9 +79,10 @@ bool writeStandFuncGen(TokenType t, char* param);
  * @brief funkce pro nacitani znaku
  * 
  * @param t typ funkce(i32, f64, string)
- * @param ID nazev promenne, kam se zapise nactena data
+ * @param ID nazev promenne, kam se zapise nactena data. V pripade zpracovani vyrazu bude se rovnat NULL
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool readStandFuncGen(readFunc_t t, char *ID);
+bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack);
 
 /**
  * @brief funkce pro prirazeni stringu
@@ -89,66 +90,86 @@ bool readStandFuncGen(readFunc_t t, char *ID);
  * @param t typ prirazovane hodnoty(var nebo string)
  * @param ID nazev promenne, kam se ma priradit string
  * @param param hodnota, ktera se ma pripsat
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool stringStandFuncGen(char *ID, char *param);
+bool stringStandFuncGen(char *ID, char *param, bool pushOnStack);
 
 /**
  * @brief funkce pro nalezeni delky retezce
  * 
- * @param ID promenna, kam se ulozi vysledek
+ * @param ID promenna, kam se ulozi vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
  * @param param argument funkce
  * @param isVar true, pokud je argument promenna, jinak retezec
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool lengthStandFuncGen(char *ID, char *param, bool isVar);
+bool lengthStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
 
 /**
  * @brief funkce pro konkatenaci retezcu 
  * 
- * @param ID nazev promenne, kam se ulozi vysledek
+ * @param ID nazev promenne, kam se ulozi vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
  * @param param1 prvni argument funkce
  * @param isVar1 v pripade true prvni argument je promenna
  * @param param2 druhy argument funkce
  * @param isVar2 v pripade true druhy argument je promenna
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2);
+bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack);
 
 /**
  * @brief funkce vrati ASCII kod zadaneho znaku
  * 
- * @param ID promenna, kam se zapise vysledek
+ * @param ID promenna, kam se zapise vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
  * @param param1 vstupni string
  * @param isVar1 true v pripade, ze param1 je promenna
  * @param param2 index znaku, hodnota ktereho se ma vratit
  * @param isVar2 true v pripade, ze param2 je promenna
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2);
+bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack);
 
 /**
  * @brief funkce vrati znak zadaneho ASCII kodu
  * 
- * @param ID promenna, kam se zapise hodnota
+ * @param ID promenna, kam se zapise hodnota(v pripade ukladani vysledku na zasobnik rovna se NULL)
  * @param param ASCII hodnota
  * @param isVar pokud true, parametr je promenna
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool chrStandFuncGen(char *ID, char *param, bool isVar);
+bool chrStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
 
 /**
  * @brief funkce prevede celociselnou hodnotu na hodnotu typu float
  * 
- * @param ID promenna, kam bude ulozen vysledek
+ * @param ID promenna, kam bude ulozen vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
  * @param param parametr funkce
  * @param isVar v pripade true zadany argument je promenna
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool i2fStandFuncGen(char *ID, char *param, bool isVar);
+bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
 
 /**
  * @brief funkce prevede float hodnotu na hodnotu typu int
  * 
- * @param ID promenna, kam bude ulozen vysledek
+ * @param ID promenna, kam bude ulozen vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
  * @param param parametr funkce
  * @param isVar v pripade true zadany argument je promenna
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool f2iStandFuncGen(char *ID, char *param, bool isVar);
+bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
+
+/**
+ * @brief funkce vrati podretezec zadaneho stringu
+ * 
+ * @param ID nazev promenne, kam se ulozi vysledek
+ * @param param1 prvni argument(vstupni retezec)
+ * @param isVar1 v pripade true prvni argument je predan ve forme promenne
+ * @param param2 druhy argument(index zacatku podretezce)
+ * @param isVar2 v pripade true druhy argument je predan ve forme promenne
+ * @param param3 treti argument(index konce podretezce)
+ * @param isVar3 v pripade true treti argument je predan ve forme promenne
+ */
+bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3);
 
 /**
  * @brief volani pomocne funkce
