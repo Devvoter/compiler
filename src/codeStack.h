@@ -41,7 +41,7 @@ typedef struct Stack {
  * 
  * @param s ukazatel na zásobník
  */
-void CodeStack_Init(Stack *s);
+void CodeStack_Init(Stack **s);
 
 
 /**
@@ -81,6 +81,11 @@ int *CodeStack_Top(Stack *s);
  */
 bool CodeStack_IsEmpty(Stack *s);
 
+/**
+ * @brief Funkce uvolni pamet stacku
+ * 
+ * @param s ukazatel na zásobník
+ */
+void CodeStack_destroy(Stack *s);
+
 #endif //_STACK_H_
-
-

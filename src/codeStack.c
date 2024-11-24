@@ -9,8 +9,9 @@
 
 #include "codeStack.h"
 
-void CodeStack_Init(Stack *s) {
-    s->top = NULL;
+void CodeStack_Init(Stack **s) {
+    *s = malloc(sizeof(Stack));
+    (*s)->top = NULL;
 }
 
 bool CodeStack_Push(Stack *s, int data) {
@@ -40,4 +41,8 @@ int *CodeStack_Top(Stack *s) {
 
 bool CodeStack_IsEmpty(Stack *s) {
     return (s->top == NULL);
+}
+
+void CodeStack_destroy(Stack *s) {
+    free(s);
 }
