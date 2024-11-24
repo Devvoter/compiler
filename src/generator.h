@@ -133,6 +133,24 @@ bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isV
 bool chrStandFuncGen(char *ID, char *param, bool isVar);
 
 /**
+ * @brief funkce prevede celociselnou hodnotu na hodnotu typu float
+ * 
+ * @param ID promenna, kam bude ulozen vysledek
+ * @param param parametr funkce
+ * @param isVar v pripade true zadany argument je promenna
+ */
+bool i2fStandFuncGen(char *ID, char *param, bool isVar);
+
+/**
+ * @brief funkce prevede float hodnotu na hodnotu typu int
+ * 
+ * @param ID promenna, kam bude ulozen vysledek
+ * @param param parametr funkce
+ * @param isVar v pripade true zadany argument je promenna
+ */
+bool f2iStandFuncGen(char *ID, char *param, bool isVar);
+
+/**
  * @brief volani pomocne funkce
  * 
  * @param name nazev funkce

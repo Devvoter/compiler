@@ -346,7 +346,7 @@ bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isV
                     } 
                 }
             }
-        }
+    }
     return false;
 }
 
@@ -360,7 +360,35 @@ bool chrStandFuncGen(char *ID, char *param, bool isVar) {
                     return (addCodeToBuf(&buffer, " int@", T_OTHERS) &&
                             addCodeToBuf(&buffer, param, T_INT));
                 }
+        }
+    return false;
+}
+
+bool i2fStandFuncGen(char *ID, char *param, bool isVar) {
+    if (addCodeToBuf(&buffer, "\nINT2FLOAT ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
+        addCodeToBuf(&buffer, ID, T_OTHERS)) {
+            if (isVar == true) {
+                return (addCodeToBuf(&buffer, " LF@", T_OTHERS) && 
+                        addCodeToBuf(&buffer, param, T_OTHERS));
+            } else {
+                return (addCodeToBuf(&buffer, " int@", T_OTHERS) &&
+                        addCodeToBuf(&buffer, param, T_OTHERS));
             }
+    }
+    return false;
+}
+
+bool f2iStandFuncGen(char *ID, char *param, bool isVar) {
+    if (addCodeToBuf(&buffer, "\nFLOAT2INT ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
+        addCodeToBuf(&buffer, ID, T_OTHERS)) {
+            if (isVar == true) {
+                return (addCodeToBuf(&buffer, " LF@", T_OTHERS) && 
+                        addCodeToBuf(&buffer, param, T_OTHERS));
+            } else {
+                return (addCodeToBuf(&buffer, " float@", T_OTHERS) &&
+                        addCodeToBuf(&buffer, param, T_FLOAT));
+            }
+    }
     return false;
 }
 
@@ -553,6 +581,7 @@ char *replace_special_characters(const char *input)
 //     startMainGen();
 //     defVarGen("prom", true);
 //     assignVarGen("prom", T_STRING_TYPE, "rete zec s lomitkem \\ a novym#radkem", true, true);
+//     f2iStandFuncGen("newVar", "330.22", false);
 //     endMainGen();
 //     endGen();
 //     disposeGen(true);
