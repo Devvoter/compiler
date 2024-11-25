@@ -918,6 +918,9 @@ void parse_function_call(char *id) {
         }
         currentArgument++;
     }
+    if (currentArgument != search_symbol(&symtable, id)->funData->paramCnt) {
+        exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
+    }
 }
 
 TokenType expression() {
