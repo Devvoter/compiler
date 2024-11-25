@@ -867,6 +867,44 @@ Token parse_function_definition() {
 void parse_function_call(char *id) {
     getCurrentToken();
     int currentArgument = 0;
+    if (strcmp(id, "write") == 0) {
+        TokenType exprType = expression();
+        if (exprType == T_NULL) {
+            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        if (getCurrentToken().type == T_CLOSE_PARENTHESES) {
+            return;
+        }
+        else {
+            if (CurrentToken.type != T_COMMA) {
+                exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+            }
+            if (getCurrentToken().type != T_CLOSE_PARENTHESES) {
+                expression();
+                exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
+            }
+            return;
+        }
+    }
+    else if (strcmp(id, "string") == 0) {
+        getCurrentToken();
+        if (CurrentToken.type != T_STRING_TYPE && CurrentToken.type != T_STRING_TYPE_EMPTY && CurrentToken.type != T_U8_ID) {
+            exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        }
+        if (getCurrentToken().type == T_CLOSE_PARENTHESES) {
+            return;
+        }
+        else {
+            if (CurrentToken.type != T_COMMA) {
+                exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+            }
+            if (getCurrentToken().type != T_CLOSE_PARENTHESES) {
+                expression();
+                exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
+            }
+            return;
+        }
+    }
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
         TokenType exprType = expression();                   // Parsování argumentů funkce
         if (search_symbol(&symtable, id)->funData->paramTypes[currentArgument] != exprType) {
