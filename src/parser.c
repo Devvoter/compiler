@@ -268,6 +268,9 @@ void global_symtable() {
                 if (token.type != T_VOID) {
                     exitWithError(&token, ERR_SEM_INVALID_FUNC_PARAMS);
                 }
+                if (numOfParams != 0) {
+                    exitWithError(&token, ERR_SEM_RETURN_EXPRESSION);
+                }
                 inMain = false;
             }
             
@@ -652,6 +655,9 @@ Token parse_return() {
     }
     else {
         TokenType retVal = expression();               // Parsování výrazu, který se má vrátit
+        if (expRetVal == T_VOID) {
+            exitWithError(&CurrentToken, ERR_SEM_RETURN_EXPRESSION);
+        }
         if(!semcheck_compare_dtypes(expRetVal, retVal)) {
             exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
         }
@@ -665,7 +671,10 @@ Token parse_return() {
 
 Token parse_assignment_or_function_call() {
     if (CurrentToken.type == T_IFJ) {
-        parse_standard_function_call();
+        char *functionName = parse_standard_function_call();
+        if (search_symbol(&symtable, functionName)->funData->retType != T_VOID) {       // zahozeni navratu non-void funkce
+            exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
+        }
         if (getCurrentToken().type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -697,6 +706,9 @@ Token parse_assignment_or_function_call() {
     }
     else {
         parse_function_call(id);
+        if (search_symbol(&symtable, id)->funData->retType != T_VOID) {         // zahozeni navratu non-void funkce
+            exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
+        }
         if (CurrentToken.type != T_CLOSE_PARENTHESES) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -862,8 +874,8 @@ Token parse_function_definition() {
      * zda byly všechny proměnné použity
      */
     tFrame *tmpFrame = pop_frame(&symtable);
-    if(!tmpFrame->funDecl->funData->hasReturned) {
-        exitWithError(&token, ERR_SEM_OTHER); // Chybi navrat z funkce
+    if (tmpFrame->funDecl->funData->retType != T_VOID && !tmpFrame->funDecl->funData->hasReturned) {
+        exitWithError(&token, ERR_SEM_RETURN_EXPRESSION); // Chybi navrat z funkce
     }
     if(!semcheck_var_usage(tmpFrame->symTable)) {
         exitWithError(&token, ERR_SEM_UNUSED_VAR);

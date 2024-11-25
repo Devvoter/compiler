@@ -25,7 +25,7 @@ void exitWithError(Token *token, int code){
         fprintf(stderr, "ERROR: sémantická chyba - nedefinovaná funkce či proměnná! Řádek: %ld.\n",token->line+1);
         break;
     case ERR_SEM_INVALID_FUNC_PARAMS:
-        fprintf(stderr, "ERROR: sémantická chyba - špatný počet/typ parametrů! Řádek: %ld.\n",token->line+1);
+        fprintf(stderr, "ERROR: sémantická chyba - špatný počet/typ parametrů nebo návratové hodnoty! Řádek: %ld.\n",token->line+1);
         break;
     case ERR_SEM_REDEFINITION:
         fprintf(stderr, "ERROR: sémantická chyba - redefinice proměnné nebo funkce! Řádek: %ld.\n",token->line+1);
