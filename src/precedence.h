@@ -47,7 +47,7 @@ int getOperatorIndex(Token token) {
         case T_I32_VAR: return 12;
         case T_F64_VAR: return 12;
         case T_NULL: return 12;
-        case T_IFJ: return 12;
+//        case T_IFJ: return 12;
         case T_STRING_TYPE: return 12;
         case T_STRING_TYPE_EMPTY: return 12;
         case T_SEMICOLON: return 13;
@@ -144,7 +144,8 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
         tokenTop->token.type == T_I32_VAR ||
         tokenTop->token.type == T_F64_VAR ||
         tokenTop->token.type == T_NULL ||
-        tokenTop->token.type == T_STRING_TYPE) {                                 // E -> id
+        tokenTop->token.type == T_STRING_TYPE ||
+        tokenTop->token.type == T_STRING_TYPE_EMPTY) {                                 // E -> id
             Token expr;
             PrecedenceToken reducedTop;
             expr.type = T_EXPRESSION_NONTERMINAL;
@@ -164,6 +165,15 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                     reducedTop.type = idTS->varData->dataType;
                     //pushOnStackGen(expr.data.u8, variable_t);
                 }
+                if (reducedTop.type == T_VOID) {
+                    exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
+                }
+                if (reducedTop.type == T_I32_ID) {
+                    reducedTop.type = T_I32_VAR;
+                }
+                else if (reducedTop.type == T_F64_ID) {
+                    reducedTop.type = T_F64_VAR;
+                }
             }
             else if (tokenTop->token.type == T_I32_VAR) {
                 expr.data.i32 = tokenTop->token.data.i32;
@@ -182,14 +192,14 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                 reducedTop.isLiteral = false;
                 //pushOnStackGen(expr.data.i32, null_t);
             }
-            else if (tokenTop->token.type == T_IFJ) {
-                tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
-                reducedTop.type = idTS->funData->retType;
-                reducedTop.isLiteral = false;
-                if (reducedTop.type == T_VOID) {
-                    exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
-                }
-            }
+            // else if (tokenTop->token.type == T_IFJ) {
+            //     tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
+            //     reducedTop.type = idTS->funData->retType;
+            //     reducedTop.isLiteral = false;
+            //     if (reducedTop.type == T_VOID) {
+            //         exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
+            //     }
+            // }
             else if (tokenTop->token.type == T_STRING_TYPE || tokenTop->token.type == T_STRING_TYPE_EMPTY) {
                 expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
                 if (expr.data.u8 == NULL) {
