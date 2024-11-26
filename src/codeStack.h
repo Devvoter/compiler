@@ -1,6 +1,6 @@
 /**
  * @file stack.h
- * @author Denys Pylypenko (xpylypd00)
+ * @author Denys Pylypenko (xpylypd00), Polina Ustiuzhantseva (xustiup00)
  * @brief
  * 
  * @date 2024-11-20
@@ -19,11 +19,17 @@
  * 
  * 
  */
+
+typedef enum {
+    T_COUNTER,
+    T_WHILE_IS_NULLABLE
+} ELEM_TYPE;
+
+
 typedef struct StackItem {
-
-    int data;    // struktura s tokenem
+    void *data;    
+    ELEM_TYPE t;
     struct StackItem *next;  // < ukazatel na dálší prvek
-
 } StackItem;
 
 /**
@@ -49,10 +55,11 @@ void CodeStack_Init(Stack **s);
  * 
  * @param s ukazatel na zásobník
  * @param data data
+ * @param t typ zapisovane promennych dat (bud int nebo pole znaku)
  * @return true pokud operace byla úspěšná
  * @return false pokud operace selhala
  */
-bool CodeStack_Push(Stack *s, int data);
+bool CodeStack_Push(Stack *s, void *data, ELEM_TYPE t);
 
 
 /**
@@ -69,7 +76,7 @@ void CodeStack_Pop(Stack *s);
  * @param s ukazatel na zásobník
  * @return ukazatel na data uložená ve vrcholu zásobníku nebo NULL pokud je zásobník prázdný
  */
-int *CodeStack_Top(Stack *s);
+StackItem *CodeStack_Top(Stack *s);
 
 
 /**

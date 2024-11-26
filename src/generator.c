@@ -14,23 +14,31 @@
 #include <string.h>
 
 
-// inicializace buffru pro ulozeni kodu, pocitadla a zasobniku pro if statmenty
+// inicializace buffru pro ulozeni kodu, pocitadel pro whily a ify 
+//a zasobniku pro ify, whily a nazvy promennych isNullable
 codeBuf *buffer;
 int ifCounter;
-Stack *ifStack;
+int whileCounter;
+Stack *whileStack, *ifStack, *whileIsNullableStack;
+
 
 bool startGen()
 {
     ifCounter = 0;
+    whileCounter = 0;
     CodeStack_Init(&ifStack);
+    CodeStack_Init(&whileStack);
+    CodeStack_Init(&whileIsNullableStack);
     return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME", T_OTHERS) &&
             addCodeToBuf(&buffer, "\nPUSHFRAME", T_OTHERS));
 }
+
 
 bool endGen()
 {
     return addCodeToBuf(&buffer, "\nPOPFRAME\n", T_OTHERS);
 }
+
 
 void disposeGen(bool done)
 {
@@ -39,8 +47,11 @@ void disposeGen(bool done)
         bufPrint(&buffer);
     }
     CodeStack_destroy(ifStack);
+    CodeStack_destroy(whileStack);
+    CodeStack_destroy(whileIsNullableStack);
     bufDestroy(buffer);
 }
+
 
 bool startMainGen()
 {
@@ -49,10 +60,12 @@ bool startMainGen()
             addCodeToBuf(&buffer, "\nDEFVAR LF@$tmp$", T_OTHERS));
 }
 
+
 bool endMainGen()
 {
     return addCodeToBuf(&buffer, "\nPOPFRAME", T_OTHERS);
 }
+
 
 bool defVarGen(char *ID, bool LF)
 {
@@ -75,6 +88,7 @@ bool defVarGen(char *ID, bool LF)
     }
     return false;
 }
+
 
 bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
 {
@@ -167,6 +181,7 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
     return false;
 }
 
+
 bool writeStandFuncGen(TokenType t, char *param)
 {
     if (addCodeToBuf(&buffer, "\nWRITE ", T_OTHERS))
@@ -199,6 +214,7 @@ bool writeStandFuncGen(TokenType t, char *param)
     }
     return false;
 }
+
 
 bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack)
 {
@@ -242,6 +258,7 @@ bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack)
     return false;
 }
 
+
 bool stringStandFuncGen(char *ID, char *param, bool pushOnStack)
 {
     if (pushOnStack == true) {
@@ -260,6 +277,7 @@ bool stringStandFuncGen(char *ID, char *param, bool pushOnStack)
                 } else return true;
             }
 }
+
 
 bool lengthStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack)
 {
@@ -292,6 +310,7 @@ bool lengthStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack)
     }
     return false;
 }
+
 
 bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack)
 {
@@ -363,6 +382,7 @@ bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
     return false;
 }
 
+
 bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack) {
     if (pushOnStack == true) {
         ID = "$tmp$";
@@ -410,6 +430,7 @@ bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isV
     return false;
 }
 
+
 bool chrStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
     if (pushOnStack == true) {
         ID = "$tmp$";
@@ -432,6 +453,7 @@ bool chrStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
         }
     return false;
 }
+
 
 bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
     if (pushOnStack == true) {
@@ -456,6 +478,7 @@ bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
     return false;
 }
 
+
 bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
     if (pushOnStack == true) {
         ID = "$tmp$";
@@ -479,9 +502,13 @@ bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
     return false;
 }
 
-bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3) {
 
+bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack) {
+    if (pushOnStack == true) {
+        ID = "$tmp$";
+    }
 }
+
 
 bool pushOnStackGen(char *param, TokenType t)
 {
@@ -505,6 +532,7 @@ bool pushOnStackGen(char *param, TokenType t)
     }
     return false;
 }
+
 
 bool makeOperationStackGen(TokenType t, bool idiv)
 {
@@ -542,6 +570,7 @@ bool makeOperationStackGen(TokenType t, bool idiv)
     return false;
 }
 
+
 bool endExpAssignGen(char *ID)
 {
     return (addCodeToBuf(&buffer, "\nPOPS ", T_OTHERS) && 
@@ -550,48 +579,117 @@ bool endExpAssignGen(char *ID)
             addCodeToBuf(&buffer, "\nCLEARS", T_OTHERS));
 }
 
+
 bool funcEndGen()
 {
     return (addCodeToBuf(&buffer, "\nPOPFRAME\nRETURN", T_OTHERS));
 }
 
+
 bool startIfGen(bool withNull, char *ID) {
     ifCounter++;
-    if (withNull == true) {
-        return (addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&           //push na zasobnik null hodnoty 
-                addCodeToBuf(&buffer, "\nJUMPIFEQS $$if$", T_OTHERS) &&         //porovname null s vysledkem vyrazu a udelame skok
-                addCodeToBuf(&buffer, (void *) &ifCounter, T_INT) &&                   
-                addCodeToBuf(&buffer, "$else", T_OTHERS) &&
-                addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) &&              //v pripade ne NULL definujeme promennou
-                addCodeToBuf(&buffer, ID, T_OTHERS) &&
-                addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&               //a prepiseme ji hodnotu vupocitaneho vyrazu
-                addCodeToBuf(&buffer, ID, T_OTHERS));
-    } else {
-        return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS) &&
-                addCodeToBuf(&buffer, "JUMPIFNEQS $$if$", T_OTHERS) &&
-                addCodeToBuf(&buffer, (void *) &ifCounter, T_INT) && 
-                addCodeToBuf(&buffer, "$else", T_OTHERS));
-    }
-    CodeStack_Push(ifStack, ifCounter);                
+    if (CodeStack_Push(ifStack, &ifCounter, T_COUNTER)) {
+        if (withNull) {
+            return (addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&           //push na zasobnik null hodnoty 
+                    addCodeToBuf(&buffer, "\nJUMPIFEQS $$if$", T_OTHERS) &&         //porovname null s vysledkem vyrazu a udelame skok
+                    addCodeToBuf(&buffer, (void *) &ifCounter, T_INT) &&                   
+                    addCodeToBuf(&buffer, "$else", T_OTHERS) &&
+                    addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) &&              //v pripade ne NULL definujeme promennou
+                    addCodeToBuf(&buffer, ID, T_OTHERS) &&
+                    addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&               //popneme null ze zasobniku
+                    addCodeToBuf(&buffer, ID, T_OTHERS) &&
+                    addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&               //a popneme hodnotu vyrazu do promenne
+                    addCodeToBuf(&buffer, ID, T_OTHERS));
+        } else {
+            return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS) &&
+                    addCodeToBuf(&buffer, "JUMPIFNEQS $$if$", T_OTHERS) &&
+                    addCodeToBuf(&buffer, (void *) &ifCounter, T_INT) && 
+                    addCodeToBuf(&buffer, "$else", T_OTHERS));
+        }   
+    }           
 }
+
 
 bool startElseGen() {
     return (addCodeToBuf(&buffer, "\nJUMP $$if$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *) CodeStack_Top(ifStack), T_INT) &&
+            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT) &&
             addCodeToBuf(&buffer, "$end", T_OTHERS) &&
             addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *) CodeStack_Top(ifStack), T_INT) &&
+            addCodeToBuf(&buffer, (void *) CodeStack_Top(ifStack)->data, T_INT) &&
             addCodeToBuf(&buffer, "$else", T_OTHERS));
 }
 
-bool endIfElseGen() {
-    if (addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS) && 
-        addCodeToBuf(&buffer, (void *) CodeStack_Top(ifStack), T_INT) &&
-        addCodeToBuf(&buffer, "$end", T_OTHERS)) {
+
+bool endIfElseGen(bool withElse) {
+    if (withElse) {
+        if (addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS) && 
+            addCodeToBuf(&buffer, (void *) CodeStack_Top(ifStack)->data, T_INT) &&
+            addCodeToBuf(&buffer, "$end", T_OTHERS)) {
                 CodeStack_Pop(ifStack);
                 return true;
             } else return false;
+    } else {
+        if (addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS) &&
+            addCodeToBuf(&buffer, (void *) CodeStack_Top(ifStack)->data, T_INT) &&
+            addCodeToBuf(&buffer, "$else", T_OTHERS)) {
+                CodeStack_Pop(ifStack);
+                return true;
+            } else return false;
+    }
+    
 }
+
+
+bool startWhileGen() {
+    whileCounter++;
+    if (CodeStack_Push(whileStack, (void *) &whileCounter, T_COUNTER)) {
+        return (addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) &&
+                addCodeToBuf(&buffer, "$$while$isNullable$", T_OTHERS) &&   //definovani pomocne promenne
+                addCodeToBuf(&buffer, (void *) &whileCounter, T_INT) &&    //pro pocitani s IsNullable
+                addCodeToBuf(&buffer, "\nLABEL $$while$", T_OTHERS) &&
+                addCodeToBuf(&buffer, (void *) &whileCounter, T_INT));
+    }
+}
+
+
+bool endCondWhileGen(bool isNullable, char *ID) {
+    if (isNullable) {
+        if (addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&
+            addCodeToBuf(&buffer, "\nJUMPIFEQS $$while$", T_OTHERS) &&
+            addCodeToBuf(&buffer, (void *) &whileCounter, T_INT) &&
+            addCodeToBuf(&buffer, "$end", T_OTHERS) &&
+            
+            addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&                     //ID = hodnota vyrazu
+            addCodeToBuf(&buffer, ID, T_OTHERS) &&
+            addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&
+            addCodeToBuf(&buffer, ID, T_OTHERS) &&
+
+            addCodeToBuf(&buffer, "\nMOVE LF@$$while$isNullable$", T_OTHERS) &&  //$$while$isNullable$1 = ID
+            addCodeToBuf(&buffer, (void *) &whileCounter, T_INT) &&
+            addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
+            addCodeToBuf(&buffer, ID, T_OTHERS)) {
+                return CodeStack_Push(whileIsNullableStack, (void *)ID, T_WHILE_IS_NULLABLE);
+            }
+    } else {
+        return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS) &&
+                addCodeToBuf(&buffer, "\nJUMPIFNEQS $$while$", T_OTHERS) &&
+                addCodeToBuf(&buffer, (void *) &whileCounter, T_INT) &&
+                addCodeToBuf(&buffer, "$end", T_OTHERS)); 
+    }
+}
+
+
+bool endWhileGen() {
+    if (addCodeToBuf(&buffer, "\nJUMP $$while$", T_OTHERS) &&
+        addCodeToBuf(&buffer, (void *) CodeStack_Top(whileStack)->data, T_INT) &&
+        addCodeToBuf(&buffer, "\nLABEL $$while$", T_OTHERS) &&
+        addCodeToBuf(&buffer, (void *) CodeStack_Top(whileStack)->data, T_INT) &&
+        addCodeToBuf(&buffer, "$end", T_OTHERS)) {
+           CodeStack_Pop(whileStack); 
+           CodeStack_Pop(whileIsNullableStack);
+    }
+}
+
 
 char *replace_special_characters(const char *input)
 {
@@ -665,18 +763,52 @@ char *replace_special_characters(const char *input)
     return result;
 }
 
+char *isNullableVar(char *ID) {
+    if (strcmp(ID, (char *)CodeStack_Top(whileIsNullableStack)->data) == 0) {
+        return ID;
+    } else {   
+        int num = *((int *) CodeStack_Top(whileStack)->data);
+        int digits = 0;
+        while (num) {
+            digits++;
+            num /= 10;
+        }
+        char *firstPart = "$$while$isNullable$";
+        char *ch = malloc(sizeof(firstPart) + digits);
+        num = *(int *) (CodeStack_Top(whileStack)->data);
+        for (int i = 0; i < 19; i++) {
+            ch[i] = firstPart[i];
+        }
+        for (int i = (19+digits-1); i >= 19; i--) {
+            ch[i] = num % 10 + '0';
+            num /= 10;
+        }
+        ch[19+digits] = '\0';
+        return ch;
+    }
+}
+
+
 void main()
 {
-
     //addCodeToBuf(&buffer, replace_special_characters("rete zec s lomitkem \\ a novym#radkem"), T_OTHERS);
     startGen();
-    startMainGen();
-    defVarGen("prom", true);
-    assignVarGen("prom", T_STRING_TYPE, "rete zec s lomitkem \\ a novym#radkem", true, true);
-    f2iStandFuncGen("newVar", "330.22", false, false);
-    readStandFuncGen(T_READF64, NULL, true);
-    endMainGen();
+    //startMainGen();
+    // defVarGen("prom", true);
+    // assignVarGen("prom", T_STRING_TYPE, "rete zec s lomitkem \\ a novym#radkem", true, true);
+    // f2iStandFuncGen("newVar", "330.22", false, false);
+    // readStandFuncGen(T_READF64, NULL, true);
+    //startWhileGen();
+    //startWhileGen();
+    //endMainGen();
+    //endGen();
+    //disposeGen(true);
+    char *ID = "prom";
+    CodeStack_Push(whileIsNullableStack, ID, T_WHILE_IS_NULLABLE);
+    int cislo = 255;
+    CodeStack_Push(whileStack, &cislo, T_COUNTER);
+    char *ptr = isNullableVar(ID);
+    printf("%s\n", ptr);
     endGen();
-    disposeGen(true);
     return;
 }

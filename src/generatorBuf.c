@@ -58,7 +58,7 @@ void bufDestroy(codeBuf *buffer)
     {
         codeBufElemPtr tmp = elem;
         elem = elem->next;
-        if (tmp->t == T_STRING) {
+        if (tmp->t == T_STRING || tmp->t == T_INT || tmp->t == T_INPUT_STRING_FREE) {
             free(tmp->code);
         }
         free(tmp);
@@ -72,7 +72,26 @@ bool addCodeToBuf(codeBuf **buffer, void *str, PRINT_TYPE t) {
     {
         return false;
     }
-    elem->code = str;
+    if (t == T_INT) {
+        elem->code = malloc(sizeof(int));
+        if (elem->code == NULL) {
+            return false;
+        }
+        *(int *)elem->code = *((int *)str);
+    } else if (t == T_INPUT_STRING_FREE) {
+        elem->code = malloc(sizeof((char *)str));
+        if (elem->code == NULL) {
+            return NULL;
+        }
+        for (int i = 0; i <= strlen((char *)str); i++) {
+            ((char *)elem->code)[i] = ((char *)str)[i];
+            if (i == strlen((char *) str)) {
+                ((char *)elem->code)[i] = '\0';
+            }
+        }
+    } else {
+        elem->code = str;
+    }
     elem->t = t;
     (*buffer)->active->next = elem;
     (*buffer)->active = elem;

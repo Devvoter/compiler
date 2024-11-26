@@ -168,8 +168,9 @@ bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
  * @param isVar2 v pripade true druhy argument je predan ve forme promenne
  * @param param3 treti argument(index konce podretezce)
  * @param isVar3 v pripade true treti argument je predan ve forme promenne
+ * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3);
+bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack);
 
 /**
  * @brief volani pomocne funkce
@@ -229,14 +230,33 @@ bool endExpAssignGen(char *ID);
 bool startIfGen(bool withNull, char *ID);
 
 /**
- * @brief vygeneruje konec if a zacatek else
+ * @brief vygeneruje konec if a pripadne zacatek else, v pripade bez else, tato funkce se nevola
  */
 bool startElseGen();
 
 /**
  * @brief vygeneruje konec if-else statmentu
+ * 
+ * @param withElse v pripade false, generuje se konec pouze pro if
  */
-bool endIfElseGen();
+bool endIfElseGen(bool withElse);
+
+/**
+ * @brief vygeneruje zacatek while cyklu
+ */
+bool startWhileGen();
+
+/**
+ * @brief vygeneruje vyhodnoceni podminky a pripadny skok na konec, jestli podminka neplati
+ * 
+ * @param isNulable v pripade true while loop je typu zahrnujiciho null
+ */
+bool endCondWhileGen(bool isNullable, char *ID);
+
+/**
+ * @brief funkce vygeneruje konec while loopu
+ */
+bool endWhileGen();
 
 /**
  * @brief zmeni string na vhodny retezec pro IFJcode24
@@ -245,5 +265,11 @@ bool endIfElseGen();
  */
 char *replace_special_characters(const char *input);
 
+/**
+ * @brief v pripade, ze jsme v cyclu a promenna se rovna aktualnimu nazvu isNullable promenne, zameni ji na nazev pomocne promenne $$while$isNullable$1 promenne
+ * 
+ * @param ID vstupni nazev promenne
+ */
+char *isNullableVar(char *ID);
 
 
