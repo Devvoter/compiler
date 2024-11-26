@@ -269,7 +269,7 @@ void global_symtable() {
                     exitWithError(&token, ERR_SEM_INVALID_FUNC_PARAMS);
                 }
                 if (numOfParams != 0) {
-                    exitWithError(&token, ERR_SEM_RETURN_EXPRESSION);
+                    exitWithError(&token, ERR_SEM_INVALID_FUNC_PARAMS);
                 }
                 inMain = false;
             }

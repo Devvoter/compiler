@@ -184,7 +184,7 @@ enum automat_state changeAutomatState (char c){
         return S_ERROR;
         break;
     }
-};
+}
 
 
 void isNullType (Token* newToken){

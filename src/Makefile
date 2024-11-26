@@ -6,9 +6,9 @@ CFLAGS = -std=c11 -Wall -Wextra -pedantic
 TARGET = ifj24_compiler
 
 # Seznam zdrojových a hlavičkových souborů
-SRC = buffer.c error.c generator.c parser.c scanner.c stack.c symtable.c
+SRC = buffer.c error.c parser.c scanner.c stack.c symtable.c codeStack.c
 OBJ = $(SRC:.c=.o)
-HEADERS = buffer.h error.h generator.h parser.h scanner.h stack.h precedence.h symtable.h
+HEADERS = buffer.h error.h parser.h scanner.h stack.h precedence.h symtable.h codeStack.h precedence_token.h
 
 # Výchozí cíl - kompilace celého projektu
 all: $(TARGET)
@@ -34,7 +34,7 @@ zip:
 
 # Vytvoření archivu pro pokusné odevzdání
 pokusne:
-	zip xpylypd00.zip buffer.c buffer.h error.c error.h generator.c generator.h parser.c parser.h scanner.c scanner.h stack.c stack.h precedence.h symtable.c symtable.h Makefile
+	zip xpylypd00.zip buffer.c buffer.h error.c error.h parser.c parser.h scanner.c scanner.h codeStack.h codeStack.c stack.c stack.h precedence.h symtable.c symtable.h Makefile
 
 # Speciální cíle (aby nebyly zaměněny za soubory)
 .PHONY: all clean rebuild zip
