@@ -906,7 +906,7 @@ void parse_function_call(char *id) {
     int currentArgument = 0;
     int paramCnt = search_symbol(&symtable, id)->funData->paramCnt;
     if (strcmp(id, "ifj.write") == 0) {
-        TokenType exprType = expression();
+        TokenType exprType = expression().dataType;
         if (exprType == T_NULL) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
@@ -925,7 +925,7 @@ void parse_function_call(char *id) {
         }
     }
     else if (strcmp(id, "ifj.string") == 0) {
-        TokenType exprType = expression();
+        TokenType exprType = expression().dataType;
         if (exprType != T_STRING_TYPE && exprType != T_STRING_TYPE_EMPTY && exprType != T_U8_ID) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -944,7 +944,7 @@ void parse_function_call(char *id) {
         }
     }
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
-        TokenType exprType = expression();                   // Parsování argumentů funkce
+        TokenType exprType = expression().dataType;                   // Parsování argumentů funkce
         if (paramCnt < currentArgument+1) {
             exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
         }
