@@ -42,6 +42,25 @@ void free_list_of_tokens(ListOfTokens *list) {
 		list->activeToken = list->firstToken; 
         list->firstToken = list->firstToken->nextToken; // posuneme first na dalsi prvek
 
+        if (list->activeToken->token.type == T_IMPORT ||
+            list->activeToken->token.type == T_IFJ ||
+            list->activeToken->token.type == T_CONST ||
+            list->activeToken->token.type == T_ELSE  ||
+            list->activeToken->token.type == T_FN ||
+            list->activeToken->token.type == T_IF ||
+            list->activeToken->token.type == T_PUB ||
+            list->activeToken->token.type == T_RETURN ||
+            list->activeToken->token.type == T_U8_ID ||
+            list->activeToken->token.type == T_VAR ||
+            list->activeToken->token.type == T_VOID ||
+            list->activeToken->token.type == T_WHILE ||
+            list->activeToken->token.type == T_ID ||
+            list->activeToken->token.type == T_STRING_TYPE)
+        {
+            free(list->activeToken->token.data.u8);
+        }
+        
+        
         free(list->activeToken); // uvolnujeme prvek
 	}
 	
