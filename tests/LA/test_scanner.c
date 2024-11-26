@@ -250,6 +250,10 @@ int print_list_of_tokens(ListOfTokens * list){
                 printf("Token type: T_AT,                 line:%ld, value: @\n", newToken.line+1);
                 break;
             case T_STRING_TYPE:
+                // if(newToken.data.u8->data == NULL){
+                //     printf("Token type: T_STRING_TYPE,        line:%ld, value: NULL\n", newToken.line+1);
+                //     break;
+                // }
                 printf("Token type: T_STRING_TYPE,        line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
                 break;
             case T_STRING_TYPE_EMPTY:
@@ -343,18 +347,24 @@ int main() {
 #endif
 
     // čteme a výpisujeme tokeny
-    //Token newToken;
+   // Token newToken;
     ListOfTokens list;
     init_list_of_tokens(&list);
 
-    //do newToken = getNextToken();
+    //do newToken = getNextToken(&list);
     //while (printTokenType(newToken) != -1);
+
+    free_list_of_tokens(&list);
+
+    
     Token token = getNextToken(&list);
     while(token.type != T_EOF){
         token = getNextToken(&list);
     }
 
     print_list_of_tokens(&list);
+
+
 
     printf("--------------------------------------------\n");
     i_want_to_get_tokens(&list);
@@ -377,6 +387,7 @@ int main() {
     free_list_of_tokens(&list);
     
     print_list_of_tokens(&list);
+
 
 #ifdef USE_FILE
     fclose(file);

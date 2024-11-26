@@ -267,6 +267,7 @@ void stringToNum(Token* token) {
 
 
 void escape_Sequence(Token newToken, unsigned long *init_count, char c){
+    c = fgetc(SOURCE);
     switch (c) {
         case 'n':
             loadSymbol(&newToken, '\n', init_count);  // Znak nového řádku
@@ -319,13 +320,12 @@ Token getNextToken(ListOfTokens *list){
 
     static unsigned long init_count;
 
-
     newToken.line = line_count;
-
+    bool start = true;
+    
     int c = fgetc(SOURCE);
     //printf("Read character: %c\n", c);  
-    bool escapeSequence = false;
-    bool isEmptyString = true;
+    
 
     if (c == EOF){
         newToken.type = T_EOF;
@@ -489,52 +489,53 @@ Token getNextToken(ListOfTokens *list){
             newToken.type = T_SUB;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
+        
         /* "..." */
         case S_QUOTE:
-            
-            if (c == '"' && isEmptyString)
+
+            if (c == '"' && start) // pokud mame prvni " 
             {
-                c = fgetc(SOURCE);
-                if (c == '"')
+                c = fgetc(SOURCE); // nacteme dalsi znak
+                if (c == '"') // mame prazdy retezec ""
                 {
                    newToken.type = T_STRING_TYPE_EMPTY;
                    insert_in_list_of_tokens(list, newToken);
                    return newToken;
                 }
-                ungetc(c, SOURCE);
-                isEmptyString = false;
+
+                // kontrola na viceradkovy retezec:
+
+                int counter_space = 0;  // pocitadlo na mezery pred spetnyma lomitkami na pripad ze neni spetny lomitka a retezec zacina mezerami
+                while (isspace(c)){ // pokud mezera
+                    c = fgetc(SOURCE); // bereme dalsi znak 
+                    counter_space++; // pridame jednicku k poctu mezer
+                }
+
+                if (c == '\\') // narazili jsme se na lomitka tak prejdeme do jineho stavu
+                {
+                    c = fgetc(SOURCE);
+                    if (c == '\\')
+                    {
+                        STATE = S_MULTILINE_STRING;
+                        start = false;
+                        break;
+                    }
+                    ungetc(c, SOURCE);
+                    escape_Sequence(newToken, &init_count, c);
+                }
+                else{ // narazili jsme se na nejaky symbol, coz retezec nezacina spetnyma lomitkama
+                    for (int i = counter_space; i > 0; i--) loadSymbol(&newToken, ' ', &init_count); // pridame mezery do retezce pokud byly pred symbolem 
+                    start = false; // nastavim flag aby jsme uz tady nezasli
+                    loadSymbol(&newToken, c, &init_count);
+                    // pokracuju v dalsi iterace
+                }
+                start = false;
                 break;
             }
-            
 
-            if (escapeSequence) {
-                // Zpracování standardních escape sekvencí
-                escape_Sequence(newToken, &init_count, c);
-                escapeSequence = false;  // Resetování flagu escape sekvence
-            }
-            else if (c == '\\') {  // Narazili jsme na zacatek víceřádkového řetězce   \\ text 
-                char nextChar = fgetc(SOURCE);  // Čteme další znak
-                if (nextChar == '\n') {  // Víceřádkové pokračování řetězce
-                    // Přeskakujeme bílé znaky na dalším řádku
-                    char skipSpace;
-                    do {
-                        skipSpace = fgetc(SOURCE);
-                    } while (isspace(skipSpace));  // Přeskakujeme mezery
+            // Narazili jsme na escape sekvence
+            else if (c == '\\') escape_Sequence(newToken, &init_count, c);
 
-                    if (skipSpace == '\\') {
-                        // Pokud řetězec skutečně pokračuje, přidáme '\n' do řetězce
-                        loadSymbol(&newToken, '\n', &init_count);
-                        continue;  // Pokračujeme na další znak
-                    } 
-                    else ungetc(skipSpace, SOURCE); // Pokud řetězec nepokračuje, vrátíme znak zpět do vstupu
-
-                } 
-                else {
-                    // Pokud to není víceřádkový řetězec, ale symbol '\', aktivujeme escape sekvenci
-                    ungetc(nextChar, SOURCE);  // Vrátíme znak zpět do vstupu
-                    escapeSequence = true;    // Aktivujeme escape sekvenci
-                }
-            }
             else if (c == '"' && (init_count)) {  // Narazili jsme na uzavírací uvozovku
                 newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
                 init_count = 0;
@@ -544,9 +545,57 @@ Token getNextToken(ListOfTokens *list){
             }
             else if (c == '\n') exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Chyba: není dovoleno přenášet řetězec na nový řádek
             else {
-                if (c == '"') break; // skipujeme první "
+                if (c == '"') break;
                 loadSymbol(&newToken, c, &init_count);  // Standardní načítání znaku do řetězce
             }
+            break;
+        /* "\\ text" 
+            \\ next text" */
+        case S_MULTILINE_STRING:
+
+            if (c == '\n')
+            {
+                line_count++;
+                int counter_space = 0;
+                c = fgetc(SOURCE);
+                while (isspace(c))
+                {
+                    c = fgetc(SOURCE);
+                    counter_space++;
+                }
+
+                if (c == '\\')
+                {
+                    c = getc(SOURCE);
+                    if (c == '\\')
+                    {
+                        loadSymbol(&newToken, '\n', &init_count);
+                        break;
+                    }
+
+                    for (int i = counter_space; i > 0; i--) loadSymbol(&newToken, ' ', &init_count);
+                    ungetc(c, SOURCE);
+                    escape_Sequence(newToken, &init_count, c);
+                }
+                else{
+                    for (int i = counter_space; i > 0; i--) loadSymbol(&newToken, ' ', &init_count);
+                    loadSymbol(&newToken, c, &init_count);
+                }
+            }
+            else if (c == '\\')
+            {
+                escape_Sequence(newToken, &init_count, c);
+            }
+            else if (c == '"' && (init_count))
+            {
+                newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
+                init_count = 0;
+                newToken.type = T_STRING_TYPE;
+                insert_in_list_of_tokens(list, newToken);
+                return newToken;
+            }
+            else loadSymbol(&newToken, c, &init_count);  // Standardní načítání znaku do řetězce
+
             break;
         /* _a-zA-Z */
         case S_LETTER:
@@ -659,4 +708,4 @@ Token getNextToken(ListOfTokens *list){
     return newToken;
 }
 
-/*--------------konce-hlavni-funkce-souboru--------------*/
+/*--------------konec-hlavni-funkce-souboru--------------*/

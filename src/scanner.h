@@ -66,6 +66,8 @@ enum automat_state {
     S_FLOAT_NUM,
     S_EXP_NUM,
 
+    S_MULTILINE_STRING,
+
 };
 
 /**
