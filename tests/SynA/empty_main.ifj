@@ -4,7 +4,7 @@ pub fn write() i32 {
     return 5;
 }
 pub fn voidfn() void {              // is it normal??
-
+    
 }
 
 pub fn parameterTest(a: i32, b: f64, c: []u8) i32 {
@@ -23,7 +23,9 @@ pub fn parameterTest(a: i32, b: f64, c: []u8) i32 {
 
 pub fn main() void {
     var x : i32 = 5;
+    //var f = 10.7;
     var y : ?i32 = null;
+
     var string : []u8 = ifj.string("ahoj");
     
     ifj.write("ahoj");
@@ -31,9 +33,15 @@ pub fn main() void {
     if (x < 0) {
         return;
     }
-    x = parameterTest(1*x-write(), 1.0, ifj.concat(ifj.string("ahoj"), string,));
 
-    // while (y)
+
+    _ = ifj.i2f(x);
+    
+    // while (y) |id_bez_null| {
+    //     x = id_bez_null - 1;
+    // }
+
+    x = parameterTest(1*x+x+x+x-write(), 1.0, ifj.concat(ifj.string("ahoj"), string,));
 
     if (y) |y_bez_null| {
         x = y_bez_null;

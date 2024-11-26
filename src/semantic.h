@@ -102,6 +102,7 @@ bool semcheck_compare_dtypes(TokenType expected, TokenType assigned) {
     //case T_VOID:
     //case T_COMPARISON:
     if(expected == assigned) return true; // Vše zhodné automaticky true
+    if(expected == T_UNDERSCORE) return true; // Všechny typy jsou kompatibilní s podtržítkem
     switch (assigned) {
         case T_I32_ID:
             if(expected == T_I32_NULLABLE || expected == T_I32_VAR) return true;

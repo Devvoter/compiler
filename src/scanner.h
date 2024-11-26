@@ -132,6 +132,7 @@ typedef enum {
 
     T_EXPRESSION_NONTERMINAL,
     T_COMPARASION,
+    T_UNDERSCORE,
 } TokenType;
 
 

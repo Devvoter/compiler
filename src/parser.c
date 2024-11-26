@@ -224,6 +224,17 @@ void global_symtable() {
     Token token = getNextToken(&LIST);
     bool mainPresent = false;
     bool inMain = false;
+    tSymTabNode *node = create_var_node(false);
+    if (node == NULL) {
+        exitWithError(&token, ERR_INTERNAL_COMPILER);
+    }
+    node->id = "_";
+    node->varData->dataType = T_UNDERSCORE;
+    node->varData->isUsed = true;
+    if (!insert_symbol(&symtable, node)) {
+        exitWithError(&token, ERR_INTERNAL_COMPILER);
+    }
+
     while (token.type != T_EOF) {
         if (token.type == T_FN) {
             token = getNextToken(&LIST);
