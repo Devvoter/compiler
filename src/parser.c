@@ -409,7 +409,7 @@ Token parse_if() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
-    TokenType exprType = expression();                                       // Parsování výrazu uvnitř závorek
+    TokenType exprType = expression().dataType;                                       // Parsování výrazu uvnitř závorek
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -501,7 +501,7 @@ Token parse_while() {
        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
-    TokenType exprType = expression();                                   // Parsování výrazu uvnitř závorek
+    TokenType exprType = expression().dataType;                                   // Parsování výrazu uvnitř závorek
     // if (exprType != T_COMPARASION) {
     //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
     // }
@@ -612,7 +612,7 @@ Token parse_variable_definition() {
     //     }
     //     return getCurrentToken();   // Vrátíme token pro další zpracování
     // }
-    TokenType exprType = expression();                   // Parsování výrazu na pravé straně přiřazení
+    TokenType exprType = expression().dataType;                   // Parsování výrazu na pravé straně přiřazení
     if (exprType == T_NULL) {
         if (autoType) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_DERIVATION);
@@ -654,7 +654,7 @@ Token parse_return() {
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
     else {
-        TokenType retVal = expression();               // Parsování výrazu, který se má vrátit
+        TokenType retVal = expression().dataType;               // Parsování výrazu, který se má vrátit
         if (expRetVal == T_VOID) {
             exitWithError(&CurrentToken, ERR_SEM_RETURN_EXPRESSION);
         }
@@ -696,7 +696,7 @@ Token parse_assignment_or_function_call() {
     }
     if (token.type == T_ASSIGN) {
         getCurrentToken();
-        TokenType exprType = expression();               // Parsování výrazu na pravé straně přiřazení
+        TokenType exprType = expression().dataType;               // Parsování výrazu na pravé straně přiřazení
         if (!semcheck_compare_dtypes(search_symbol(&symtable, id)->varData->dataType, exprType)) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
@@ -894,7 +894,7 @@ void parse_function_call(char *id) {
     getCurrentToken();
     int currentArgument = 0;
     if (strcmp(id, "write") == 0) {
-        TokenType exprType = expression();
+        TokenType exprType = expression().dataType;
         if (exprType == T_NULL) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
@@ -913,7 +913,7 @@ void parse_function_call(char *id) {
         }
     }
     else if (strcmp(id, "string") == 0) {
-        TokenType exprType = expression();
+        TokenType exprType = expression().dataType;
         if (exprType != T_STRING_TYPE && exprType != T_STRING_TYPE_EMPTY && exprType != T_U8_ID) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -932,7 +932,7 @@ void parse_function_call(char *id) {
         }
     }
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
-        TokenType exprType = expression();                   // Parsování argumentů funkce
+        TokenType exprType = expression().dataType;                   // Parsování argumentů funkce
         if (!semcheck_compare_dtypes(search_symbol(&symtable, id)->funData->paramTypes[currentArgument], exprType)) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
@@ -949,7 +949,7 @@ void parse_function_call(char *id) {
     }
 }
 
-TokenType expression() {
+tExprVal expression() {
     Stack stack;
     S_Init(&stack);
     Token Semicolon;
@@ -1001,7 +1001,10 @@ TokenType expression() {
         else {
             if (next_token.type == T_SEMICOLON) {                         // overime zda mame zredukovany cely vyraz
                 if(checkExprEnd(&stack)) {
-                    return S_Top(&stack)->type;
+                    tExprVal result;
+                    result.dataType = S_Top(&stack)->type;
+                    result.isConstExpr = S_Top(&stack)->isLiteral;
+                    return result;
                 }
             }
         }
@@ -1048,7 +1051,10 @@ TokenType expression() {
         next_token = getCurrentToken();
         alreadyRead = false;
     }
-    return S_Top(&stack)->type;
+    tExprVal result;
+    result.dataType = S_Top(&stack)->type;
+    result.isConstExpr = S_Top(&stack)->isLiteral;
+    return result;
 }
 
 int main() {
