@@ -57,7 +57,8 @@ void free_list_of_tokens(ListOfTokens *list) {
             list->activeToken->token.type == T_ID ||
             list->activeToken->token.type == T_STRING_TYPE)
         {
-            free(list->activeToken->token.data.u8);
+            //free(list->activeToken->token.data.u8->data);
+            //free(list->activeToken->token.data.u8);
         }
         
         
