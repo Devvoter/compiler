@@ -1,5 +1,49 @@
-// error code: 0
 const ifj = @import("ifj24.zig");
+
+pub fn write() i32 {
+    return 5;
+}
+pub fn voidfn() void {              // is it normal??
+
+}
+
+pub fn parameterTest(a: i32, b: f64, c: []u8) i32 {
+    if (a > 0) {
+        return 1;
+    }
+    if (b > 0.0) {
+        return 2;
+    }
+    //var i = c + 1;
+    if (ifj.strcmp(c, ifj.string("ahoj")) == 0) {
+        return 3;
+    }
+}
+
+
 pub fn main() void {
+    var x : i32 = 5;
+    var y : ?i32 = null;
+    var string : []u8 = ifj.string("ahoj");
+    
+    ifj.write("ahoj");
+    //x = null;
+    if (x < 0) {
+        return;
+    }
+    x = parameterTest(1*x-write(), 1.0, ifj.concat(ifj.string("ahoj"), string,));
+
+    // while (y)
+
+    if (y) |y_bez_null| {
+        x = y_bez_null;
+    }
+    else {
+        x = 0;
+    }
+    //x = ifj.readi32();
+    if (x > write()){
+        return;
+    }
     return;
 }

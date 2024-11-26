@@ -116,10 +116,10 @@ bool semcheck_compare_dtypes(TokenType expected, TokenType assigned) {
             if(expected == T_I32_ID || expected == T_I32_NULLABLE) return true;
         case T_F64_VAR:
             if(expected == T_F64_ID || expected == T_F64_NULLABLE) return true;
-        case T_STRING_TYPE:
-            if(expected == T_U8_ID || expected == T_U8_NULLABLE) return true;
-        case T_STRING_TYPE_EMPTY:
-            if(expected == T_U8_ID || expected == T_U8_NULLABLE) return true;
+        // case T_STRING_TYPE:
+        //     if(expected == T_U8_ID || expected == T_U8_NULLABLE) return true;
+        // case T_STRING_TYPE_EMPTY:
+        //     if(expected == T_U8_ID || expected == T_U8_NULLABLE) return true;
         default:
             return false;
     }
