@@ -29,7 +29,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "readstr";
+    node->id = "ifj.readstr";
     node->funData->retType = T_U8_NULLABLE;
     node->funData->paramCnt = 0;
     node->funData->paramTypes = NULL;
@@ -41,7 +41,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "readi32";
+    node->id = "ifj.readi32";
     node->funData->retType = T_I32_NULLABLE;
     node->funData->paramCnt = 0;
     node->funData->paramTypes = NULL;
@@ -53,7 +53,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "readf64";
+    node->id = "ifj.readf64";
     node->funData->retType = T_F64_NULLABLE;
     node->funData->paramCnt = 0;
     node->funData->paramTypes = NULL;
@@ -65,7 +65,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "write";
+    node->id = "ifj.write";
     node->funData->retType = T_VOID;
     node->funData->paramCnt = 1;
     node->funData->paramTypes = NULL;
@@ -77,7 +77,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "i2f";
+    node->id = "ifj.i2f";
     node->funData->retType = T_F64_ID;
     node->funData->paramCnt = 1;
     node->funData->paramTypes = malloc(sizeof(int));
@@ -93,7 +93,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "f2i";
+    node->id = "ifj.f2i";
     node->funData->retType = T_I32_ID;
     node->funData->paramCnt = 1;
     node->funData->paramTypes = malloc(sizeof(int));
@@ -109,7 +109,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "string";
+    node->id = "ifj.string";
     node->funData->retType = T_U8_ID;
     node->funData->paramCnt = 1;
     node->funData->paramTypes = NULL;
@@ -121,7 +121,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "length";
+    node->id = "ifj.length";
     node->funData->retType = T_I32_ID;
     node->funData->paramCnt = 1;
     node->funData->paramTypes = malloc(sizeof(int));
@@ -137,7 +137,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "concat";
+    node->id = "ifj.concat";
     node->funData->retType = T_U8_ID;
     node->funData->paramCnt = 2;
     node->funData->paramTypes = malloc(2 * sizeof(int));
@@ -154,7 +154,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "substring";
+    node->id = "ifj.substring";
     node->funData->retType = T_U8_ID;
     node->funData->paramCnt = 3;
     node->funData->paramTypes = malloc(3 * sizeof(int));
@@ -172,7 +172,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "strcmp";
+    node->id = "ifj.strcmp";
     node->funData->retType = T_I32_ID;
     node->funData->paramCnt = 2;
     node->funData->paramTypes = malloc(2 * sizeof(int));
@@ -189,7 +189,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "ord";
+    node->id = "ifj.ord";
     node->funData->retType = T_I32_ID;
     node->funData->paramCnt = 2;
     node->funData->paramTypes = malloc(2 * sizeof(int));
@@ -206,7 +206,7 @@ void addStandardFunctionsToTS() {
     if (node == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    node->id = "chr";
+    node->id = "ifj.chr";
     node->funData->retType = T_U8_ID;
     node->funData->paramCnt = 1;
     node->funData->paramTypes = malloc(sizeof(int));
@@ -727,7 +727,18 @@ char *parse_standard_function_call() {
     if (token.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    char *functionName = token.data.u8->data;
+    char *ifjFunctionName = malloc (strlen(token.data.u8->data) + 5);
+    if (ifjFunctionName == NULL) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    ifjFunctionName[0] = 'i';
+    ifjFunctionName[1] = 'f';
+    ifjFunctionName[2] = 'j';
+    ifjFunctionName[3] = '.';
+    ifjFunctionName[4] = '\0';
+    //printf("%s\n", token.data.u8->data);
+    strcat(ifjFunctionName, token.data.u8->data);
+    //printf("ifjFunctionName: %s\n", ifjFunctionName);
     if (!(strcmp(token.data.u8->data, "readstr") == 0 ||
         strcmp(token.data.u8->data, "readi32") == 0 ||
         strcmp(token.data.u8->data, "readf64") == 0 ||
@@ -746,11 +757,11 @@ char *parse_standard_function_call() {
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    parse_function_call(functionName);
+    parse_function_call(ifjFunctionName);
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    return functionName;
+    return ifjFunctionName;
 }
 
 void arguments(Token token) {
@@ -893,8 +904,9 @@ void parse_function_call(char *id) {
     }
     getCurrentToken();
     int currentArgument = 0;
-    if (strcmp(id, "write") == 0) {
-        TokenType exprType = expression().dataType;
+    int paramCnt = search_symbol(&symtable, id)->funData->paramCnt;
+    if (strcmp(id, "ifj.write") == 0) {
+        TokenType exprType = expression();
         if (exprType == T_NULL) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
@@ -912,8 +924,8 @@ void parse_function_call(char *id) {
             return;
         }
     }
-    else if (strcmp(id, "string") == 0) {
-        TokenType exprType = expression().dataType;
+    else if (strcmp(id, "ifj.string") == 0) {
+        TokenType exprType = expression();
         if (exprType != T_STRING_TYPE && exprType != T_STRING_TYPE_EMPTY && exprType != T_U8_ID) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -932,7 +944,11 @@ void parse_function_call(char *id) {
         }
     }
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
-        TokenType exprType = expression().dataType;                   // Parsování argumentů funkce
+        TokenType exprType = expression();                   // Parsování argumentů funkce
+        if (paramCnt < currentArgument+1) {
+            exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
+        }
+        //printf("expected exprType: %d\n", search_symbol(&symtable, id)->funData->paramTypes[currentArgument]);
         if (!semcheck_compare_dtypes(search_symbol(&symtable, id)->funData->paramTypes[currentArgument], exprType)) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
@@ -943,8 +959,9 @@ void parse_function_call(char *id) {
             getCurrentToken();
         }
         currentArgument++;
+
     }
-    if (currentArgument != search_symbol(&symtable, id)->funData->paramCnt) {
+    if (currentArgument != paramCnt) {
         exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
     }
 }

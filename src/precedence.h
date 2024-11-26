@@ -134,6 +134,9 @@ TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, Precede
             return T_COMPARASION;
         }
     }
+    else if (operand1->type == T_COMPARASION || operand2->type == T_COMPARASION) {
+        exitWithError(&operand1->token, ERR_SEM_TYPE_COMPATIBILITY);
+    }
     return operand1->type;
 }
 
