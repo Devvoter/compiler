@@ -9,6 +9,12 @@
 
 #include "scanner.h"
 
+typedef struct expressionValue{
+    TokenType dataType;
+    bool isConstExpr;
+    TokenValue value;
+}tExprVal;
+
 /**
  * @brief Funkce pro získání aktuálního tokenu a uložení do globální proměnné
  */
@@ -95,7 +101,7 @@ void arguments(Token token);
 /**
  * @brief Funkce pro parsování výrazů
  */
-TokenType expression();
+tExprVal expression();
 
 /**
  * @brief Funkce pro parsování argumentů volání funkce uvnitř výrazu
