@@ -1,6 +1,6 @@
 # Kompilátor a přepínače
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -pedantic
+CFLAGS = -std=c11
 
 # Název výsledného programu
 TARGET = ifj24_compiler
@@ -8,7 +8,7 @@ TARGET = ifj24_compiler
 # Seznam zdrojových a hlavičkových souborů
 SRC = buffer.c error.c parser.c scanner.c stack.c symtable.c codeStack.c
 OBJ = $(SRC:.c=.o)
-HEADERS = buffer.h error.h parser.h scanner.h stack.h precedence.h symtable.h codeStack.h precedence_token.h
+HEADERS = buffer.h error.h parser.h scanner.h stack.h precedence.h symtable.h codeStack.h precedence_token.h semantic.h
 
 # Výchozí cíl - kompilace celého projektu
 all: $(TARGET)
@@ -34,7 +34,7 @@ zip:
 
 # Vytvoření archivu pro pokusné odevzdání
 pokusne:
-	zip xpylypd00.zip buffer.c buffer.h error.c error.h parser.c parser.h scanner.c scanner.h codeStack.h codeStack.c stack.c stack.h precedence.h symtable.c symtable.h Makefile
+	zip xpylypd00.zip buffer.c buffer.h error.c error.h parser.c parser.h scanner.c scanner.h codeStack.h codeStack.c stack.c stack.h precedence.h symtable.c symtable.h Makefile dokumentace.pdf rozdeleni precedence_token.h semantic.h
 
 # Speciální cíle (aby nebyly zaměněny za soubory)
 .PHONY: all clean rebuild zip
