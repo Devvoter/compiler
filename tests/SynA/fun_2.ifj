@@ -1,0 +1,9 @@
+const ifj = @import("ifj24.zig");
+
+pub fn 5() void {         // syntax error (5 is not an id)
+    var x : i32 = 5;
+    if (x < 0)
+    {
+        return;
+    }
+}

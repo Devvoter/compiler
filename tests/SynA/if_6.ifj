@@ -1,0 +1,9 @@
+const ifj = @import("ifj24.zig");
+
+pub fn main() void {
+    var x : i32 = 5;
+    if (x < 0)    |5|    // semantic type compatibility error
+    {
+        return;
+    }
+}

@@ -1,0 +1,9 @@
+const ifj = @import("ifj24.zig");
+
+pub fn _() void {         // semantic error redefinition of variable (?)
+    var x : i32 = 5;
+    if (x < 0)
+    {
+        return;
+    }
+}
