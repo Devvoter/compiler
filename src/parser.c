@@ -1,7 +1,7 @@
 /**
  * @file parser.c
  * @author Mariia Sydorenko (xsydorm00)
- * @brief Implementace parseru
+ * @brief Implementace parseru (syntaktická a semantická analýza, včetně volání generátorů a lexikálního analýzátorů)
  * 
  * @date 2024-10-04
  * 
@@ -13,6 +13,7 @@
 #include "precedence.h"
 #include "symtable.h"
 #include "semantic.h"
+#include "list.h"
 
 Token CurrentToken;
 ListOfTokens LIST;

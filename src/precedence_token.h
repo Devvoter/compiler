@@ -3,6 +3,9 @@
 
 #include "scanner.h"
 
+/**
+ * @brief Struktura s tokenem doplnena informaci pro precedenční analýzu
+ */
 typedef struct {
     Token token;
     bool isTerminal;
