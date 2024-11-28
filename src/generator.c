@@ -688,6 +688,43 @@ bool endWhileGen() {
 }
 
 
+bool callFuncGen(char *name) {
+    if (addCodeToBuf(&buffer, "\nCREATEFRAME", T_OTHERS)) {
+        //TODO
+    }
+}
+
+
+bool retValGen(char *ID, bool pushOnStack, bool withReturnValue) {
+    if (withReturnValue) {
+        if (pushOnStack) ID = "$tmp$";
+        char *storedID = storeChar(ID);
+        if (storedID == NULL) return false;
+        if (assignVarGen(storedID, T_VAR, "$$$retval", false, true)) {
+                if (pushOnStack) return pushOnStackGen(storedID, T_VAR);
+                else return true;
+        } else return false;
+    } else return true;
+}
+
+
+bool funcStartGen(char *name) {
+    char *storedname = storeChar(name);
+    if (storedname == NULL) return false;
+    if (addCodeToBuf(&buffer, "\nLABEL$$$", T_OTHERS) && 
+        addCodeToBuf(&buffer, storedname, T_STRING_FROM_PARSER) &&
+        addCodeToBuf(&buffer, "\nPUSHFRAME", T_OTHERS) &&
+        addCodeToBuf(&buffer, "\nDEFVAR LF@$$$retval", T_OTHERS) &&
+        addCodeToBuf(&buffer, "\nMOVE LF@$$$retval nil@nil", T_OTHERS)) {
+            //TODO prace s parametry
+    } else return false;
+}
+
+bool funcEndGen() {
+    return (addCodeToBuf(&buffer, "\nPOPFRAME\nRETURN", T_OTHERS));
+}
+
+
 char *replace_special_characters(const char *input)
 {
     if (!input)

@@ -250,8 +250,9 @@ bool callFuncGen(char *name); //TODO doplnit parametry(parametry funkce, jejich 
  * 
  * @param ID nazev promenne, kam se ma ulozit hodnota
  * @param pushOnStack v pripade true, prida se hodnota na vrchol zasobniku
+ * @param withReturnValue v pripade true bude prepsana return hodnota do promenne, nebo na zasobnik
  */
-bool retValGen(char *ID, bool pushOnStack);
+bool retValGen(char *ID, bool pushOnStack, bool withReturnValue);
 
 /**
  * @brief vygeneruje zacatek pomocne funkce 
