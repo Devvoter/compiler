@@ -688,15 +688,31 @@ bool endWhileGen() {
 }
 
 
-bool callFuncGen(char *name) {
+bool callFuncGen(char *name, int paramsCount) {
+    bool paramsWritten = true;
     if (addCodeToBuf(&buffer, "\nCREATEFRAME", T_OTHERS)) {
-        //TODO
+        while (paramsCount != 0) {
+            if (addCodeToBuf(&buffer, "\nDEFVAR TF@$$$param", T_OTHERS) &&
+                addCodeToBuf(&buffer, (int *)&paramsCount, T_INT) &&
+                addCodeToBuf(&buffer, "\nPOPS TF@$$$param", T_OTHERS) &&
+                addCodeToBuf(&buffer, (int *)&paramsCount, T_INT))  {
+                    paramsCount--;
+                } else {
+                    paramsWritten = false;
+                    break;
+                }
+        }
+        char *storedname = storeChar(name);
+        if (storedname == NULL) return false;
+        if (addCodeToBuf(&buffer, "\nCALL $$$", T_OTHERS) &&
+            addCodeToBuf(&buffer, storedname, T_STRING_FROM_PARSER)) {
+                return paramsWritten;
+        }
     }
 }
 
 
-bool retValGen(char *ID, bool pushOnStack, bool withReturnValue) {
-    if (withReturnValue) {
+bool retValGen(char *ID, bool pushOnStack) {
         if (pushOnStack) ID = "$tmp$";
         char *storedID = storeChar(ID);
         if (storedID == NULL) return false;
@@ -704,14 +720,13 @@ bool retValGen(char *ID, bool pushOnStack, bool withReturnValue) {
                 if (pushOnStack) return pushOnStackGen(storedID, T_VAR);
                 else return true;
         } else return false;
-    } else return true;
 }
 
 
 bool funcStartGen(char *name) {
     char *storedname = storeChar(name);
     if (storedname == NULL) return false;
-    if (addCodeToBuf(&buffer, "\nLABEL$$$", T_OTHERS) && 
+    if (addCodeToBuf(&buffer, "\nLABEL $$$", T_OTHERS) && 
         addCodeToBuf(&buffer, storedname, T_STRING_FROM_PARSER) &&
         addCodeToBuf(&buffer, "\nPUSHFRAME", T_OTHERS) &&
         addCodeToBuf(&buffer, "\nDEFVAR LF@$$$retval", T_OTHERS) &&
@@ -719,6 +734,7 @@ bool funcStartGen(char *name) {
             //TODO prace s parametry
     } else return false;
 }
+
 
 bool funcEndGen() {
     return (addCodeToBuf(&buffer, "\nPOPFRAME\nRETURN", T_OTHERS));
@@ -780,16 +796,11 @@ char *replace_special_characters(const char *input)
             result = new_result;
         }
 
-        if (replacement_len == 1)
-        {
+        if (replacement_len == 1) {
             result[result_len++] = *replacement;
-        }
-        else
-        {
-            for (size_t j = 0; j < replacement_len; j++)
-            {
-                result[result_len++] = replacement[j];
-            }
+        } else {
+            for (size_t j = 0; j < replacement_len; j++) {
+                result[result_len++] = replacement[j]; }
         }
     }
 

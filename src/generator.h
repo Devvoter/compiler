@@ -242,17 +242,17 @@ bool endWhileGen();
  * @brief volani pomocne funkce
  * 
  * @param name nazev funkce
+ * @param paramsCount pocet parametru
  */
-bool callFuncGen(char *name); //TODO doplnit parametry(parametry funkce, jejich pocet)
+bool callFuncGen(char *name, int paramsCount);
 
 /**
- * @brief pripsani navratove hodnoty z pomocne funkce do promenne, pripadne na zasobnik
+ * @brief pripsani navratove hodnoty z pomocne funkce do promenne, pripadne na zasobnik(v pripade ze funkce nic nevraci, tato funkce se nevola)
  * 
  * @param ID nazev promenne, kam se ma ulozit hodnota
  * @param pushOnStack v pripade true, prida se hodnota na vrchol zasobniku
- * @param withReturnValue v pripade true bude prepsana return hodnota do promenne, nebo na zasobnik
  */
-bool retValGen(char *ID, bool pushOnStack, bool withReturnValue);
+bool retValGen(char *ID, bool pushOnStack);
 
 /**
  * @brief vygeneruje zacatek pomocne funkce 
