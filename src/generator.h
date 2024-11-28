@@ -145,8 +145,9 @@ bool chrStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
  * @param param parametr funkce
  * @param isVar v pripade true zadany argument je promenna
  * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
+ * @param fromStack v pripade true bude upravena hodnota na vrcholu zasobniku
  */
-bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
+bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack);
 
 /**
  * @brief funkce prevede float hodnotu na hodnotu typu int
@@ -155,8 +156,9 @@ bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
  * @param param parametr funkce
  * @param isVar v pripade true zadany argument je promenna
  * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
+ * @param fromStack v pripade true bude upravena hodnota na vrcholu zasobniku
  */
-bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
+bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack);
 
 /**
  * @brief funkce vrati podretezec zadaneho stringu
@@ -173,31 +175,9 @@ bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
 bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack);
 
 /**
- * @brief volani pomocne funkce
- * 
- * @param name nazev funkce
+ * @brief TODO
  */
-bool callFuncGen(char *name); //TODO doplnit parametry(parametry funkce, jejich pocet)
-
-/**
- * @brief pripsani navratove hodnoty z pomocne funkce do promenne, pripadne na zasobnik
- * 
- * @param ID nazev promenne, kam se ma ulozit hodnota
- * @param pushOnStack v pripade true, prida se hodnota na vrchol zasobniku
- */
-bool retValGen(char *ID, bool pushOnStack);
-
-/**
- * @brief vygeneruje zacatek pomocne funkce 
- * 
- * @param 
- */
-bool funcStartGen(char *name); //TODO parametrs
-
-/**
- * @brief vygeneruje konec pomocne funkce 
- */
-bool funcEndGen();
+bool strcmpFuncGen();
 
 /**
  * @brief prida na datovy zasobnik hodnotu
@@ -259,6 +239,33 @@ bool endCondWhileGen(bool isNullable, char *ID);
 bool endWhileGen();
 
 /**
+ * @brief volani pomocne funkce
+ * 
+ * @param name nazev funkce
+ */
+bool callFuncGen(char *name); //TODO doplnit parametry(parametry funkce, jejich pocet)
+
+/**
+ * @brief pripsani navratove hodnoty z pomocne funkce do promenne, pripadne na zasobnik
+ * 
+ * @param ID nazev promenne, kam se ma ulozit hodnota
+ * @param pushOnStack v pripade true, prida se hodnota na vrchol zasobniku
+ */
+bool retValGen(char *ID, bool pushOnStack);
+
+/**
+ * @brief vygeneruje zacatek pomocne funkce 
+ * 
+ * @param 
+ */
+bool funcStartGen(char *name); //TODO parametrs
+
+/**
+ * @brief vygeneruje konec pomocne funkce 
+ */
+bool funcEndGen();
+
+/**
  * @brief zmeni string na vhodny retezec pro IFJcode24
  * 
  * @param input vstupni string
@@ -266,10 +273,10 @@ bool endWhileGen();
 char *replace_special_characters(const char *input);
 
 /**
- * @brief v pripade, ze jsme v cyclu a promenna se rovna aktualnimu nazvu isNullable promenne, zameni ji na nazev pomocne promenne $$while$isNullable$1 promenne
+ * @brief v pripade, ze jsme v cyklu a promenna se rovna aktualnimu nazvu isNullable promenne, zameni ji na nazev pomocne promenne $$while$isNullable$1
  * 
  * @param ID vstupni nazev promenne
  */
-char *isNullableVar(char *ID);
+char *storeChar(char *ID);
 
 

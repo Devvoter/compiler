@@ -19,7 +19,9 @@
 codeBuf *buffer;
 int ifCounter;
 int whileCounter;
-Stack *whileStack, *ifStack, *whileIsNullableStack;
+Stack *whileStack;
+Stack *ifStack;
+Stack *whileIsNullableStack;
 
 
 bool startGen()
@@ -29,8 +31,7 @@ bool startGen()
     CodeStack_Init(&ifStack);
     CodeStack_Init(&whileStack);
     CodeStack_Init(&whileIsNullableStack);
-    return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME", T_OTHERS) &&
-            addCodeToBuf(&buffer, "\nPUSHFRAME", T_OTHERS));
+    return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME", T_OTHERS));
 }
 
 
@@ -42,10 +43,7 @@ bool endGen()
 
 void disposeGen(bool done)
 {
-    if (done == true)
-    {
-        bufPrint(&buffer);
-    }
+    if (done == true) bufPrint(&buffer);
     CodeStack_destroy(ifStack);
     CodeStack_destroy(whileStack);
     CodeStack_destroy(whileIsNullableStack);
@@ -55,9 +53,7 @@ void disposeGen(bool done)
 
 bool startMainGen()
 {
-    return (addCodeToBuf(&buffer, "\nCREATEFRAME", T_OTHERS) && 
-            addCodeToBuf(&buffer, "\nPUSHFRAME", T_OTHERS) &&
-            addCodeToBuf(&buffer, "\nDEFVAR LF@$tmp$", T_OTHERS));
+    return addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$", T_OTHERS);
 }
 
 
@@ -69,20 +65,22 @@ bool endMainGen()
 
 bool defVarGen(char *ID, bool LF)
 {
+    char *storedID = storeChar(ID);
+    if (storedID == NULL) return false;
     if (addCodeToBuf(&buffer, "\nDEFVAR ", T_OTHERS))
     {
-        if (LF == true)
+        if (LF)
         {
             if (addCodeToBuf(&buffer, "LF@", T_OTHERS))
             {
-                return (addCodeToBuf(&buffer, ID, T_OTHERS));
+                return (addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER));
             }
         }
         else
         {
             if (addCodeToBuf(&buffer, "TF@", T_OTHERS))
             {
-                return (addCodeToBuf(&buffer, ID, T_OTHERS));
+                return (addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER));
             }
         }
     }
@@ -92,44 +90,44 @@ bool defVarGen(char *ID, bool LF)
 
 bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
 {
+    char *storedID = storeChar(ID);
+    char *storedvalue = storeChar(value);
+    if (storedID == NULL || storedvalue == NULL) return false;
     if (addCodeToBuf(&buffer, "\nMOVE ", T_OTHERS))
     {
-        if (toLF == true)
+        if (toLF)
         {
-            if (addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, ID, T_OTHERS))
+            if (addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
             {
                 if (t == T_VAR)
                 {
-                    if (fromLF == true)
+                    if (fromLF)
                     {
                         return (addCodeToBuf(&buffer, " LF@", T_OTHERS) && 
-                                addCodeToBuf(&buffer, value, T_OTHERS));
+                                addCodeToBuf(&buffer, storedvalue, T_STRING_FROM_PARSER));
                     }
                     else
                     {
                         return (addCodeToBuf(&buffer, " TF@", T_OTHERS) && 
-                                addCodeToBuf(&buffer, value, T_OTHERS));
+                                addCodeToBuf(&buffer, storedvalue, T_STRING_FROM_PARSER));
                     }
                 }
                 else if (t == T_STRING_TYPE)
                 {
-                    value = replace_special_characters(value);
-                    if (value == NULL)
-                    {
-                        return false;
-                    }
+                    storedvalue = replace_special_characters(storedvalue);
+                    if (storedvalue == NULL) return false;
                     return (addCodeToBuf(&buffer, " string@", T_OTHERS) && 
-                            addCodeToBuf(&buffer, value, T_STRING));
+                            addCodeToBuf(&buffer, storedvalue, T_STRING_FROM_PARSER));
                 }
                 else if (t == T_I32_ID)
                 {
                     return (addCodeToBuf(&buffer, " int@", T_OTHERS) && 
-                            addCodeToBuf(&buffer, value, T_INT));
+                            addCodeToBuf(&buffer, storedvalue, T_STRING_FROM_PARSER));
                 }
                 else if (t == T_F64_ID)
                 {
                     return (addCodeToBuf(&buffer, " float@", T_OTHERS) && 
-                            addCodeToBuf(&buffer, value, T_FLOAT));
+                            addCodeToBuf(&buffer, storedvalue, T_FLOAT));
                 }
                 else if (t == T_NULL)
                 {
@@ -137,40 +135,37 @@ bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF)
                 }
             }
         }
-        else if (addCodeToBuf(&buffer, "TF@", T_OTHERS) && addCodeToBuf(&buffer, ID, T_OTHERS))
+        else if (addCodeToBuf(&buffer, "TF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
         {
             if (t == T_VAR)
             {
-                if (fromLF == true)
+                if (fromLF)
                 {
                     return (addCodeToBuf(&buffer, " LF@", T_OTHERS) && 
-                            addCodeToBuf(&buffer, value, T_OTHERS));
+                            addCodeToBuf(&buffer, storedvalue, T_STRING_FROM_PARSER));
                 }
                 else
                 {
                     return (addCodeToBuf(&buffer, " TF@", T_OTHERS) && 
-                            addCodeToBuf(&buffer, value, T_OTHERS));
+                            addCodeToBuf(&buffer, storedvalue, T_STRING_FROM_PARSER));
                 }
             }
             else if (t == T_STRING_TYPE)
             {
-                value = replace_special_characters(value);
-                if (value == NULL)
-                {
-                    return false;
-                }
+                storedvalue = replace_special_characters(storedvalue);
+                if (storedvalue == NULL) return false;
                 return (addCodeToBuf(&buffer, " string@", T_OTHERS) && 
-                        addCodeToBuf(&buffer, value, T_STRING));
+                        addCodeToBuf(&buffer, storedvalue, T_STRING_FROM_PARSER));
             }
             else if (t == T_I32_ID)
             {
                 return (addCodeToBuf(&buffer, " int@", T_OTHERS) && 
-                        addCodeToBuf(&buffer, value, T_INT));
+                        addCodeToBuf(&buffer, storedvalue, T_STRING_FROM_PARSER));
             }
             else if (t == T_F64_ID)
             {
                 return (addCodeToBuf(&buffer, " float@", T_OTHERS) && 
-                        addCodeToBuf(&buffer, value, T_FLOAT));
+                        addCodeToBuf(&buffer, storedvalue, T_FLOAT));
             }
             else if (t == T_NULL)
             {
@@ -188,46 +183,49 @@ bool writeStandFuncGen(TokenType t, char *param)
     {
         if (t == T_VAR)
         {
+            char *storedparam = storeChar(param); 
+            if (storedparam == NULL) return false;
             return (addCodeToBuf(&buffer, "LF@", T_OTHERS) && 
-                    addCodeToBuf(&buffer, param, T_OTHERS));
+                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
         }
         else if (t == T_I32_ID)
         {
+            char *storedparam = storeChar(param); 
+            if (storedparam == NULL) return false;
             return (addCodeToBuf(&buffer, "int@", T_OTHERS) && 
-                    addCodeToBuf(&buffer, param, T_INT));
+                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
         }
         else if (t == T_F64_ID)
         {
+            char *storedparam = storeChar(param); 
+            if (storedparam == NULL) return false;
             return (addCodeToBuf(&buffer, "float@", T_OTHERS) && 
-                    addCodeToBuf(&buffer, param, T_FLOAT));
+                    addCodeToBuf(&buffer, storedparam, T_FLOAT));
         }
         else if (t == T_STRING_TYPE)
         {
-            param = replace_special_characters(param);
-            if (param == NULL)
-            {
-                return false;
-            }
+            char *storedparam = replace_special_characters(param);
+            if (storedparam == NULL) return false;
             return (addCodeToBuf(&buffer, "string@", T_OTHERS) && 
-                    addCodeToBuf(&buffer, param, T_STRING));
+                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
         }
     }
     return false;
 }
 
 
-bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack)
+bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack)    
 {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
-    }
+    if (pushOnStack == true) ID = "$tmp$";
+    char *storedID = storeChar(ID);
+    if (storedID == NULL) return false;
     if (addCodeToBuf(&buffer, "\nREAD ", T_OTHERS))
     {
         if (t == T_READSTR)
         {
-            if (addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, ID, T_OTHERS) && 
+            if (addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER) && 
                 addCodeToBuf(&buffer, " string", T_OTHERS)) {
-                    if (pushOnStack == true) {
+                    if (pushOnStack) {
                         return (pushOnStackGen(ID, T_VAR));
                     } else {
                         return true;
@@ -236,9 +234,9 @@ bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack)
         }
         else if (t == T_READI32)
         {
-            if (addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, ID, T_OTHERS) && 
+            if (addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER) && 
                 addCodeToBuf(&buffer, " int", T_OTHERS)) {
-                    if (pushOnStack == true) {
+                    if (pushOnStack) {
                         return (pushOnStackGen(ID, T_VAR));
                     } else {
                         return true;
@@ -247,9 +245,9 @@ bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack)
         }
         else if (t == T_READF64)
         {
-            if (addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, ID, T_OTHERS) && 
+            if (addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER) && 
                 addCodeToBuf(&buffer, " float", T_OTHERS)) {
-                    if (pushOnStack == true) {
+                    if (pushOnStack) {
                         return (pushOnStackGen(ID, T_VAR));
                     } else return true;
             }
@@ -261,49 +259,43 @@ bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack)
 
 bool stringStandFuncGen(char *ID, char *param, bool pushOnStack)
 {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
+    if (pushOnStack == true) ID = "$tmp$";
+    char *storedID = storeChar(ID);   
+    char *storedparam = replace_special_characters(param);
+    if (storedID == NULL || storedparam == NULL) return false;
+    if (addCodeToBuf(&buffer, "\nMOVE LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER) && 
+        addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING)) {
+            if (pushOnStack) {
+                return (pushOnStackGen(storedID, T_VAR));
+            } else return true;
     }
-    param = replace_special_characters(param);
-    if (param == NULL)
-    {
-        return false;
-    }
-    if (addCodeToBuf(&buffer, "\nMOVE ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
-        addCodeToBuf(&buffer, ID, T_OTHERS) && addCodeToBuf(&buffer, " string@", T_OTHERS) && 
-        addCodeToBuf(&buffer, param, T_STRING)) {
-                if (pushOnStack == true) {
-                    return (pushOnStackGen(ID, T_VAR));
-                } else return true;
-            }
 }
 
 
 bool lengthStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack)
 {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
-    }
-    if (addCodeToBuf(&buffer, "\nSTRLEN ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, ID, T_OTHERS))
+    if (pushOnStack) ID = "$tmp$";
+    char *storedID = storeChar(ID);
+    if (storedID == NULL) return false;
+    if (addCodeToBuf(&buffer, "\nSTRLEN LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
     {
-        if (isVar == false)
+        if (!isVar)
         {
-            param = replace_special_characters(param);
-            if (param = NULL)
-            {
-                return false;
-            }
-            if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, param, T_STRING)) {
-                if (pushOnStack == true) {
-                    return (pushOnStackGen(ID, T_VAR));
+            char *storedparam = replace_special_characters(param);
+            if (storedparam = NULL) return false;
+            if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING)) {
+                if (pushOnStack) {
+                    return (pushOnStackGen(storedID, T_VAR));
                 } else return true;
             }
         }
-        else if (isVar == true)
+        else //param je promenna
         {
-            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param, T_OTHERS)) {
-                if (pushOnStack == true) {
-                    return (pushOnStackGen(ID, T_VAR));
+            char *storedparam = storeChar(param);
+            if (storedparam == NULL) return false;
+            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER)) {
+                if (pushOnStack) {
+                    return (pushOnStackGen(storedID, T_VAR));
                 } else return true;
             }
         }
@@ -314,65 +306,60 @@ bool lengthStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack)
 
 bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack)
 {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
-    }
-    if (addCodeToBuf(&buffer, "\nCONCAT ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, ID, T_OTHERS))
+    if (pushOnStack) ID = "$tmp$";
+    char *storedID = storeChar(ID);
+    if (storedID == NULL) return false;
+    if (addCodeToBuf(&buffer, "\nCONCAT LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
     {
-        if (isVar1 == true)
+        if (isVar1)
         {
-            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param1, T_OTHERS))
+            char *storedparam1 = storeChar(param1);
+            if (storedparam1 == NULL) return false;
+            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam1, T_STRING_FROM_PARSER))
             {
-                if (isVar2 == true)
+                if (isVar2)
                 {
-                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param2, T_OTHERS)) {
-                        if (pushOnStack == true) {
-                            return (pushOnStackGen(ID, T_VAR));
+                    char *storedparam2 = storeChar(param2);
+                    if (storedparam2 == NULL) return false;
+                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER)) {
+                        if (pushOnStack) {
+                            return (pushOnStackGen(storedID, T_VAR));
                         } else return true;
                     }
                 }
-                else
+                else  //param2 je string
                 {
-                    param2 = replace_special_characters(param2);
-                    if (param2 == NULL)
-                    {
-                        return false;
-                    }
-                    if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, param2, T_STRING)) {
-                        if (pushOnStack == true) {
-                            return (pushOnStackGen(ID, T_VAR));
+                    char *storedparam2 = replace_special_characters(param2);
+                    if (storedparam2 == NULL) return false;
+                    if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING)) {
+                        if (pushOnStack) {
+                            return (pushOnStackGen(storedID, T_VAR));   
                         } else return true;
                     }
                 }
             }
-        }
-        else
-        {
-            param1 = replace_special_characters(param1);
-            if (param1 == NULL)
+        } else { //param1 je string
+            char *storedparam1 = replace_special_characters(param1);
+            if (storedparam1 == NULL) return false;
+            if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam1, T_STRING))
             {
-                return false;
-            }
-            if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, param1, T_STRING))
-            {
-                if (isVar2 == true)
+                if (isVar2)
                 {
-                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param2, T_OTHERS)) {
-                        if (pushOnStack == true) {
-                            return (pushOnStackGen(ID, T_VAR));
+                    char *storedparam2 = storeChar(param2);
+                    if (storedparam2 == NULL) return false;
+                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER)) {
+                        if (pushOnStack) {
+                            return (pushOnStackGen(storedID, T_VAR));
                         } else return true;
                     }
                 }
-                else
+                else  //param2 je string
                 {
-                    param2 = replace_special_characters(param2);
-                    if (param2 == NULL)
-                    {
-                        return false;
-                    }
-                    if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, param2, T_STRING)) {
-                        if (pushOnStack == true) {
-                            return (pushOnStackGen(ID, T_VAR));
+                    char *storedparam2 = replace_special_characters(param2);
+                    if (param2 == NULL) return false;
+                    if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING)) {
+                        if (pushOnStack) {
+                            return (pushOnStackGen(storedID, T_VAR));
                         } else return true;
                     }
                 }
@@ -384,118 +371,126 @@ bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
 
 
 bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack) {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
-    }
-    if (addCodeToBuf(&buffer, "\nSTRI2INT ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
-        addCodeToBuf(&buffer, ID, T_OTHERS)) {
-            if (isVar1 == true) {
-                if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param1, T_OTHERS)) {
-                    if (isVar2 == true) {
-                        if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param2, T_OTHERS)) {
-                            if (pushOnStack == true) {
-                                return (pushOnStackGen(ID, T_VAR));
-                            } else return true;
-                        }
-                    } else {
-                        if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, param2, T_OTHERS)) {
-                            if (pushOnStack == true) {
-                                return (pushOnStackGen(ID, T_VAR));
-                            } else return true;
-                        }
+    if (pushOnStack) ID = "$tmp$";
+    char *storedID = storeChar(ID);
+    char *storedparam2 = storeChar(param2);
+    if (storedID == NULL || storedparam2 == NULL) return false;
+    if (addCodeToBuf(&buffer, "\nSTRI2INT LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER)) {
+        if (isVar1) {
+            char *storedparam1 = storeChar(param1);
+            if (storedparam1 == NULL) return false;
+            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam1, T_STRING_FROM_PARSER)) {
+                if (isVar2) {
+                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER)) {
+                        if (pushOnStack) {
+                            return (pushOnStackGen(storedID, T_VAR));
+                        } else return true;
+                    }
+                } else {  //param2 je int
+                    if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER)) {
+                        if (pushOnStack) {
+                            return (pushOnStackGen(storedID, T_VAR));
+                        } else return true;
+                    }
+                }
+            } 
+        } else {  //param1 je string
+            char *storedparam1 = replace_special_characters(param1);
+            if (storedparam1 == NULL) return false;
+            if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam1, T_STRING)) {
+                if (isVar2) {
+                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER)) {
+                        if (pushOnStack) {
+                            return (pushOnStackGen(storedID, T_VAR));
+                        } else return true;
+                    }
+                } else { //param2 je int
+                    if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER)) {
+                        if (pushOnStack) {
+                            return (pushOnStackGen(storedID, T_VAR));
+                        } else return true;
                     }
                 } 
-            } else {
-                param1 = replace_special_characters(param1);
-                if (param2 == NULL) {
-                    return false;
-                }
-                if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, param1, T_STRING)) {
-                   if (isVar2 == true) {
-                        if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param2, T_OTHERS)) {
-                            if (pushOnStack == true) {
-                                return (pushOnStackGen(ID, T_VAR));
-                            } else return true;
-                        }
-                    } else {
-                        if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, param2, T_OTHERS)) {
-                            if (pushOnStack == true) {
-                                return (pushOnStackGen(ID, T_VAR));
-                            } else return true;
-                        }
-                    } 
-                }
             }
+        }
     }
     return false;
 }
 
 
 bool chrStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
-    }
-    if (addCodeToBuf(&buffer, "\nINT2CHAR ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
-        addCodeToBuf(&buffer, ID, T_OTHERS)) {
-                if (isVar == true) {
-                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param, T_OTHERS)) {
-                        if (pushOnStack == true) {
-                            return (pushOnStackGen(ID, T_VAR));
-                        } else return true;
-                    }
-                } else {
-                    if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, param, T_INT)) {
-                        if (pushOnStack == true) {
-                            return (pushOnStackGen(ID, T_VAR));
-                        } else return true;
-                    }
+    if (pushOnStack) ID = "$tmp$";
+    char *storedID = storeChar(ID);
+    char *storedparam = storeChar(param);
+    if (storedID == NULL || storedparam == NULL) return false;
+    if (addCodeToBuf(&buffer, "\nINT2CHAR LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER)) {
+            if (isVar) {
+                if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER)) {
+                    if (pushOnStack) {
+                        return (pushOnStackGen(storedID, T_VAR));
+                    } else return true;
                 }
+            } else { //param je int
+                if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, param, T_STRING_FROM_PARSER)) {
+                    if (pushOnStack) {
+                        return (pushOnStackGen(storedID, T_VAR));
+                    } else return true;
+                }
+            }
         }
     return false;
 }
 
 
-bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
+bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack) {
+    if (pushOnStack) ID = "$tmp$";
+    char *storedID = storeChar(ID);
+    char *storedparam = storeChar(param);
+    if (storedID == NULL || storedparam == NULL) return false;
+    bool popped = true;
+    if (fromStack) {
+        popped = addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_OTHERS);
     }
-    if (addCodeToBuf(&buffer, "\nINT2FLOAT ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
-        addCodeToBuf(&buffer, ID, T_OTHERS)) {
-            if (isVar == true) {
-                if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param, T_OTHERS)) {
-                    if (pushOnStack == true) {
-                        return (pushOnStackGen(ID, T_VAR));
-                    } else return true;
-                }
-            } else {
-                if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, param, T_OTHERS)) {
-                    if (pushOnStack == true) {
-                        return (pushOnStackGen(ID, T_VAR));
-                    } else return true;
-                }
+    if (addCodeToBuf(&buffer, "\nINT2FLOAT LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER)) {
+        if (isVar) {
+            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER)) {
+                if (pushOnStack) {
+                    return (pushOnStackGen(storedID, T_VAR) && popped);
+                } else return popped;
             }
+        } else {  //param je int
+            if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER)) {
+                if (pushOnStack) {
+                    return (pushOnStackGen(storedID, T_VAR) && popped);
+                } else return popped;
+            }
+        }
     }
     return false;
 }
 
 
-bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
+bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack) {
+    if (pushOnStack) ID = "$tmp$";
+    char *storedID = storeChar(ID);
+    char *storedparam = storeChar(param);
+    if (storedID == NULL || storedparam == NULL) return false;
+    bool popped = true;
+    if (fromStack) {
+        popped = addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_OTHERS);
     }
-    if (addCodeToBuf(&buffer, "\nFLOAT2INT ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
-        addCodeToBuf(&buffer, ID, T_OTHERS)) {
-            if (isVar == true) {
-                if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, param, T_OTHERS)) {
-                    if (pushOnStack == true) {
-                        return (pushOnStackGen(ID, T_VAR));
-                    } else return true;
+    if (addCodeToBuf(&buffer, "\nFLOAT2INT LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER)) {
+            if (isVar) {
+                if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_OTHERS)) {
+                    if (pushOnStack) {
+                        return (pushOnStackGen(storedID, T_VAR) && popped);
+                    } else return popped;
                 }
-            } else {
-                if (addCodeToBuf(&buffer, " float@", T_OTHERS) && addCodeToBuf(&buffer, param, T_FLOAT)) {
-                    if (pushOnStack == true) {
-                        return (pushOnStackGen(ID, T_VAR));
-                    } else return true;
+            } else { //param je float
+                if (addCodeToBuf(&buffer, " float@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_FLOAT)) {
+                    if (pushOnStack) {
+                        return (pushOnStackGen(storedID, T_VAR) && popped);
+                    } else return popped;
                 }
             }
     }
@@ -504,30 +499,35 @@ bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack) {
 
 
 bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack) {
-    if (pushOnStack == true) {
-        ID = "$tmp$";
-    }
+    if (pushOnStack == true) ID = "$tmp$";
+    //TODO continue
+}
+
+bool strcmp() {
+    //TODO
 }
 
 
 bool pushOnStackGen(char *param, TokenType t)
 {
+    char *storedparam = storeChar(param);
+    if (storedparam == NULL) return false; 
     if (addCodeToBuf(&buffer, "\nPUSHS ", T_OTHERS))
     {
         if (t == T_VAR)
         {
             return (addCodeToBuf(&buffer, "LF@", T_OTHERS) && 
-                    addCodeToBuf(&buffer, param, T_OTHERS));
+                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
         }
         else if (t == T_I32_ID)
         {
             return (addCodeToBuf(&buffer, "int@", T_OTHERS) && 
-                    addCodeToBuf(&buffer, param, T_INT));
+                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
         }
         else if (t == T_F64_ID)
         {
             return (addCodeToBuf(&buffer, "float@", T_OTHERS) && 
-                    addCodeToBuf(&buffer, param, T_FLOAT));
+                    addCodeToBuf(&buffer, storedparam, T_FLOAT));
         }
     }
     return false;
@@ -550,13 +550,13 @@ bool makeOperationStackGen(TokenType t, bool idiv)
     }
     else if (t == T_DIV)
     {
-        if (idiv == false)
+        if (idiv)
         {
-            return addCodeToBuf(&buffer, "\nDIVS", T_OTHERS);
+            return addCodeToBuf(&buffer, "\nIDIVS", T_OTHERS);
         }
         else
         {
-            return addCodeToBuf(&buffer, "\nIDIVS", T_OTHERS);
+            return addCodeToBuf(&buffer, "\nDIVS", T_OTHERS);
         }
     }
     else if (t == T_LESS_THAN)
@@ -566,16 +566,16 @@ bool makeOperationStackGen(TokenType t, bool idiv)
     else if (t == T_GREATER_THAN)
     {
         return addCodeToBuf(&buffer, "\nGTS", T_OTHERS);
-    }
-    return false;
+    } else return false;
 }
 
 
 bool endExpAssignGen(char *ID)
 {
-    return (addCodeToBuf(&buffer, "\nPOPS ", T_OTHERS) && 
-            addCodeToBuf(&buffer, "LF@", T_OTHERS) && 
-            addCodeToBuf(&buffer, ID, T_OTHERS) &&
+    char *storedID = storeChar(ID);
+    if (storedID == NULL) return false;
+    return (addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && 
+            addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER) &&
             addCodeToBuf(&buffer, "\nCLEARS", T_OTHERS));
 }
 
@@ -590,16 +590,18 @@ bool startIfGen(bool withNull, char *ID) {
     ifCounter++;
     if (CodeStack_Push(ifStack, &ifCounter, T_COUNTER)) {
         if (withNull) {
+            char *storedID = storeChar(ID);
+            if (storedID == NULL) return false;
             return (addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&           //push na zasobnik null hodnoty 
                     addCodeToBuf(&buffer, "\nJUMPIFEQS $$if$", T_OTHERS) &&         //porovname null s vysledkem vyrazu a udelame skok
                     addCodeToBuf(&buffer, (void *) &ifCounter, T_INT) &&                   
                     addCodeToBuf(&buffer, "$else", T_OTHERS) &&
                     addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) &&              //v pripade ne NULL definujeme promennou
-                    addCodeToBuf(&buffer, ID, T_OTHERS) &&
+                    addCodeToBuf(&buffer, storedID, T_OTHERS) &&
                     addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&               //popneme null ze zasobniku
-                    addCodeToBuf(&buffer, ID, T_OTHERS) &&
+                    addCodeToBuf(&buffer, storedID, T_OTHERS) &&
                     addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&               //a popneme hodnotu vyrazu do promenne
-                    addCodeToBuf(&buffer, ID, T_OTHERS));
+                    addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER));
         } else {
             return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS) &&
                     addCodeToBuf(&buffer, "JUMPIFNEQS $$if$", T_OTHERS) &&
@@ -615,7 +617,7 @@ bool startElseGen() {
             addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT) &&
             addCodeToBuf(&buffer, "$end", T_OTHERS) &&
             addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *) CodeStack_Top(ifStack)->data, T_INT) &&
+            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT) &&
             addCodeToBuf(&buffer, "$else", T_OTHERS));
 }
 
@@ -643,9 +645,8 @@ bool endIfElseGen(bool withElse) {
 bool startWhileGen() {
     whileCounter++;
     if (CodeStack_Push(whileStack, (void *) &whileCounter, T_COUNTER)) {
-        return (addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) &&
-                addCodeToBuf(&buffer, "$$while$isNullable$", T_OTHERS) &&   //definovani pomocne promenne
-                addCodeToBuf(&buffer, (void *) &whileCounter, T_INT) &&    //pro pocitani s IsNullable
+        return (addCodeToBuf(&buffer, "\nDEFVAR LF@$$while$isNullable$", T_OTHERS) &&   //definovani pomocne promenne
+                addCodeToBuf(&buffer, (void *) &whileCounter, T_INT) &&                 //pro pocitani s IsNullable
                 addCodeToBuf(&buffer, "\nLABEL $$while$", T_OTHERS) &&
                 addCodeToBuf(&buffer, (void *) &whileCounter, T_INT));
     }
@@ -659,15 +660,10 @@ bool endCondWhileGen(bool isNullable, char *ID) {
             addCodeToBuf(&buffer, (void *) &whileCounter, T_INT) &&
             addCodeToBuf(&buffer, "$end", T_OTHERS) &&
             
-            addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&                     //ID = hodnota vyrazu
-            addCodeToBuf(&buffer, ID, T_OTHERS) &&
-            addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&
-            addCodeToBuf(&buffer, ID, T_OTHERS) &&
-
-            addCodeToBuf(&buffer, "\nMOVE LF@$$while$isNullable$", T_OTHERS) &&  //$$while$isNullable$1 = ID
-            addCodeToBuf(&buffer, (void *) &whileCounter, T_INT) &&
-            addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
-            addCodeToBuf(&buffer, ID, T_OTHERS)) {
+            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) &&              //ID = hodnota vyrazu
+            addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&
+            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) &&
+            addCodeToBuf(&buffer, (void *)&whileCounter, T_INT)) {
                 return CodeStack_Push(whileIsNullableStack, (void *)ID, T_WHILE_IS_NULLABLE);
             }
     } else {
@@ -687,7 +683,8 @@ bool endWhileGen() {
         addCodeToBuf(&buffer, "$end", T_OTHERS)) {
            CodeStack_Pop(whileStack); 
            CodeStack_Pop(whileIsNullableStack);
-    }
+           return true;
+    } else return false;
 }
 
 
@@ -763,10 +760,13 @@ char *replace_special_characters(const char *input)
     return result;
 }
 
-char *isNullableVar(char *ID) {
-    if (strcmp(ID, (char *)CodeStack_Top(whileIsNullableStack)->data) == 0) {
-        return ID;
-    } else {   
+char *storeChar(char *ID) {
+    if (CodeStack_IsEmpty(whileIsNullableStack) || strcmp(ID, (char *)CodeStack_Top(whileIsNullableStack)->data) != 0) {
+        int length = strlen(ID);
+        char *ch = malloc(length+1);
+        strcpy(ch, ID);
+        return ch;
+    } else {      //prepiseme promennu na $while$isNullable$1
         int num = *((int *) CodeStack_Top(whileStack)->data);
         int digits = 0;
         while (num) {
@@ -774,7 +774,10 @@ char *isNullableVar(char *ID) {
             num /= 10;
         }
         char *firstPart = "$$while$isNullable$";
-        char *ch = malloc(sizeof(firstPart) + digits);
+        char *ch = malloc(strlen(firstPart) + digits + 1);
+        if (ch == NULL) {
+            return NULL;
+        }
         num = *(int *) (CodeStack_Top(whileStack)->data);
         for (int i = 0; i < 19; i++) {
             ch[i] = firstPart[i];
@@ -791,24 +794,23 @@ char *isNullableVar(char *ID) {
 
 void main()
 {
-    //addCodeToBuf(&buffer, replace_special_characters("rete zec s lomitkem \\ a novym#radkem"), T_OTHERS);
     startGen();
-    //startMainGen();
-    // defVarGen("prom", true);
-    // assignVarGen("prom", T_STRING_TYPE, "rete zec s lomitkem \\ a novym#radkem", true, true);
-    // f2iStandFuncGen("newVar", "330.22", false, false);
-    // readStandFuncGen(T_READF64, NULL, true);
-    //startWhileGen();
-    //startWhileGen();
-    //endMainGen();
-    //endGen();
-    //disposeGen(true);
-    char *ID = "prom";
-    CodeStack_Push(whileIsNullableStack, ID, T_WHILE_IS_NULLABLE);
-    int cislo = 255;
-    CodeStack_Push(whileStack, &cislo, T_COUNTER);
-    char *ptr = isNullableVar(ID);
-    printf("%s\n", ptr);
+    startMainGen();
+    
+    startWhileGen();
+    pushOnStackGen("2", T_I32_ID);
+    pushOnStackGen("32", T_I32_ID);
+    makeOperationStackGen(T_ADD, false);
+    char *cha = malloc(4);
+    strcpy(cha, "heh");
+    endCondWhileGen(true, cha);
+    writeStandFuncGen(T_I32_ID, cha);
+    endWhileGen();
+    free(cha);
+
+    i2fStandFuncGen("TREE", "25", false, true, true);
+    endMainGen();
     endGen();
+    disposeGen(true);
     return;
 }

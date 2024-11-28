@@ -12,7 +12,7 @@ typedef enum {
     T_FLOAT,
     T_INT,
     T_STRING,
-    T_INPUT_STRING_FREE,
+    T_STRING_FROM_PARSER,
     T_OTHERS
 } PRINT_TYPE;
 

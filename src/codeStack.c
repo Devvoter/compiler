@@ -9,6 +9,10 @@
 
 #include "codeStack.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 void CodeStack_Init(Stack **s) {
     *s = malloc(sizeof(Stack));
     (*s)->top = NULL;
