@@ -500,11 +500,11 @@ bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool f
 
 bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack) {
     if (pushOnStack == true) ID = "$tmp$";
-    //TODO continue
+    return false;
 }
 
-bool strcmp() {
-    //TODO
+bool strcmpFuncGen() {
+    return false;
 }
 
 
@@ -577,12 +577,6 @@ bool endExpAssignGen(char *ID)
     return (addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && 
             addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER) &&
             addCodeToBuf(&buffer, "\nCLEARS", T_OTHERS));
-}
-
-
-bool funcEndGen()
-{
-    return (addCodeToBuf(&buffer, "\nPOPFRAME\nRETURN", T_OTHERS));
 }
 
 
@@ -837,28 +831,4 @@ char *storeChar(char *ID) {
         ch[19+digits] = '\0';
         return ch;
     }
-}
-
-
-void main()
-{
-    startGen();
-    startMainGen();
-    
-    startWhileGen();
-    pushOnStackGen("2", T_I32_ID);
-    pushOnStackGen("32", T_I32_ID);
-    makeOperationStackGen(T_ADD, false);
-    char *cha = malloc(4);
-    strcpy(cha, "heh");
-    endCondWhileGen(true, cha);
-    writeStandFuncGen(T_I32_ID, cha);
-    endWhileGen();
-    free(cha);
-
-    i2fStandFuncGen("TREE", "25", false, true, true);
-    endMainGen();
-    endGen();
-    disposeGen(true);
-    return;
 }
