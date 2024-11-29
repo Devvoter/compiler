@@ -32,10 +32,6 @@ bool startGen()
     return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME", T_OTHERS));
 }
 
-bool endGen()
-{
-    return (substringGen() && addCodeToBuf(&buffer, "\nCLEARS\nPOPFRAME\n", T_OTHERS));
-}
 
 void disposeGen(bool done)
 {
@@ -54,7 +50,7 @@ bool startMainGen()
 
 bool endMainGen()
 {
-    return addCodeToBuf(&buffer, "\nPOPFRAME", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nEXIT int@0\nPOPFRAME", T_OTHERS);
 }
 
 bool defVarGen(char *ID, bool LF)
@@ -628,6 +624,7 @@ bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool f
 
 bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack)
 {
+    //TODO
     return false;
 }
 
@@ -638,7 +635,12 @@ bool substringGen()
 
 bool strcmpFuncGen()
 {
+    //TODO
     return false;
+}
+
+bool strcmpGen() {
+    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_strcmp$$\nPUSHFRAME\nDEFVAR LF@$$$retval\nPUSHS LF@string1\nPUSHS LF@string2\nEQS\nPUSHS bool@true\nJUMPIFEQS $$success$$\nPUSHS LF@string1\nPUSHS LF@string2\nLTS\nPUSHS bool@true\nJUMPIFEQS $$less$$\nPUSHS LF@string1\nPUSHS LF@string2\nGTS\nPUSHS bool@true\nJUMPIFEQS $$greater$$\nLABEL $$success$$\nMOVE LF@$$$retval int@0\nJUMP $$finishStrcmp$$\nLABEL $$less$$\nMOVE LF@$$$retval int@-1\nJUMP $$finishStrcmp$$\nLABEL $$greater$$\nMOVE LF@$$$retval int@1\nJUMP $$finishStrcmp$$\nLABEL $$finishStrcmp$$\nPOPFRAME\nRETURN", T_OTHERS));
 }
 
 bool pushOnStackGen(char *param, TokenType t)
@@ -1030,12 +1032,16 @@ char *storeChar(char *ID)
     }
 }
 
+bool endGen()
+{
+    return (substringGen() && strcmpGen() && addCodeToBuf(&buffer, "\nCLEARS\nPOPFRAME\n", T_OTHERS));
+}
+
 void main()
 {
     startGen();
     startMainGen();
-    endMainGen;
-    substringGen();
-    endGen;
+    endMainGen();
+    endGen();
     disposeGen(true);
 }
