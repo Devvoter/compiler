@@ -175,6 +175,11 @@ bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool f
 bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack);
 
 /**
+ * @brief funkce vygeneruje pomocnou funkci substring, ktera se bude volat pri zpracovani substringu
+ */
+bool substringGen();
+
+/**
  * @brief TODO
  */
 bool strcmpFuncGen();
