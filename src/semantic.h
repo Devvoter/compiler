@@ -124,6 +124,7 @@ bool semcheck_compare_dtypes(TokenType expected, TokenType assigned) {
         default:
             return false;
     }
+    return false;
 }
 /* Konec souboru semantic.h */
 
