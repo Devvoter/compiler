@@ -42,26 +42,8 @@ void free_list_of_tokens(ListOfTokens *list) {
 		list->activeToken = list->firstToken; 
         list->firstToken = list->firstToken->nextToken; // posuneme first na dalsi prvek
 
-        if (list->activeToken->token.type == T_IMPORT ||
-            list->activeToken->token.type == T_IFJ ||
-            list->activeToken->token.type == T_CONST ||
-            list->activeToken->token.type == T_ELSE  ||
-            list->activeToken->token.type == T_FN ||
-            list->activeToken->token.type == T_IF ||
-            list->activeToken->token.type == T_PUB ||
-            list->activeToken->token.type == T_RETURN ||
-            list->activeToken->token.type == T_U8_ID ||
-            list->activeToken->token.type == T_VAR ||
-            list->activeToken->token.type == T_VOID ||
-            list->activeToken->token.type == T_WHILE ||
-            list->activeToken->token.type == T_ID ||
-            list->activeToken->token.type == T_STRING_TYPE)
-        {
-            //free(list->activeToken->token.data.u8->data);
-            //free(list->activeToken->token.data.u8);
-        }
         
-        
+        //free(list->activeToken->token.data.u8->data);
         free(list->activeToken); // uvolnujeme prvek
 	}
 	
@@ -174,6 +156,7 @@ enum automat_state changeAutomatState (char c){
         break;
     case '@':
         return S_AT;
+        break;
     case '|':
         return S_VERTICAL_BAR;
         break;
@@ -251,11 +234,127 @@ void loadSymbol(Token* token, char c, unsigned long *init_count){
 }
 
 
+void is_num_written_allrigth(Token* token) {
+
+    char c;
+    char* str = token->data.u8->data;
+    int i = 0, has_dot = 0, has_exp = 0;
+
+    enum NumState {
+        STATE_START = 0,
+        STATE_ZERO,
+        STATE_INT,
+        STATE_DOT,
+        STATE_FRAC,
+        STATE_EXP_START,
+        STATE_EXP_SIGN,
+        STATE_EXP_INT,
+    } state = STATE_START;
+
+    while ((c = str[i]) != '\0') {
+
+        switch(state) {
+
+            case STATE_START:
+
+                if (c == '0') state = STATE_ZERO;
+                else if (c >= '1' && c <= '9') state = STATE_INT;
+                else exitWithError(token, ERR_LEXICAL_ANALYSIS);
+
+                break;
+            case STATE_ZERO:
+
+                if (c == '.') {
+                    state = STATE_DOT;
+                    has_dot = 1;
+                } 
+                else if (c == 'E' || c == 'e') {
+                    state = STATE_EXP_START;
+                    has_exp = 1;
+                } 
+                else exitWithError(token, ERR_LEXICAL_ANALYSIS);
+
+                break;
+            case STATE_INT:
+
+                if (c >= '0' && c <= '9') state = STATE_INT; 
+                else if (c == '.') {
+                    if (has_dot) exitWithError(token, ERR_LEXICAL_ANALYSIS);
+                    state = STATE_DOT;
+                    has_dot = 1;
+                } 
+                else if (c == 'E' || c == 'e') {
+                    if (has_exp) exitWithError(token, ERR_LEXICAL_ANALYSIS);
+                    state = STATE_EXP_START;
+                    has_exp = 1;
+                } 
+                else  exitWithError(token, ERR_LEXICAL_ANALYSIS);
+
+                break;
+            case STATE_DOT:
+
+                if (c >= '0' && c <= '9') state = STATE_FRAC;
+                else exitWithError(token, ERR_LEXICAL_ANALYSIS);
+
+                break;
+            case STATE_FRAC:
+
+                if (c >= '0' && c <= '9') state = STATE_FRAC;
+                else if (c == 'E' || c == 'e') {
+                    if (has_exp)  exitWithError(token, ERR_LEXICAL_ANALYSIS);
+                    state = STATE_EXP_START;
+                    has_exp = 1;
+                } 
+                else exitWithError(token, ERR_LEXICAL_ANALYSIS);
+
+                break;
+            case STATE_EXP_START:
+
+                if (c == '+' || c == '-') state = STATE_EXP_SIGN;
+                else if (c >= '0' && c <= '9') state = STATE_EXP_INT;
+                else exitWithError(token, ERR_LEXICAL_ANALYSIS);
+
+                break;
+            case STATE_EXP_SIGN:
+
+                if (c >= '0' && c <= '9') state = STATE_EXP_INT; 
+                else exitWithError(token, ERR_LEXICAL_ANALYSIS);
+
+                break;
+            case STATE_EXP_INT:
+
+                if (c >= '0' && c <= '9') state = STATE_EXP_INT;
+                else exitWithError(token, ERR_LEXICAL_ANALYSIS);
+
+                break;
+            default:
+                exitWithError(token, ERR_LEXICAL_ANALYSIS);
+                return;
+        }
+        i++;
+    }
+
+
+    switch(state) {
+        case STATE_ZERO:
+        case STATE_INT:
+            break;
+        case STATE_FRAC:
+        case STATE_EXP_INT:
+            break;
+        default:
+            exitWithError(token, ERR_LEXICAL_ANALYSIS);
+            return;
+    }
+}
+
 void stringToNum(Token* token) {
     char* err;
 
     long tmp_int;
     double tmp_double;
+
+    is_num_written_allrigth(token);
 
     // Pokus o převod řetězce na celé číslo
     tmp_int = strtol(token->data.u8->data, &err, 10);
@@ -263,7 +362,6 @@ void stringToNum(Token* token) {
     // Pokud se řetězec úspěšně převedl na celé číslo
     if (*err == '\0') {
         token->type = T_I32_VAR;
-        bufferFree(token->data.u8);  // Uvolnění řetězce
         token->data.i32 = tmp_int;
         return;
     }
@@ -274,13 +372,11 @@ void stringToNum(Token* token) {
     // Zkontrolujeme úspěšnost převodu na double
     if (*err == '\0') {
         token->type = T_F64_VAR;
-        bufferFree(token->data.u8);  // Uvolnění řetězce
         token->data.f64 = tmp_double;
         return;
     }
 
     // Pokud se nepodařilo rozpoznat jako celé nebo desetinné číslo
-    bufferFree(token->data.u8);
     token->type = T_ERROR;
     exitWithError(token, ERR_LEXICAL_ANALYSIS);
 }
@@ -650,9 +746,8 @@ Token getNextToken(ListOfTokens *list){
             break;
         /* 0-9 */
         case S_INT_NUM:
-            if (isdigit(c)){
-                loadSymbol(&newToken, c, &init_count);
-            }
+
+            if (isdigit(c)) loadSymbol(&newToken, c, &init_count);
             else if (c == '.'){
                 loadSymbol(&newToken, c, &init_count);
                 STATE = S_FLOAT_NUM;
@@ -662,6 +757,7 @@ Token getNextToken(ListOfTokens *list){
                 STATE = S_EXP_NUM;
             }
             else {
+                newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
                 stringToNum(&newToken);
                 ungetc(c, SOURCE);
                 init_count = 0;
@@ -670,14 +766,15 @@ Token getNextToken(ListOfTokens *list){
             }
             break;
         case S_FLOAT_NUM:
-            if (isdigit(c)){
-                loadSymbol(&newToken, c, &init_count);
-            }
+
+            if (isdigit(c)) loadSymbol(&newToken, c, &init_count);
             else if ((c == 'e') || (c == 'E')){
                 loadSymbol(&newToken, c, &init_count);
                 STATE = S_EXP_NUM;
             }
+            else if (c == '.') exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
             else {
+                newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
                 stringToNum(&newToken);
                 ungetc(c, SOURCE);
                 init_count = 0;
@@ -686,21 +783,22 @@ Token getNextToken(ListOfTokens *list){
             }
             break;
         case S_EXP_NUM:
-            if (isdigit(c)){
-                loadSymbol(&newToken, c, &init_count);
-                STATE = S_FLOAT_NUM;
-            }
+
+            if (isdigit(c)) loadSymbol(&newToken, c, &init_count);
             else if ((c == '+') || (c == '-')){
                 loadSymbol(&newToken, c, &init_count);
                 STATE = S_FLOAT_NUM;
             }
+            else if ((c == 'e') || (c == 'E') || (c == '.')) exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
             else {
+                newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
+                stringToNum(&newToken);
+                ungetc(c, SOURCE);
                 init_count = 0;
-                newToken.type = T_ERROR;
-                exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);                
+                insert_in_list_of_tokens(list, newToken);
+                return newToken;
             }
             break;
-        
         case S_ERROR:
             newToken.type = T_ERROR;
             exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
@@ -718,7 +816,10 @@ Token getNextToken(ListOfTokens *list){
     }
 
 
-    if(STATE == S_INT_NUM || STATE == S_EXP_NUM || STATE == S_FLOAT_NUM) stringToNum(&newToken);
+    if(STATE == S_INT_NUM || STATE == S_EXP_NUM || STATE == S_FLOAT_NUM) {
+        newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
+        stringToNum(&newToken);
+    }
     if (STATE == S_QUOTE) exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
     else if(STATE == S_LETTER) newToken.type = isKeyWord(newToken.data.u8->data);
     else if (STATE == S_TYPE_ID) isNullType(&newToken);

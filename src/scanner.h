@@ -179,6 +179,14 @@ typedef struct {
 void loadSymbol(Token* token, char c, unsigned long *init_count);
 
 /**
+ * @brief Funkce overi bufer jestli je tam spravne zapsano cislo.
+ * 
+ * @param[in] token Ukazatel na token.
+ * 
+ */
+void is_num_written_allrigth(Token* token);
+
+/**
  * @brief Funkce převede čislo typu string na číslo typu int nebo float.
  * 
  * @param[in] token Ukazatel na strukturu token.
@@ -196,7 +204,7 @@ void fileInit(FILE* sourse);
 /**
  * @brief Funkce odvodi jestli je nullable typ.
  * 
- * @param[in] source Ukazatel na token.
+ * @param[in] newToken Ukazatel na token.
  * 
  */
 void isNullType (Token* newToken);
@@ -211,13 +219,19 @@ void isNullType (Token* newToken);
  */
 TokenType isKeyWord(const char* word);
 
-/** Prvek jednosměrně vázaného seznamu. */
+/**
+ * @brief  Prvek jednosměrně vázaného seznamu.
+ * 
+ */
 typedef struct ListToken{
     Token                    token;   // token
-    struct ListToken  *nextToken;   // dalsi token
+    struct ListToken    *nextToken;   // dalsi token
 }*ListTokenPtr;
 
-/** Jednosměrně vázaný seznam. */
+/**
+ * @brief  Jednosměrně vázaný seznam.
+ * 
+ */
 typedef struct {
     /** Ukazatel na první token seznamu. */
     ListTokenPtr     firstToken;
@@ -226,7 +240,7 @@ typedef struct {
 
     ListTokenPtr     tokenToGet;
     /** Aktuální délka seznamu. */
-    int          currentLength;
+    int           currentLength;
 }ListOfTokens;
 
 /**
@@ -249,6 +263,7 @@ void free_list_of_tokens(ListOfTokens *list);
  * @brief Na konec listu prida token.
  * 
  * @param[in] list Ukazatel na list.
+ * @param[in] token Token ktry bude ulozen v list.
  *  
  */
 void insert_in_list_of_tokens(ListOfTokens *list, Token token);
@@ -273,9 +288,10 @@ void i_want_to_get_tokens(ListOfTokens *list);
  */
 Token get_token_from_list(ListOfTokens *list);
 
-
 /**
  * @brief Funkce zpracuje vstup a pošle dál token.
+ * 
+ * @param[in] list Ukazatel na list.
  * 
  * @return Vrácí token.
  * 
