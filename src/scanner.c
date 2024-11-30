@@ -471,41 +471,65 @@ Token getNextToken(ListOfTokens *list){
         /* : */
         case S_COLON:
             newToken.type = T_COLON;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* . */
         case S_DOT:
             newToken.type = T_DOT;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* , */
         case S_COMMA:
             newToken.type = T_COMMA;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* ; */
         case S_SEMICOLON:
             newToken.type = T_SEMICOLON;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* } */
         case S_CLOSE_BRACKET:
             newToken.type = T_CLOSE_BRACKET;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* { */
         case S_OPEN_BRACKET:
             newToken.type = T_OPEN_BRACKET;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* ) */
         case S_CLOSE_PARENTHESES:
             newToken.type = T_CLOSE_PARENTHESES;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* ( */
         case S_OPEN_PARENTHESES:
             newToken.type = T_OPEN_PARENTHESES;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* [ */
@@ -516,73 +540,110 @@ Token getNextToken(ListOfTokens *list){
         /* = */
         case S_ASSIGN:
             newToken.type = T_ASSIGN;
+            loadSymbol(&newToken, c, &init_count);
             STATE = S_EQUALS;
             break;
         /* == */
         case S_EQUALS:
-            if (c == '=') newToken.type = T_EQUALS;
+            if (c == '='){
+                newToken.type = T_EQUALS;
+                loadSymbol(&newToken, c, &init_count);
+            }
             else ungetc(c, SOURCE);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* > */
         case S_GREATER_THAN:
             newToken.type = T_GREATER_THAN;
+            loadSymbol(&newToken, c, &init_count);
             STATE = S_GREATER_OR_EQUAL;
             break;
         /* >= */
         case S_GREATER_OR_EQUAL:
-            if (c == '=') newToken.type = T_GREATER_OR_EQUAL;
+            if (c == '=') {
+                newToken.type = T_GREATER_OR_EQUAL;
+                loadSymbol(&newToken, c, &init_count);
+            }
             else ungetc(c, SOURCE);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* < */
         case S_LESS_THAN:
             newToken.type = T_LESS_THAN;
+            loadSymbol(&newToken, c, &init_count);
             STATE = S_LESS_OR_EQUAL;
             break;
         /* <= */
         case S_LESS_OR_EQUAL:
-            if (c == '=') newToken.type = T_LESS_OR_EQUAL;
+            if (c == '=') {
+                newToken.type = T_LESS_OR_EQUAL;
+                loadSymbol(&newToken, c, &init_count);
+            }   
             else ungetc(c, SOURCE);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* ! */
         case S_EXCLA: 
             newToken.type = T_ERROR;
+            loadSymbol(&newToken, c, &init_count);
             STATE = S_NOT_EQUALS;
             break;
         /* != */
         case S_NOT_EQUALS:
-            if (c == '=') newToken.type = T_NOT_EQUALS;
+            if (c == '=') {
+                newToken.type = T_NOT_EQUALS;
+                loadSymbol(&newToken, c, &init_count);
+            }
             else {
                 ungetc(c,SOURCE);
                 exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
             }
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* @ */
         case S_AT:
             newToken.type = T_AT;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         case S_VERTICAL_BAR:
             newToken.type = T_VERTICAL_BAR;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* * */
         case S_MUL:
             newToken.type = T_MUL;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* / */
         case S_SLASH:
             newToken.type = T_DIV;
+            loadSymbol(&newToken, c, &init_count);
             if ((c = fgetc(SOURCE)) == '/')
             {
+                bufferFree(newToken.data.u8);
                 STATE = S_LINE_COMMENT;
                 break;
             }
             ungetc(c,SOURCE);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* // */
@@ -598,11 +659,17 @@ Token getNextToken(ListOfTokens *list){
         /* + */
         case S_ADD:
             newToken.type = T_ADD;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         /* - */
         case S_SUB:
             newToken.type = T_SUB;
+            loadSymbol(&newToken, c, &init_count);
+            newToken.data.u8->data[newToken.data.u8->size] = '\0';
+            init_count = 0;
             insert_in_list_of_tokens(list, newToken);
             return newToken;
         
