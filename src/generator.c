@@ -45,7 +45,7 @@ void disposeGen(bool done)
 
 bool startMainGen()
 {
-    return addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$", T_OTHERS);
 }
 
 bool endMainGen()
@@ -241,93 +241,7 @@ bool lengthStandFuncGen()
 
 bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack)
 {
-    if (pushOnStack)
-        ID = "$tmp$";
-    char *storedID = storeChar(ID);
-    if (storedID == NULL)
-        return false;
-    if (addCodeToBuf(&buffer, "\nCONCAT LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
-    {
-        if (isVar1)
-        {
-            char *storedparam1 = storeChar(param1);
-            if (storedparam1 == NULL)
-                return false;
-            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam1, T_STRING_FROM_PARSER))
-            {
-                if (isVar2)
-                {
-                    char *storedparam2 = storeChar(param2);
-                    if (storedparam2 == NULL)
-                        return false;
-                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER))
-                    {
-                        if (pushOnStack)
-                        {
-                            return (pushOnStackGen(storedID, T_VAR));
-                        }
-                        else
-                            return true;
-                    }
-                }
-                else // param2 je string
-                {
-                    char *storedparam2 = replace_special_characters(param2);
-                    if (storedparam2 == NULL)
-                        return false;
-                    if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING))
-                    {
-                        if (pushOnStack)
-                        {
-                            return (pushOnStackGen(storedID, T_VAR));
-                        }
-                        else
-                            return true;
-                    }
-                }
-            }
-        }
-        else
-        { // param1 je string
-            char *storedparam1 = replace_special_characters(param1);
-            if (storedparam1 == NULL)
-                return false;
-            if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam1, T_STRING))
-            {
-                if (isVar2)
-                {
-                    char *storedparam2 = storeChar(param2);
-                    if (storedparam2 == NULL)
-                        return false;
-                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER))
-                    {
-                        if (pushOnStack)
-                        {
-                            return (pushOnStackGen(storedID, T_VAR));
-                        }
-                        else
-                            return true;
-                    }
-                }
-                else // param2 je string
-                {
-                    char *storedparam2 = replace_special_characters(param2);
-                    if (param2 == NULL)
-                        return false;
-                    if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING))
-                    {
-                        if (pushOnStack)
-                        {
-                            return (pushOnStackGen(storedID, T_VAR));
-                        }
-                        else
-                            return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$concat_string2$\nPOPS LF@$concat_string1$\nCONCAT LF@$tmp$ LF@$concat_string1$ LF@$concat_string2$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
 }
 
 bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack)
@@ -776,7 +690,7 @@ bool endWhileGen()
 bool callFuncGen(char *name, int paramsCount)
 {
     bool paramsWritten = true;
-    if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$", T_OTHERS))
+    if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$\nDEFVAR TF@$concat_string1$\nDEFVAR TF@$concat_string2$", T_OTHERS))
     {
         while (paramsCount != 0)
         {

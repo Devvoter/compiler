@@ -94,15 +94,8 @@ bool lengthStandFuncGen();
 
 /**
  * @brief funkce pro konkatenaci retezcu 
- * 
- * @param ID nazev promenne, kam se ulozi vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
- * @param param1 prvni argument funkce
- * @param isVar1 v pripade true prvni argument je promenna
- * @param param2 druhy argument funkce
- * @param isVar2 v pripade true druhy argument je promenna
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack);
+bool concatStandFuncGen();
 
 /**
  * @brief funkce vrati ASCII kod zadaneho znaku
