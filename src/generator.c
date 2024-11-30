@@ -714,8 +714,15 @@ bool makeOperationStackGen(TokenType t, bool idiv)
     {
         return addCodeToBuf(&buffer, "\nLTS\nNOTS", T_OTHERS);
     }
-    else
-        return false;
+    else if (t == T_EQUALS) 
+    {
+        return addCodeToBuf(&buffer, "\nEQS", T_OTHERS);
+    }
+    else if (t == T_NOT_EQUALS) 
+    {
+        return addCodeToBuf(&buffer, "\nEQS\nNOT", T_OTHERS);
+    } 
+    else return false;
 }
 
 bool endExpAssignGen(char *ID)
