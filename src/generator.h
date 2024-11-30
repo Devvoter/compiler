@@ -79,30 +79,18 @@ bool writeStandFuncGen(TokenType t, char* param);
  * @brief funkce pro nacitani znaku
  * 
  * @param t typ funkce(i32, f64, string)
- * @param ID nazev promenne, kam se zapise nactena data. V pripade zpracovani vyrazu bude se rovnat NULL
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool readStandFuncGen(readFunc_t t, char *ID, bool pushOnStack);
+bool readStandFuncGen(readFunc_t t);
 
 /**
  * @brief funkce pro prirazeni stringu
- * 
- * @param t typ prirazovane hodnoty(var nebo string)
- * @param ID nazev promenne, kam se ma priradit string
- * @param param hodnota, ktera se ma pripsat
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool stringStandFuncGen(char *ID, char *param, bool pushOnStack);
+bool stringStandFuncGen();
 
 /**
  * @brief funkce pro nalezeni delky retezce
- * 
- * @param ID promenna, kam se ulozi vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
- * @param param argument funkce
- * @param isVar true, pokud je argument promenna, jinak retezec
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool lengthStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
+bool lengthStandFuncGen();
 
 /**
  * @brief funkce pro konkatenaci retezcu 
