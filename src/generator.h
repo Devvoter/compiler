@@ -161,18 +161,9 @@ bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool f
 bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack);
 
 /**
- * @brief funkce vrati podretezec zadaneho stringu
- * 
- * @param ID nazev promenne, kam se ulozi vysledek
- * @param param1 prvni argument(vstupni retezec)
- * @param isVar1 v pripade true prvni argument je predan ve forme promenne
- * @param param2 druhy argument(index zacatku podretezce)
- * @param isVar2 v pripade true druhy argument je predan ve forme promenne
- * @param param3 treti argument(index konce podretezce)
- * @param isVar3 v pripade true treti argument je predan ve forme promenne
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
+ * @brief volani funkce ifj.substring, parametry funkce jsou ulozeny na zasobniku
  */
-bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack);
+bool substringStandFuncGen();
 
 /**
  * @brief funkce vygeneruje pomocnou funkci substring, ktera se bude volat pri zpracovani substringu
@@ -180,7 +171,7 @@ bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bo
 bool substringGen();
 
 /**
- * @brief TODO
+ * @brief volani funkce ifj.strcmp, parametry funkce jsou ulozene na zasobniku
  */
 bool strcmpFuncGen();
 
@@ -190,7 +181,7 @@ bool strcmpFuncGen();
  * @param ID hodnota 
  * @param t typ posilane hodnoty
  */
-bool pushOnStackGen(char *ID, TokenType t);  //TODO S na dne zasobniku?
+bool pushOnStackGen(char *ID, TokenType t);
 
 /**
  * @brief provede operaci s hodnotami na zasobniku 

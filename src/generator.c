@@ -622,10 +622,9 @@ bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool f
     return false;
 }
 
-bool substringStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, char *param3, bool isVar3, bool pushOnStack)
+bool substringStandFuncGen()
 {
-    //TODO
-    return false;
+    return addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@string\nDEFVAR TF@startChar\nDEFVAR TF@endChar\nPOPS TF@endChar\nPOPS TF@startChar\nPOPS TF@string\nCALL $$ifj_substring$$\nPUSHS TF@$$$retval", T_OTHERS);
 }
 
 bool substringGen()
@@ -635,8 +634,7 @@ bool substringGen()
 
 bool strcmpFuncGen()
 {
-    //TODO
-    return false;
+    return addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@string1\nDEFVAR TF@string2\nPOPS TF@string2\nPOPS TF@string1\nCALL $$ifj_strcmp$$", T_OTHERS);
 }
 
 bool strcmpGen() {
