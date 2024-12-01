@@ -622,7 +622,7 @@ Token parse_variable_definition() {
     }
     newNode->id = id.data.u8->data;
     newNode->varData->isUsed = false;
-    if (!defVarGen(newNode->id, true)) {
+    if (!defVarGen(newNode->id)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
@@ -795,7 +795,7 @@ char *parse_standard_function_call() {
         strcmp(token.data.u8->data, "string") == 0 ||
         strcmp(token.data.u8->data, "length") == 0 ||
         strcmp(token.data.u8->data, "concat") == 0 ||
-        strcmp(token.data.u8->data, "substrin") == 0 ||
+        strcmp(token.data.u8->data, "substring") == 0 ||
         strcmp(token.data.u8->data, "strcmp") == 0 ||
         strcmp(token.data.u8->data, "ord") == 0 ||
         strcmp(token.data.u8->data, "chr") == 0)) {
@@ -924,7 +924,7 @@ Token parse_function_definition() {
     }
 
     if (!inMain) {
-        if (!funcStartGen(id)) {
+        if (!funcStartGen(id, &list)) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
     }
@@ -987,9 +987,11 @@ void parse_function_call(char *id) {
     int paramCnt = search_symbol(&symtable, id)->funData->paramCnt;
     if (strcmp(id, "ifj.write") == 0) {
         TokenType exprType = expression().dataType;
-        //writeStandFuncGen(exprType,);
         if (exprType == T_NULL) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        if (!writeStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
         if (CurrentToken.type == T_CLOSE_PARENTHESES) {
             return;
@@ -1045,8 +1047,66 @@ void parse_function_call(char *id) {
     if (currentArgument != paramCnt) {
         exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
     }
-    if(!callFuncGen(id, currentArgument+1)) {
-        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+
+    if (strcmp(id, "ifj.length") == 0) {
+        if (!lengthStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.concat") == 0) {
+        if (!concatStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.substring") == 0) {
+        if (!substringStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.strcmp") == 0) {
+        if (!strcmpFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.ord") == 0) {
+        if (!ordStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.chr") == 0) {
+        if (!chrStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.i2f") == 0) {
+        if (!i2fStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.f2i") == 0) {
+        if (!f2iStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.readstr") == 0) {
+        if (!readstrStandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.readi32") == 0) {
+        if (!readi32StandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else if (strcmp(id, "ifj.readf64") == 0) {
+        if (!readf64StandFuncGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else {
+        if(!callFuncGen(id, currentArgument+1)) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
     }
 }
 
