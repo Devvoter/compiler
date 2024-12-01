@@ -98,7 +98,7 @@ bool lengthStandFuncGen()
 }
 
 
-bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack)
+bool concatStandFuncGen()
 {
     return (addCodeToBuf(&buffer, "\nPOPS LF@$concat_string2$\nPOPS LF@$concat_string1$\nCONCAT LF@$tmp$ LF@$concat_string1$ LF@$concat_string2$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
 }
@@ -279,6 +279,7 @@ bool startIfGen(bool withNull, char *ID)
                     addCodeToBuf(&buffer, "$else", T_OTHERS));
         }
     }
+    return false;
 }
 
 
@@ -332,6 +333,7 @@ bool startWhileGen()
                 addCodeToBuf(&buffer, "\nLABEL $$while$", T_OTHERS) &&
                 addCodeToBuf(&buffer, (void *)&whileCounter, T_INT));
     }
+    return false;
 }
 
 
@@ -359,6 +361,7 @@ bool endCondWhileGen(bool isNullable, char *ID)
                 addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&
                 addCodeToBuf(&buffer, "$end", T_OTHERS));
     }
+    return false;
 }
 
 
@@ -408,6 +411,7 @@ bool callFuncGen(char *name, int paramsCount)
             return paramsWritten;
         }
     }
+    return false;
 }
 
 
@@ -433,8 +437,7 @@ bool funcStartGen(char *name, ParamList *l)
             }
         }
     }
-    else
-        return false;
+    return false;
 }
 
 
