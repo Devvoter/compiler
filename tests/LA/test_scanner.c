@@ -37,13 +37,13 @@ int printTokenType(Token newToken) {
             printf("Token type: T_IF,                 line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
             break;
         case T_I32_VAR:
-            printf("Token type: T_I32_VAR,            line:%ld, value: %ld\n", newToken.line+1, newToken.data.i32);
+            printf("Token type: T_I32_VAR,            line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
             break;
         case T_I32_ID:
             printf("Token type: T_I32_ID              line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
             break;
         case T_F64_VAR:
-            printf("Token type: T_F64_VAR,            line:%ld, value: %f\n",newToken.line+1+1, newToken.data.f64);
+            printf("Token type: T_F64_VAR,            line:%ld, value: %s\n",newToken.line+1, newToken.data.u8->data);
             break;
         case T_F64_ID:
             printf("Token type: T_F64_ID              line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
@@ -199,13 +199,13 @@ int print_list_of_tokens(ListOfTokens * list){
                 printf("Token type: T_IF,                 line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
                 break;
             case T_I32_VAR:
-                printf("Token type: T_I32_VAR,            line:%ld, value: %ld\n", newToken.line+1, newToken.data.i32);
+                printf("Token type: T_I32_VAR,            line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
                 break;
             case T_I32_ID:
                 printf("Token type: T_I32_ID              line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
                 break;
             case T_F64_VAR:
-                printf("Token type: T_F64_VAR,            line:%ld, value: %f\n",newToken.line+1+1, newToken.data.f64);
+                printf("Token type: T_F64_VAR,            line:%ld, value: %s\n",newToken.line+1, newToken.data.u8->data);
                 break;
             case T_F64_ID:
                 printf("Token type: T_F64_ID              line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);

@@ -349,30 +349,28 @@ void is_num_written_allrigth(Token* token) {
 }
 
 void stringToNum(Token* token) {
+    
     char* err;
-
-    long tmp_int;
-    double tmp_double;
 
     is_num_written_allrigth(token);
 
     // Pokus o převod řetězce na celé číslo
-    tmp_int = strtol(token->data.u8->data, &err, 10);
+    long tmp_int = strtol(token->data.u8->data, &err, 10);
+    (void) tmp_int;
 
     // Pokud se řetězec úspěšně převedl na celé číslo
     if (*err == '\0') {
         token->type = T_I32_VAR;
-        token->data.i32 = tmp_int;
         return;
     }
 
     // Pokud převod na int selhal, zkusíme převést na double
-    tmp_double = strtod(token->data.u8->data, &err);
+    double tmp_double = strtod(token->data.u8->data, &err);
+    (void) tmp_double;
 
     // Zkontrolujeme úspěšnost převodu na double
     if (*err == '\0') {
         token->type = T_F64_VAR;
-        token->data.f64 = tmp_double;
         return;
     }
 
