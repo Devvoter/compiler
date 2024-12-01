@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -std=c11 -g
 SRC_DIR = ../../src
-FILES=$(SRC_DIR)/parser.c $(SRC_DIR)/scanner.c $(SRC_DIR)/stack.c $(SRC_DIR)/buffer.c $(SRC_DIR)/error.c $(SRC_DIR)/symtable.c
+FILES=$(SRC_DIR)/parser.c $(SRC_DIR)/scanner.c $(SRC_DIR)/stack.c $(SRC_DIR)/buffer.c $(SRC_DIR)/error.c $(SRC_DIR)/symtable.c $(SRC_DIR)/list.c $(SRC_DIR)/generator.c
 
 .PHONY: test clean
 

@@ -421,7 +421,7 @@ Token parse_if() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
-    TokenType exprType = expression().dataType;                                       // Parsování výrazu uvnitř závorek
+    TokenType exprType = expression().dataType;                              // Parsování výrazu uvnitř závorek
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -460,13 +460,21 @@ Token parse_if() {
         if (getCurrentToken().type != T_VERTICAL_BAR) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+
+        if (!startIfGen(true, newNode->id)) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
         getCurrentToken();
     }
     else {
         if (exprType != T_COMPARASION) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
+        if(!startIfGen(false, NULL)) {                                      // ??
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
     }
+
     if (CurrentToken.type != T_OPEN_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -488,6 +496,9 @@ Token parse_if() {
         if(frameElse == NULL) {
             exitWithError(&token, ERR_INTERNAL_COMPILER);
         }
+        if (!startElseGen()) {
+            exitWithError(&token, ERR_INTERNAL_COMPILER);
+        }
         if (getCurrentToken().type != T_OPEN_BRACKET) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
@@ -495,6 +506,10 @@ Token parse_if() {
         if (token_2.type != T_CLOSE_BRACKET) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+        if(!endIfElseGen(true)) {
+            exitWithError(&token_2, ERR_INTERNAL_COMPILER);
+        }
+
         // VÝSTUP Z ELSE bloku: 
         tFrame *tmpFrameElse = pop_frame(&symtable);
         if(!semcheck_var_usage(tmpFrameElse->symTable)) {
@@ -503,20 +518,23 @@ Token parse_if() {
         dispose_frame(tmpFrameElse);
         return getCurrentToken();                                           // Načteme token pro další zpracování
     } else {
+        if(!endIfElseGen(false)) {
+            exitWithError(&token, ERR_INTERNAL_COMPILER);
+        }
         return token;
     }
 }
 
 // Funkce pro parsování WHILE konstrukce
 Token parse_while() {
+    if (!startWhileGen()) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
-    TokenType exprType = expression().dataType;                                   // Parsování výrazu uvnitř závorek
-    // if (exprType != T_COMPARASION) {
-    //     exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-    // }
+    TokenType exprType = expression().dataType;                         // Parsování výrazu uvnitř závorek
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -524,6 +542,7 @@ Token parse_while() {
     if(frameTS == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
+
     getCurrentToken();
     if (CurrentToken.type == T_VERTICAL_BAR) {                           // if (...) | id_bez_null |
         if (getCurrentToken().type != T_ID) {
@@ -556,11 +575,17 @@ Token parse_while() {
         if (getCurrentToken().type != T_VERTICAL_BAR) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
+        if (!endCondWhileGen(true, newNode->id)) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
         getCurrentToken();
     }
     else {
         if (exprType != T_COMPARASION) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        if (!endCondWhileGen(false, NULL)) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
     }
     if (CurrentToken.type != T_OPEN_BRACKET) {
@@ -570,7 +595,11 @@ Token parse_while() {
     if (token.type != T_CLOSE_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS); 
     }
+
     // VÝSTUP Z WHILE: 
+    if(!endWhileGen()) {
+        exitWithError(&token, ERR_INTERNAL_COMPILER);
+    }
     tFrame *tmpFrame = pop_frame(&symtable);
     if(!semcheck_var_usage(tmpFrame->symTable)) {
         exitWithError(&token, ERR_SEM_UNUSED_VAR);
@@ -593,11 +622,16 @@ Token parse_variable_definition() {
     }
     newNode->id = id.data.u8->data;
     newNode->varData->isUsed = false;
+    if (!defVarGen(newNode->id, true)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+
     Token token = getCurrentToken();
     if (token.type != T_COLON && token.type != T_ASSIGN) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     bool autoType = true;
+    // pokud za ID nasleduje dvojtecka a definice datoveho typu, autoType nastavime na false
     if (token.type == T_COLON) {
         autoType = false;
         token = getCurrentToken();
@@ -625,6 +659,7 @@ Token parse_variable_definition() {
     //     return getCurrentToken();   // Vrátíme token pro další zpracování
     // }
     TokenType exprType = expression().dataType;                   // Parsování výrazu na pravé straně přiřazení
+    endExpAssignGen(newNode->id);
     if (exprType == T_NULL) {
         if (autoType) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_DERIVATION);
@@ -776,7 +811,7 @@ char *parse_standard_function_call() {
     return ifjFunctionName;
 }
 
-void arguments(Token token) {
+void arguments(Token token, ParamList *list) {
     if (token.type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
@@ -797,10 +832,17 @@ void arguments(Token token) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
     newNode->id = token.data.u8->data;
+    newNode->varData->dataType = CurrentToken.type;
+    newNode->varData->isConst = true;
+    newNode->varData->isUsed = false;
+
     if (!init_insert_argument(newNode)) {
         exitWithError(&token, ERR_SEM_REDEFINITION);
     }
+    List_InsertFirst(list, newNode->varData->dataType, token.data.u8->data);
+    List_First(list);
     getCurrentToken();
+
     while (CurrentToken.type != T_CLOSE_PARENTHESES) {
         if (CurrentToken.type != T_COMMA) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -836,22 +878,29 @@ void arguments(Token token) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
         }
         newNode->varData->dataType = CurrentToken.type;
+        List_InsertFirst(list, newNode->varData->dataType, newNode->id);
+        List_First(list);
         getCurrentToken();
     }
 }
 
 Token parse_function_definition() {
-    //bool inMain = false;
+    bool inMain = false;
     if (getCurrentToken().type != T_FN) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     if (getCurrentToken().type != T_ID) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    // if (CurrentToken.data.u8->data == "main") {
-    //     //startMainGen();
-    //     inMain = true;
-    // }
+
+    char *id = CurrentToken.data.u8->data;
+    if (!strcmp(id, "main")) {     // Poslat příkaz pro začátek mainu
+        if (!startMainGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+        inMain = true;
+    }
+
     tFrame *frameTS = push_frame(&symtable, true);  // Začátek nového bloku - FUNKCE
     if(frameTS == NULL) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
@@ -861,12 +910,23 @@ Token parse_function_definition() {
         printf("where is the funcction?\n");
         exit(99);
     }
+
+    ParamList list;
+    List_Init(&list);   // maybe use it in symtable too? idk
+
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     getCurrentToken();
+
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
-        arguments(CurrentToken);            // Parsování argumentů funkce
+        arguments(CurrentToken, &list);            // Parsování argumentů funkce
+    }
+
+    if (!inMain) {
+        if (!funcStartGen(id)) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
     }
     getCurrentToken();
     if (CurrentToken.type != T_I32_ID && 
@@ -888,9 +948,17 @@ Token parse_function_definition() {
     if (token.type != T_CLOSE_BRACKET) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
-    // if (inMain) {
-    //     endMainGen();
-    // }
+
+    if (inMain) {                           // Poslat příkaz pro konec mainu
+        if(!endMainGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
+    else {
+        if (!funcEndGen()) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+        }
+    }
     /**
      * VYSTUP Z FUNKCE => OVĚŘIT: 
      * zda byl volaný return
@@ -919,6 +987,7 @@ void parse_function_call(char *id) {
     int paramCnt = search_symbol(&symtable, id)->funData->paramCnt;
     if (strcmp(id, "ifj.write") == 0) {
         TokenType exprType = expression().dataType;
+        //writeStandFuncGen(exprType,);
         if (exprType == T_NULL) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
@@ -975,6 +1044,9 @@ void parse_function_call(char *id) {
     }
     if (currentArgument != paramCnt) {
         exitWithError(&CurrentToken, ERR_SEM_INVALID_FUNC_PARAMS);
+    }
+    if(!callFuncGen(id, currentArgument+1)) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 }
 
@@ -1095,11 +1167,17 @@ int main() {
 
     i_want_to_get_tokens(&LIST);
 
-    // start_gen();        // OVERIT USPESNOST ALOKACE
+    if (!startGen()) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
 
     syntax_analysis();  // Spustí se syntaktická analýza
 
-    // end_gen();
+    if (!endGen()) {
+        exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+    }
+    disposeGen(false);
+
     free_list_of_tokens(&LIST);
     return 0;
 }

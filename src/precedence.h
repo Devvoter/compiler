@@ -9,7 +9,8 @@
 #include "stack.h"
 #include "error.h"
 #include "symtable.h"
-//#include "generator.h"
+#include "generator.h"
+#include "semantic.h"
 
 char precedenceTable[NUM_OPERATORS][NUM_OPERATORS] = {
     //        +    -    *    /    ==   !=   <    >    <=   >=   (    )   term   ;    
@@ -185,20 +186,24 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
             PrecedenceToken reducedTop;
             expr.type = T_EXPRESSION_NONTERMINAL;
             expr.line = tokenTop->token.line;
-            if (tokenTop->token.type == T_ID) {
-                expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
+            expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
                 if (expr.data.u8 == NULL) {
                     exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
                 }
-                *expr.data.u8 = *tokenTop->token.data.u8;
+            *expr.data.u8 = *tokenTop->token.data.u8;
+            if (tokenTop->token.type == T_ID) {
+                expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
                 reducedTop.isLiteral = false;
                 tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
                 if (idTS->isFun) {
                     reducedTop.type = idTS->funData->retType;
+                    // add call function generator func
                 }
                 else {
                     reducedTop.type = idTS->varData->dataType;
-                    //pushOnStackGen(expr.data.u8, variable_t);
+                    if (!pushOnStackGen(expr.data.u8->data, T_ID)) {
+                        exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+                    }
                 }
                 if (reducedTop.type == T_VOID) {
                     exitWithError(&tokenTop->token, ERR_SEM_TYPE_COMPATIBILITY);
@@ -214,27 +219,36 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                 expr.data.i32 = tokenTop->token.data.i32;
                 reducedTop.type = T_I32_VAR;
                 reducedTop.isLiteral = true;
-                //pushOnStackGen(expr.data.i32, int_t);
+                if (!pushOnStackGen(expr.data.u8->data, T_I32_VAR)) {
+                    exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+                }
             }
             else if (tokenTop->token.type == T_F64_VAR) {
                 expr.data.f64 = tokenTop->token.data.f64;
                 reducedTop.type = T_F64_VAR;
                 reducedTop.isLiteral = true;
-                //pushOnStackGen(expr.data.i32, float_t);
+                if (!pushOnStackGen(expr.data.u8->data, T_F64_VAR)) {
+                    exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+                }
             }
             else if (tokenTop->token.type == T_NULL) {
                 reducedTop.type = T_NULL;
                 reducedTop.isLiteral = false;
-                //pushOnStackGen(expr.data.i32, null_t);
-            }
-            else if (tokenTop->token.type == T_STRING_TYPE || tokenTop->token.type == T_STRING_TYPE_EMPTY) {
-                expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
-                if (expr.data.u8 == NULL) {
+                if (!pushOnStackGen(NULL, T_NULL)) {
                     exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
                 }
+            }
+            else if (tokenTop->token.type == T_STRING_TYPE || tokenTop->token.type == T_STRING_TYPE_EMPTY) {
+                // expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
+                // //expr.data.u8 = tokenTop->token.data.u8;
+                // if (expr.data.u8 == NULL) {
+                //     exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+                // }
                 reducedTop.type = T_STRING_TYPE;
                 reducedTop.isLiteral = false;
-                //pushOnStackGen(expr.data.u8, string_t);
+                if (!pushOnStackGen(expr.data.u8->data, T_STRING_TYPE)) {
+                    exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+                }
             }
             reducedTop.token = expr;
             reducedTop.isTerminal = false;
@@ -264,7 +278,7 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
 
             Token expr;
             expr.type = T_EXPRESSION_NONTERMINAL;
-            expr.data.u8 = tokenTop->token.data.u8; //? not sure
+            //expr.data.u8 = tokenTop->token.data.u8; //? not sure
 
             reducedTop.token = expr;
             reducedTop.isTerminal = false;
@@ -316,6 +330,15 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
         reducedTop.isTerminal = false;
         reducedTop.reduction = false;
 
+        bool idiv = false;                              // pokud je operace celočíselné dělení, nastavíme idiv na true
+        if (operation == T_DIV) {
+            if (reducedTop.type == T_I32_VAR) {
+                idiv = true;
+            }
+        }
+        if (!makeOperationStackGen(operation, idiv)) {
+            exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+        }
         S_Top(stack)->reduction = false;    
         S_Push(stack, reducedTop);
         free (firstOperand);

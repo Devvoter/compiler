@@ -9,6 +9,7 @@
 
 
 #include "error.h"
+#include "generator.h"
 
 
 void exitWithError(Token *token, int code){
@@ -53,5 +54,6 @@ void exitWithError(Token *token, int code){
     default:
         break;
     }
+    disposeGen(false);
     exit(code);
 }

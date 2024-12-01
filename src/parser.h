@@ -8,6 +8,7 @@
  */
 
 #include "scanner.h"
+#include "list.h"
 
 typedef struct expressionValue{
     TokenType dataType;
@@ -97,9 +98,10 @@ char *parse_standard_function_call();
 /**
  * @brief Funkce pro parsování argumentů u definice funkce
  * 
- * @param[in] token Token, který bude zpracován
+ * @param token Token, který bude zpracován
+ * @param list Ukazatel na seznam parametrů pro generování kódu
  */
-void arguments(Token token);
+void arguments(Token token, ParamList *list);
 
 /**
  * @brief Funkce pro zpracování výrazů
