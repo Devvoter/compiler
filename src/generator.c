@@ -9,6 +9,7 @@
 #include "generator.h"
 #include "generatorBuf.c"
 #include "codeStack.c"
+#include "list.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -291,6 +292,11 @@ bool pushOnStackGen(char *param, TokenType t)
         {
             return addCodeToBuf(&buffer, "nil@nil", T_OTHERS);
         }
+        if (t == T_STRING_TYPE || t == T_STRING_TYPE_EMPTY) {
+            char *str = replace_special_characters(param);
+            return (addCodeToBuf(&buffer, "string@", T_OTHERS) &&
+                    addCodeToBuf(&buffer, str, T_STRING_FROM_PARSER));
+        }
         char *storedparam = storeChar(param);
         if (storedparam == NULL)
             return false;
@@ -308,12 +314,6 @@ bool pushOnStackGen(char *param, TokenType t)
         {
             return (addCodeToBuf(&buffer, "float@", T_OTHERS) &&
                     addCodeToBuf(&buffer, storedparam, T_FLOAT));
-        }
-        else if (t == T_STRING_TYPE || t == T_STRING_TYPE_EMPTY)
-        {
-            char *str = storeChar(param);
-            return (addCodeToBuf(&buffer, "string@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, str, T_STRING_FROM_PARSER));
         }
     }
     return false;
@@ -552,7 +552,7 @@ bool retValGen(char *ID, bool pushOnStack)
         return false;
 }
 
-bool funcStartGen(char *name)
+bool funcStartGen(char *name, ParamList *l)
 {
     char *storedname = storeChar(name);
     if (storedname == NULL)
@@ -563,7 +563,18 @@ bool funcStartGen(char *name)
         addCodeToBuf(&buffer, "\nDEFVAR LF@$$$retval", T_OTHERS) &&
         addCodeToBuf(&buffer, "\nMOVE LF@$$$retval nil@nil", T_OTHERS))
     {
-        // TODO prace s parametry
+        l->activeElement = l->firstElement;
+        int paramCount = 0;
+        while (l->activeElement != NULL) {
+            char *param = storeChar(l->activeElement->name);
+            paramCount++;
+            if (addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) && addCodeToBuf(&buffer, param, T_OTHERS) && addCodeToBuf(&buffer, "\nMOVE LF@", T_OTHERS) &&
+                addCodeToBuf(&buffer, param, T_STRING_FROM_PARSER) && addCodeToBuf(&buffer, " LF@$$$param", T_OTHERS) && addCodeToBuf(&buffer, (void *)&paramCount, T_INT)) {
+                    continue;
+            } else {
+                    return false;
+            }
+        }
     }
     else
         return false;

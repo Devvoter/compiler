@@ -13,6 +13,7 @@
 
 
 #include "scanner.h"
+#include "list.h"
 
 typedef enum {
     T_READSTR,
@@ -210,9 +211,10 @@ bool retValGen(char *ID, bool pushOnStack);
 /**
  * @brief vygeneruje zacatek pomocne funkce 
  * 
- * @param 
+ * @param name nazev pomocne funkce
+ * @param l struktura s parametry funkce
  */
-bool funcStartGen(char *name); //TODO parametrs
+bool funcStartGen(char *name, ParamList *l); 
 
 /**
  * @brief vygeneruje konec pomocne funkce 
