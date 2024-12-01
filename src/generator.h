@@ -99,47 +99,23 @@ bool concatStandFuncGen();
 
 /**
  * @brief funkce vrati ASCII kod zadaneho znaku
- * 
- * @param ID promenna, kam se zapise vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
- * @param param1 vstupni string
- * @param isVar1 true v pripade, ze param1 je promenna
- * @param param2 index znaku, hodnota ktereho se ma vratit
- * @param isVar2 true v pripade, ze param2 je promenna
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack);
+bool ordStandFuncGen();
 
 /**
  * @brief funkce vrati znak zadaneho ASCII kodu
- * 
- * @param ID promenna, kam se zapise hodnota(v pripade ukladani vysledku na zasobnik rovna se NULL)
- * @param param ASCII hodnota
- * @param isVar pokud true, parametr je promenna
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
  */
-bool chrStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack);
+bool chrStandFuncGen();
 
 /**
  * @brief funkce prevede celociselnou hodnotu na hodnotu typu float
- * 
- * @param ID promenna, kam bude ulozen vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
- * @param param parametr funkce
- * @param isVar v pripade true zadany argument je promenna
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
- * @param fromStack v pripade true bude upravena hodnota na vrcholu zasobniku
  */
-bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack);
+bool i2fStandFuncGen();
 
 /**
  * @brief funkce prevede float hodnotu na hodnotu typu int
- * 
- * @param ID promenna, kam bude ulozen vysledek(v pripade ukladani vysledku na zasobnik rovna se NULL)
- * @param param parametr funkce
- * @param isVar v pripade true zadany argument je promenna
- * @param pushOnStack v pripade true hodnota bude pridana na zasobnik(zpracovani vyrazu)
- * @param fromStack v pripade true bude upravena hodnota na vrcholu zasobniku
  */
-bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack);
+bool f2iStandFuncGen();
 
 /**
  * @brief volani funkce ifj.substring, parametry funkce jsou ulozeny na zasobniku

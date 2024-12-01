@@ -45,7 +45,7 @@ void disposeGen(bool done)
 
 bool startMainGen()
 {
-    return addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$\nDEFVAR LF@$stri2int_string$\nDEFVAR LF@$stri2int_int$\nDEFVAR LF@$tmp_num$", T_OTHERS);
 }
 
 bool endMainGen()
@@ -244,208 +244,24 @@ bool concatStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool 
     return (addCodeToBuf(&buffer, "\nPOPS LF@$concat_string2$\nPOPS LF@$concat_string1$\nCONCAT LF@$tmp$ LF@$concat_string1$ LF@$concat_string2$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
 }
 
-bool ordStandFuncGen(char *ID, char *param1, bool isVar1, char *param2, bool isVar2, bool pushOnStack)
+bool ordStandFuncGen()
 {
-    if (pushOnStack)
-        ID = "$tmp$";
-    char *storedID = storeChar(ID);
-    char *storedparam2 = storeChar(param2);
-    if (storedID == NULL || storedparam2 == NULL)
-        return false;
-    if (addCodeToBuf(&buffer, "\nSTRI2INT LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
-    {
-        if (isVar1)
-        {
-            char *storedparam1 = storeChar(param1);
-            if (storedparam1 == NULL)
-                return false;
-            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam1, T_STRING_FROM_PARSER))
-            {
-                if (isVar2)
-                {
-                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER))
-                    {
-                        if (pushOnStack)
-                        {
-                            return (pushOnStackGen(storedID, T_VAR));
-                        }
-                        else
-                            return true;
-                    }
-                }
-                else
-                { // param2 je int
-                    if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER))
-                    {
-                        if (pushOnStack)
-                        {
-                            return (pushOnStackGen(storedID, T_VAR));
-                        }
-                        else
-                            return true;
-                    }
-                }
-            }
-        }
-        else
-        { // param1 je string
-            char *storedparam1 = replace_special_characters(param1);
-            if (storedparam1 == NULL)
-                return false;
-            if (addCodeToBuf(&buffer, " string@", T_OTHERS) && addCodeToBuf(&buffer, storedparam1, T_STRING))
-            {
-                if (isVar2)
-                {
-                    if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER))
-                    {
-                        if (pushOnStack)
-                        {
-                            return (pushOnStackGen(storedID, T_VAR));
-                        }
-                        else
-                            return true;
-                    }
-                }
-                else
-                { // param2 je int
-                    if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, storedparam2, T_STRING_FROM_PARSER))
-                    {
-                        if (pushOnStack)
-                        {
-                            return (pushOnStackGen(storedID, T_VAR));
-                        }
-                        else
-                            return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
+  return (addCodeToBuf(&buffer, "\nPOPS LF@$stri2int_int$\nPOPS LF@$stri2int_string$\nSTRI2INT LF@$tmp$ LF@$stri2int_string$ LF@$stri2int_int$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
 }
 
-bool chrStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack)
+bool chrStandFuncGen()
 {
-    if (pushOnStack)
-        ID = "$tmp$";
-    char *storedID = storeChar(ID);
-    char *storedparam = storeChar(param);
-    if (storedID == NULL || storedparam == NULL)
-        return false;
-    if (addCodeToBuf(&buffer, "\nINT2CHAR LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
-    {
-        if (isVar)
-        {
-            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER))
-            {
-                if (pushOnStack)
-                {
-                    return (pushOnStackGen(storedID, T_VAR));
-                }
-                else
-                    return true;
-            }
-        }
-        else
-        { // param je int
-            if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, param, T_STRING_FROM_PARSER))
-            {
-                if (pushOnStack)
-                {
-                    return (pushOnStackGen(storedID, T_VAR));
-                }
-                else
-                    return true;
-            }
-        }
-    }
-    return false;
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2CHAR LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
 }
 
-bool i2fStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack)
+bool i2fStandFuncGen()
 {
-    if (pushOnStack)
-        ID = "$tmp$";
-    char *storedID = storeChar(ID);
-    char *storedparam = storeChar(param);
-    if (storedID == NULL || storedparam == NULL)
-        return false;
-    bool popped = true;
-    if (fromStack)
-    {
-        popped = addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_OTHERS);
-    }
-    if (addCodeToBuf(&buffer, "\nINT2FLOAT LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
-    {
-        if (isVar)
-        {
-            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER))
-            {
-                if (pushOnStack)
-                {
-                    return (pushOnStackGen(storedID, T_VAR) && popped);
-                }
-                else
-                    return popped;
-            }
-        }
-        else
-        { // param je int
-            if (addCodeToBuf(&buffer, " int@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER))
-            {
-                if (pushOnStack)
-                {
-                    return (pushOnStackGen(storedID, T_VAR) && popped);
-                }
-                else
-                    return popped;
-            }
-        }
-    }
-    return false;
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
 }
 
-bool f2iStandFuncGen(char *ID, char *param, bool isVar, bool pushOnStack, bool fromStack)
+bool f2iStandFuncGen()
 {
-    if (pushOnStack)
-        ID = "$tmp$";
-    char *storedID = storeChar(ID);
-    char *storedparam = storeChar(param);
-    if (storedID == NULL || storedparam == NULL)
-        return false;
-    bool popped = true;
-    if (fromStack)
-    {
-        popped = addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_OTHERS);
-    }
-    if (addCodeToBuf(&buffer, "\nFLOAT2INT LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER))
-    {
-        if (isVar)
-        {
-            if (addCodeToBuf(&buffer, " LF@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_OTHERS))
-            {
-                if (pushOnStack)
-                {
-                    return (pushOnStackGen(storedID, T_VAR) && popped);
-                }
-                else
-                    return popped;
-            }
-        }
-        else
-        { // param je float
-            if (addCodeToBuf(&buffer, " float@", T_OTHERS) && addCodeToBuf(&buffer, storedparam, T_FLOAT))
-            {
-                if (pushOnStack)
-                {
-                    return (pushOnStackGen(storedID, T_VAR) && popped);
-                }
-                else
-                    return popped;
-            }
-        }
-    }
-    return false;
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
 }
 
 bool substringStandFuncGen()
@@ -493,7 +309,7 @@ bool pushOnStackGen(char *param, TokenType t)
             return (addCodeToBuf(&buffer, "float@", T_OTHERS) &&
                     addCodeToBuf(&buffer, storedparam, T_FLOAT));
         }
-        else if (t == T_STRING_TYPE)
+        else if (t == T_STRING_TYPE || t == T_STRING_TYPE_EMPTY)
         {
             char *str = storeChar(param);
             return (addCodeToBuf(&buffer, "string@", T_OTHERS) &&
@@ -690,7 +506,7 @@ bool endWhileGen()
 bool callFuncGen(char *name, int paramsCount)
 {
     bool paramsWritten = true;
-    if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$\nDEFVAR TF@$concat_string1$\nDEFVAR TF@$concat_string2$", T_OTHERS))
+    if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$\nDEFVAR TF@$concat_string1$\nDEFVAR TF@$concat_string2$\nDEFVAR TF@$stri2int_string$\nDEFVAR TF@$stri2int_int$\nDEFVAR TF@$tmp_num$", T_OTHERS))
     {
         while (paramsCount != 0)
         {
