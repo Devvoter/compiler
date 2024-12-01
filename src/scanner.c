@@ -655,9 +655,11 @@ Token getNextToken(ListOfTokens *list){
         case S_SLASH:
             newToken.type = T_DIV;
             loadSymbol(&newToken, c, &init_count);
-            if ((c = fgetc(SOURCE)) == '/')
+            c = fgetc(SOURCE);
+            if (c == '/')
             {
                 bufferFree(newToken.data.u8);
+                init_count = 0;
                 STATE = S_LINE_COMMENT;
                 break;
             }
@@ -670,7 +672,6 @@ Token getNextToken(ListOfTokens *list){
         case S_LINE_COMMENT:
 
             if (c == '\n'){
-                newToken.type = T_UNKNOW;
                 line_count++;
                 newToken.line = line_count;
                 STATE = S_START;
@@ -802,6 +803,7 @@ Token getNextToken(ListOfTokens *list){
 
             if ((!isalpha(c)) && (!isdigit(c)) && (c != '_')){
                 /* check for reserved words */
+                newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
                 newToken.type = isKeyWord(newToken.data.u8->data);
                 ungetc(c, SOURCE);
                 init_count = 0;
@@ -834,6 +836,7 @@ Token getNextToken(ListOfTokens *list){
             else{
                 ungetc(c, SOURCE);
                 init_count = 0;
+                newToken.data.u8->data[newToken.data.u8->size] = '\0';
                 isNullType(&newToken);
                 insert_in_list_of_tokens(list, newToken);
                 return newToken;
@@ -916,7 +919,10 @@ Token getNextToken(ListOfTokens *list){
         stringToNum(&newToken);
     }
     if (STATE == S_QUOTE) exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
-    else if(STATE == S_LETTER) newToken.type = isKeyWord(newToken.data.u8->data);
+    else if(STATE == S_LETTER) {
+        newToken.data.u8->data[newToken.data.u8->size] = '\0';
+        newToken.type = isKeyWord(newToken.data.u8->data);
+    }
     else if (STATE == S_TYPE_ID) isNullType(&newToken);
     else if (c == EOF) newToken.type = T_EOF;
     else if(newToken.type == T_UNKNOW || newToken.type == T_ERROR) exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
