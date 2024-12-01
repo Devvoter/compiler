@@ -62,11 +62,19 @@ bool defVarGen(char *ID);
 bool writeStandFuncGen();
 
 /**
- * @brief funkce pro nacitani znaku
- * 
- * @param t typ funkce(i32, f64, string)
+ * @brief funkce pro nacitani stringu
  */
-bool readStandFuncGen(readFunc_t t);
+bool readstrStandFuncGen();
+
+/**
+ * @brief funkce pro nacitani integeru
+ */
+bool readi32StandFuncGen();
+
+/**
+ * @brief funkce pro nacitani floatu
+ */
+bool readf64StandFuncGen();
 
 // /**
 //  * @brief funkce pro prirazeni stringu

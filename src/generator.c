@@ -71,30 +71,26 @@ bool writeStandFuncGen()
 }
 
 
-bool readStandFuncGen(readFunc_t t)
-{
-    if (addCodeToBuf(&buffer, "\nREAD LF@$tmp$", T_OTHERS))
-    {
-        if (t == T_READSTR)
-        {
-            return (addCodeToBuf(&buffer, " string", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
-        }
-        else if (t == T_READI32)
-        {
-            return (addCodeToBuf(&buffer, " int", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
-        }
-        else if (t == T_READF64)
-        {
-            return (addCodeToBuf(&buffer, " float", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
-        }
-    }
-    return false;
+bool readstrStandFuncGen() {
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ string", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
 }
+
+
+bool readi32StandFuncGen() {
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ int", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+}
+
+
+bool readf64StandFuncGen() {
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ float", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+}
+
 
 // bool stringStandFuncGen()
 // {
 //     //TODO ?
 // }
+
 
 bool lengthStandFuncGen()
 {
