@@ -58,11 +58,8 @@ bool defVarGen(char *ID);
 
 /**
  * @brief funkce pro vypis, kompatibilni funkce ifj.write
- * 
- * @param t typ hodnoty, ktera bude vypsana(var, int, string, float)
- * @param param hodnota, ktera se ma vypsat
  */
-bool writeStandFuncGen(TokenType t, char* param);
+bool writeStandFuncGen();
 
 /**
  * @brief funkce pro nacitani znaku

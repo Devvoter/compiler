@@ -65,44 +65,9 @@ bool defVarGen(char *ID)
 }
 
 
-bool writeStandFuncGen(TokenType t, char *param)
+bool writeStandFuncGen()
 {
-    if (addCodeToBuf(&buffer, "\nWRITE ", T_OTHERS))
-    {
-        if (t == T_VAR)
-        {
-            char *storedparam = storeChar(param);
-            if (storedparam == NULL)
-                return false;
-            return (addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
-        }
-        else if (t == T_I32_ID)
-        {
-            char *storedparam = storeChar(param);
-            if (storedparam == NULL)
-                return false;
-            return (addCodeToBuf(&buffer, "int@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
-        }
-        else if (t == T_F64_ID)
-        {
-            char *storedparam = storeChar(param);
-            if (storedparam == NULL)
-                return false;
-            return (addCodeToBuf(&buffer, "float@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, storedparam, T_FLOAT));
-        }
-        else if (t == T_STRING_TYPE)
-        {
-            char *storedparam = replace_special_characters(param);
-            if (storedparam == NULL)
-                return false;
-            return (addCodeToBuf(&buffer, "string@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
-        }
-    }
-    return false;
+    return addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nWRITE LF@$tmp$", T_OTHERS);
 }
 
 
