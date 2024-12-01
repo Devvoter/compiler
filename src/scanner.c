@@ -534,6 +534,26 @@ Token getNextToken(ListOfTokens *list){
             return newToken;
         /* [ */
         case S_SQUQRE_BRACKET_OPEN:
+            loadSymbol(&newToken, c, &init_count);
+
+            c = fgetc(SOURCE);
+            while (isspace(c)) c = fgetc(SOURCE);
+
+            if (c == ']')
+            {
+                ungetc(c, SOURCE);
+                STATE = S_SQUQRE_BRACKET_CLOSE;
+                break;
+            }
+            else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
+            break;
+        /* ] */
+        case S_SQUQRE_BRACKET_CLOSE:
+            loadSymbol(&newToken, c, &init_count);
+
+            c = fgetc(SOURCE);
+            while(isspace(c)) c = fgetc(SOURCE);
+
             ungetc(c, SOURCE);
             STATE = S_TYPE_ID;
             break;
@@ -749,7 +769,7 @@ Token getNextToken(ListOfTokens *list){
 
                 if (c == '\\')
                 {
-                    c = getc(SOURCE);
+                    c = fgetc(SOURCE);
                     if (c == '\\')
                     {
                         loadSymbol(&newToken, '\n', &init_count);
@@ -765,10 +785,7 @@ Token getNextToken(ListOfTokens *list){
                     loadSymbol(&newToken, c, &init_count);
                 }
             }
-            else if (c == '\\')
-            {
-                escape_Sequence(newToken, &init_count, c);
-            }
+            else if (c == '\\') escape_Sequence(newToken, &init_count, c);
             else if (c == '"' && (init_count))
             {
                 newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
@@ -797,12 +814,23 @@ Token getNextToken(ListOfTokens *list){
         /* ? */
         case S_QUESTIONER:
             STATE = S_TYPE_ID;
+            loadSymbol(&newToken, c, &init_count);
+
+            c = fgetc(SOURCE);
+            while (isspace(c)) c = fgetc(SOURCE);
+
             ungetc(c, SOURCE);
             newToken.type = T_ERROR;
             break;
         /* ?i32 | ?[]u8 | ?f64 */
         case S_TYPE_ID:
-            if ((isalpha(c)) || (isdigit(c)) || (c == '?') || (c == '[') || (c == ']')) loadSymbol(&newToken, c, &init_count);
+            if ((isalpha(c)) || (isdigit(c))) loadSymbol(&newToken, c, &init_count);
+            else if (c  == '[')
+            {
+                ungetc(c, SOURCE);
+                STATE = S_SQUQRE_BRACKET_OPEN;
+                break;
+            }
             else{
                 ungetc(c, SOURCE);
                 init_count = 0;

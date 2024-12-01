@@ -51,6 +51,7 @@ enum automat_state {
     S_OPEN_PARENTHESES,     // (
     S_VERTICAL_BAR,         // |
     S_SQUQRE_BRACKET_OPEN,  // [
+    S_SQUQRE_BRACKET_CLOSE, // ]
 
     //
     S_LINE_COMMENT,         // //
