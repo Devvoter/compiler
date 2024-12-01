@@ -53,20 +53,8 @@ bool endMainGen();
  * @brief vytvori novou promennou
  * 
  * @param ID nazev promenne
- * @param LF v pripade true, promenna se zapise do lokalniho framu
  */
-bool defVarGen(char *ID, bool LF);
-
-/**
- * @brief definuje promennou
- * 
- * @param ID nazev promenne
- * @param t typ hodnoty
- * @param value hodnota
- * @param fromLF v pripade true pripisuje hodnotu z LF
- * @param toLF v pripade true pripisuje do LF
- */
-bool assignVarGen(char *ID, TokenType t, char *value, bool fromLF, bool toLF);
+bool defVarGen(char *ID);
 
 /**
  * @brief funkce pro vypis, kompatibilni funkce ifj.write
@@ -199,14 +187,6 @@ bool endWhileGen();
  * @param paramsCount pocet parametru
  */
 bool callFuncGen(char *name, int paramsCount);
-
-/**
- * @brief pripsani navratove hodnoty z pomocne funkce do promenne, pripadne na zasobnik(v pripade ze funkce nic nevraci, tato funkce se nevola)
- * 
- * @param ID nazev promenne, kam se ma ulozit hodnota
- * @param pushOnStack v pripade true, prida se hodnota na vrchol zasobniku
- */
-bool retValGen(char *ID, bool pushOnStack);
 
 /**
  * @brief vygeneruje zacatek pomocne funkce 
