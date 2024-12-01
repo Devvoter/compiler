@@ -83,10 +83,10 @@ bool writeStandFuncGen(TokenType t, char* param);
  */
 bool readStandFuncGen(readFunc_t t);
 
-/**
- * @brief funkce pro prirazeni stringu
- */
-bool stringStandFuncGen();
+// /**
+//  * @brief funkce pro prirazeni stringu
+//  */
+// bool stringStandFuncGen();
 
 /**
  * @brief funkce pro nalezeni delky retezce

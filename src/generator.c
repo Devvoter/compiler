@@ -230,10 +230,10 @@ bool readStandFuncGen(readFunc_t t)
     return false;
 }
 
-bool stringStandFuncGen()
-{
-    //TODO ?
-}
+// bool stringStandFuncGen()
+// {
+//     //TODO ?
+// }
 
 bool lengthStandFuncGen()
 {
@@ -404,7 +404,7 @@ bool startIfGen(bool withNull, char *ID)
         else
         {
             return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS) &&
-                    addCodeToBuf(&buffer, "JUMPIFNEQS $$if$", T_OTHERS) &&
+                    addCodeToBuf(&buffer, "\nJUMPIFNEQS $$if$", T_OTHERS) &&
                     addCodeToBuf(&buffer, (void *)&ifCounter, T_INT) &&
                     addCodeToBuf(&buffer, "$else", T_OTHERS));
         }
