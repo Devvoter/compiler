@@ -442,6 +442,7 @@ bool funcStartGen(char *name, ParamList *l)
                     return false;
             }
         }
+        return true;
     }
     return true;
 }
