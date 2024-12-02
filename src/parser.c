@@ -911,8 +911,8 @@ Token parse_function_definition() {
         exit(99);
     }
 
-    ParamList list;
-    List_Init(&list);   // maybe use it in symtable too? idk
+    ParamList paramList;
+    List_Init(&paramList);   // maybe use it in symtable too? idk
 
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -920,11 +920,11 @@ Token parse_function_definition() {
     getCurrentToken();
 
     if (CurrentToken.type != T_CLOSE_PARENTHESES) {
-        arguments(CurrentToken, &list);            // Parsování argumentů funkce
+        arguments(CurrentToken, &paramList);            // Parsování argumentů funkce
     }
 
     if (!inMain) {
-        if (!funcStartGen(id, &list)) {
+        if (!funcStartGen(id, &paramList)) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
     }
@@ -1236,7 +1236,7 @@ int main() {
     if (!endGen()) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
-    disposeGen(false);
+    disposeGen(true);
 
     free_list_of_tokens(&LIST);
     return 0;

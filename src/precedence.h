@@ -187,12 +187,13 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
             expr.type = T_EXPRESSION_NONTERMINAL;
             expr.line = tokenTop->token.line;
             expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
-                if (expr.data.u8 == NULL) {
-                    exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
-                }
+            if (expr.data.u8 == NULL) {
+                exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
+            }
             *expr.data.u8 = *tokenTop->token.data.u8;
             if (tokenTop->token.type == T_ID) {
-                expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
+                //expr.data.u8 = malloc(sizeof(*tokenTop->token.data.u8));
+                expr.data.u8 = tokenTop->token.data.u8;
                 reducedTop.isLiteral = false;
                 tSymTabNode *idTS = search_symbol(symtable, tokenTop->token.data.u8->data);
                 if (idTS->isFun) {

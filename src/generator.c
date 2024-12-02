@@ -72,17 +72,17 @@ bool writeStandFuncGen()
 
 
 bool readstrStandFuncGen() {
-    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ string", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ string", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool readi32StandFuncGen() {
-    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ int", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ int", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool readf64StandFuncGen() {
-    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ float", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ float", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
@@ -94,37 +94,37 @@ bool readf64StandFuncGen() {
 
 bool lengthStandFuncGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$str_strlen$\nSTRLEN LF@$tmp$ LF@$str_strlen$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$str_strlen$\nSTRLEN LF@$tmp$ LF@$str_strlen$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool concatStandFuncGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$concat_string2$\nPOPS LF@$concat_string1$\nCONCAT LF@$tmp$ LF@$concat_string1$ LF@$concat_string2$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$concat_string2$\nPOPS LF@$concat_string1$\nCONCAT LF@$tmp$ LF@$concat_string1$ LF@$concat_string2$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool ordStandFuncGen()
 {
-  return (addCodeToBuf(&buffer, "\nPOPS LF@$stri2int_int$\nPOPS LF@$stri2int_string$\nSTRI2INT LF@$tmp$ LF@$stri2int_string$ LF@$stri2int_int$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+  return (addCodeToBuf(&buffer, "\nPOPS LF@$stri2int_int$\nPOPS LF@$stri2int_string$\nSTRI2INT LF@$tmp$ LF@$stri2int_string$ LF@$stri2int_int$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool chrStandFuncGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2CHAR LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2CHAR LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool i2fStandFuncGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool f2iStandFuncGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_VAR));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
@@ -167,17 +167,17 @@ bool pushOnStackGen(char *param, TokenType t)
         char *storedparam = storeChar(param);
         if (storedparam == NULL)
             return false;
-        if (t == T_VAR)
+        if (t == T_ID)
         {
             return (addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
                     addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
         }
-        else if (t == T_I32_ID)
+        else if (t == T_I32_ID || t == T_I32_VAR)
         {
             return (addCodeToBuf(&buffer, "int@", T_OTHERS) &&
                     addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
         }
-        else if (t == T_F64_ID)
+        else if (t == T_F64_ID || t == T_F64_VAR)
         {
             return (addCodeToBuf(&buffer, "float@", T_OTHERS) &&
                     addCodeToBuf(&buffer, storedparam, T_FLOAT));
@@ -243,6 +243,11 @@ bool makeOperationStackGen(TokenType t, bool idiv)
 bool endExpAssignGen(char *ID)
 {
     char *storedID = storeChar(ID);
+    if (strcmp(storedID, "_") == 0)
+    {
+        return true;
+    }
+    else
     if (storedID == NULL)
         return false;
     return (addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&
@@ -431,13 +436,14 @@ bool funcStartGen(char *name, ParamList *l)
             paramCount++;
             if (addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) && addCodeToBuf(&buffer, param, T_OTHERS) && addCodeToBuf(&buffer, "\nMOVE LF@", T_OTHERS) &&
                 addCodeToBuf(&buffer, param, T_STRING_FROM_PARSER) && addCodeToBuf(&buffer, " LF@$$$param", T_OTHERS) && addCodeToBuf(&buffer, (void *)&paramCount, T_INT)) {
+                    List_Next(l);
                     continue;
             } else {
                     return false;
             }
         }
     }
-    return false;
+    return true;
 }
 
 
