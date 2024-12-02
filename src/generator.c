@@ -273,13 +273,12 @@ bool startIfGen(bool withNull, char *ID)
             char *storedID = storeChar(ID);
             if (storedID == NULL)
                 return false;
-            return (addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&   // push na zasobnik null hodnoty
+            return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nPUSHS LF@$tmp$\nPUSHS LF@$tmp$", T_OTHERS) &&
+                    addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&   // push na zasobnik null hodnoty
                     addCodeToBuf(&buffer, "\nJUMPIFEQS $$if$", T_OTHERS) && // porovname null s vysledkem vyrazu a udelame skok
                     addCodeToBuf(&buffer, (void *)&ifCounter, T_INT) &&
                     addCodeToBuf(&buffer, "$else", T_OTHERS) &&
                     addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) && // v pripade ne NULL definujeme promennou
-                    addCodeToBuf(&buffer, storedID, T_OTHERS) &&
-                    addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && // popneme null ze zasobniku
                     addCodeToBuf(&buffer, storedID, T_OTHERS) &&
                     addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && // a popneme hodnotu vyrazu do promenne
                     addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER));
@@ -581,4 +580,9 @@ bool endGen()
 
 bool returnMainGen() {
     return addCodeToBuf(&buffer, "\nEXIT int@0", T_OTHERS);
+}
+
+void main () {
+    printf("%a", -3.0);
+    return;
 }
