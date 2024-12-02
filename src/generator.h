@@ -207,6 +207,11 @@ bool funcStartGen(char *name, ParamList *l);
 bool funcEndGen();
 
 /**
+ * @brief vygeneruje return; funkci 
+ */
+bool returnMainGen();
+
+/**
  * @brief zmeni string na vhodny retezec pro IFJcode24
  * 
  * @param input vstupni string

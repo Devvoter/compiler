@@ -569,3 +569,7 @@ bool endGen()
 {
     return (substringGen() && strcmpGen() && addCodeToBuf(&buffer, "\nCLEARS\nPOPFRAME\n", T_OTHERS));
 }
+
+bool returnMainGen() {
+    return addCodeToBuf(&buffer, "\nEXIT int@0", T_OTHERS);
+}
