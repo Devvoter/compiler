@@ -393,7 +393,6 @@ bool callFuncGen(char *name, int paramsCount)
     {
         for (int i = 1; i <= paramsCount; i++)
         {
-            int i = paramsCount;
             if (addCodeToBuf(&buffer, "\nDEFVAR TF@$$$param", T_OTHERS) &&
                 addCodeToBuf(&buffer, (void *)&i, T_INT) &&
                 addCodeToBuf(&buffer, "\nPOPS TF@$$$param", T_OTHERS) &&
@@ -472,7 +471,7 @@ char *replace_special_characters(const char *input)
         const char *replacement = NULL;
         size_t replacement_len = 0;
 
-        switch (input[i+1])
+        switch (input[i])
         {
         case ' ':
             replacement = "\\032";
@@ -573,8 +572,4 @@ bool endGen()
 
 bool returnMainGen() {
     return addCodeToBuf(&buffer, "\nEXIT int@0", T_OTHERS);
-}
-
-main () {
-    
 }
