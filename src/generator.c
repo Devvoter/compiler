@@ -242,12 +242,11 @@ bool makeOperationStackGen(TokenType t, bool idiv)
 
 bool endExpAssignGen(char *ID)
 {
-    char *storedID = storeChar(ID);
-    if (strcmp(storedID, "_") == 0)
+    if (strcmp(ID, "_") == 0)   
     {
-        return true;
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$", T_OTHERS));
     }
-    else
+    char *storedID = storeChar(ID);
     if (storedID == NULL)
         return false;
     return (addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&
