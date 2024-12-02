@@ -6,9 +6,9 @@ CFLAGS = -std=c11
 TARGET = ifj24_compiler
 
 # Seznam zdrojových a hlavičkových souborů
-SRC = buffer.c error.c parser.c scanner.c stack.c symtable.c codeStack.c
+SRC = buffer.c error.c parser.c scanner.c stack.c symtable.c codeStack.c list.c generatorBuf.c generator.c
 OBJ = $(SRC:.c=.o)
-HEADERS = buffer.h error.h parser.h scanner.h stack.h precedence.h symtable.h codeStack.h precedence_token.h semantic.h
+HEADERS = buffer.h error.h parser.h scanner.h stack.h symtable.h codeStack.h list.h generatorBuf.h generator.h precedence_token.h semantic.h precedence.h 
 
 # Výchozí cíl - kompilace celého projektu
 all: $(TARGET)

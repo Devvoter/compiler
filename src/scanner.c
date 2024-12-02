@@ -380,23 +380,23 @@ void stringToNum(Token* token) {
 }
 
 
-void escape_Sequence(Token newToken, unsigned long *init_count, char c){
+void escape_Sequence(Token *newToken, unsigned long *init_count, char c){
     c = fgetc(SOURCE);
     switch (c) {
         case 'n':
-            loadSymbol(&newToken, '\n', init_count);  // Znak nového řádku
+            loadSymbol(newToken, '\n', init_count);  // Znak nového řádku
             break;
         case 'r':
-            loadSymbol(&newToken, '\r', init_count);  // Návrat na začátek řádku
+            loadSymbol(newToken, '\r', init_count);  // Návrat na začátek řádku
             break;
         case 't':
-            loadSymbol(&newToken, '\t', init_count);  // Tabulace
+            loadSymbol(newToken, '\t', init_count);  // Tabulace
             break;
         case '\\':
-            loadSymbol(&newToken, '\\', init_count);  // Escape sekvence pro znak '\'
+            loadSymbol(newToken, '\\', init_count);  // Escape sekvence pro znak '\'
             break;
         case '"':
-            loadSymbol(&newToken, '"', init_count);   // Escape sekvence pro uvozovky
+            loadSymbol(newToken, '"', init_count);   // Escape sekvence pro uvozovky
             break;
         case 'x':
             char nextChar = fgetc(SOURCE);
@@ -409,17 +409,17 @@ void escape_Sequence(Token newToken, unsigned long *init_count, char c){
                 if (isxdigit(hex[1])) {
                     // Pokud jsou oba znaky platne, prevadime je
                     int value = strtol(hex, NULL, 16);
-                    loadSymbol(&newToken, (char)value, init_count);
+                    loadSymbol(newToken, (char)value, init_count);
                 } 
-                else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);// Pokud druhy znak neni sestnactkovy
+                else exitWithError(newToken, ERR_LEXICAL_ANALYSIS);// Pokud druhy znak neni sestnactkovy
             } 
-            else exitWithError(&newToken, ERR_LEXICAL_ANALYSIS); // Pokud po 'x' neni '{' a ani sestnactkovy znak
+            else exitWithError(newToken, ERR_LEXICAL_ANALYSIS); // Pokud po 'x' neni '{' a ani sestnactkovy znak
 
             break;
 
         default:
             // Pokud znak po '\' není platná escape sekvence
-            exitWithError(&newToken, ERR_LEXICAL_ANALYSIS);
+            exitWithError(newToken, ERR_LEXICAL_ANALYSIS);
     }
 }
 /*--------------konce-pomocne-funkce-automat--------------*/
@@ -694,7 +694,6 @@ Token getNextToken(ListOfTokens *list){
         
         /* "..." */
         case S_QUOTE:
-
             if (c == '"' && start) // pokud mame prvni " 
             {
                 c = fgetc(SOURCE); // nacteme dalsi znak
@@ -723,7 +722,7 @@ Token getNextToken(ListOfTokens *list){
                         break;
                     }
                     ungetc(c, SOURCE);
-                    escape_Sequence(newToken, &init_count, c);
+                    escape_Sequence(&newToken, &init_count, c);
                 }
                 else{ // narazili jsme se na nejaky symbol, coz retezec nezacina spetnyma lomitkama
                     for (int i = counter_space; i > 0; i--) loadSymbol(&newToken, ' ', &init_count); // pridame mezery do retezce pokud byly pred symbolem 
@@ -736,10 +735,11 @@ Token getNextToken(ListOfTokens *list){
             }
 
             // Narazili jsme na escape sekvence
-            else if (c == '\\') escape_Sequence(newToken, &init_count, c);
+            else if (c == '\\') escape_Sequence(&newToken, &init_count, c);
 
             else if (c == '"' && (init_count)) {  // Narazili jsme na uzavírací uvozovku
-                newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
+
+                loadSymbol(&newToken, '\0', &init_count);  // Uzavíráme řetězec                
                 init_count = 0;
                 newToken.type = T_STRING_TYPE;
                 insert_in_list_of_tokens(list, newToken);
@@ -777,14 +777,14 @@ Token getNextToken(ListOfTokens *list){
 
                     for (int i = counter_space; i > 0; i--) loadSymbol(&newToken, ' ', &init_count);
                     ungetc(c, SOURCE);
-                    escape_Sequence(newToken, &init_count, c);
+                    escape_Sequence(&newToken, &init_count, c);
                 }
                 else{
                     for (int i = counter_space; i > 0; i--) loadSymbol(&newToken, ' ', &init_count);
                     loadSymbol(&newToken, c, &init_count);
                 }
             }
-            else if (c == '\\') escape_Sequence(newToken, &init_count, c);
+            else if (c == '\\') escape_Sequence(&newToken, &init_count, c);
             else if (c == '"' && (init_count))
             {
                 newToken.data.u8->data[newToken.data.u8->size] = '\0';  // Uzavíráme řetězec
