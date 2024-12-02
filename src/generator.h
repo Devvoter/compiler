@@ -103,13 +103,17 @@ bool chrStandFuncGen();
 
 /**
  * @brief funkce prevede celociselnou hodnotu na hodnotu typu float
+ * 
+ * @param previous v pripade true zpracuje se predposleni hodnota na zasobniku
  */
-bool i2fStandFuncGen();
+bool i2fStandFuncGen(bool previous);
 
 /**
  * @brief funkce prevede float hodnotu na hodnotu typu int
+ * 
+ * @param previous v pripade true zpracuje se predposledni hodnota na zasobniku
  */
-bool f2iStandFuncGen();
+bool f2iStandFuncGen(bool previous);
 
 /**
  * @brief volani funkce ifj.substring, parametry funkce jsou ulozeny na zasobniku

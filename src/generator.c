@@ -7,8 +7,8 @@
  */
 
 #include "generator.h"
-#include "generatorBuf.c"
-#include "codeStack.c"
+#include "generatorBuf.h"
+#include "codeStack.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -46,7 +46,7 @@ void disposeGen(bool done)
 
 bool startMainGen()
 {
-    return addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$\nDEFVAR LF@$stri2int_string$\nDEFVAR LF@$stri2int_int$\nDEFVAR LF@$tmp_num$", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$\nDEFVAR LF@$stri2int_string$\nDEFVAR LF@$stri2int_int$\nDEFVAR LF@$tmp_num$\nDEFVAR LF@$tmp_num2$", T_OTHERS);
 }
 
 
@@ -116,15 +116,24 @@ bool chrStandFuncGen()
 }
 
 
-bool i2fStandFuncGen()
+bool i2fStandFuncGen(bool previous)
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    if (previous) {
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num2$\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID) && pushOnStackGen("$tmp_num2$", T_ID));
+    } else {
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    }
+    
 }
 
 
-bool f2iStandFuncGen()
+bool f2iStandFuncGen(bool previous)
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    if (previous) {
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num2$\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID) && pushOnStackGen("$tmp_num2$", T_ID));
+    } else {
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    }
 }
 
 
@@ -389,7 +398,7 @@ bool endWhileGen()
 bool callFuncGen(char *name, int paramsCount)
 {
     bool paramsWritten = true;
-    if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$\nDEFVAR TF@$concat_string1$\nDEFVAR TF@$concat_string2$\nDEFVAR TF@$stri2int_string$\nDEFVAR TF@$stri2int_int$\nDEFVAR TF@$tmp_num$", T_OTHERS))
+    if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$\nDEFVAR TF@$concat_string1$\nDEFVAR TF@$concat_string2$\nDEFVAR TF@$stri2int_string$\nDEFVAR TF@$stri2int_int$\nDEFVAR TF@$tmp_num$\nDEFVAR TF@$tmp_num2$", T_OTHERS))
     {
         for (int i = 1; i <= paramsCount; i++)
         {
