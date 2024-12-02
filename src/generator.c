@@ -391,14 +391,15 @@ bool callFuncGen(char *name, int paramsCount)
     bool paramsWritten = true;
     if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$\nDEFVAR TF@$concat_string1$\nDEFVAR TF@$concat_string2$\nDEFVAR TF@$stri2int_string$\nDEFVAR TF@$stri2int_int$\nDEFVAR TF@$tmp_num$", T_OTHERS))
     {
-        while (paramsCount != 0)
+        for (int i = 1; i <= paramsCount; i++)
         {
+            int i = paramsCount;
             if (addCodeToBuf(&buffer, "\nDEFVAR TF@$$$param", T_OTHERS) &&
-                addCodeToBuf(&buffer, (void *)&paramsCount, T_INT) &&
+                addCodeToBuf(&buffer, (void *)&i, T_INT) &&
                 addCodeToBuf(&buffer, "\nPOPS TF@$$$param", T_OTHERS) &&
-                addCodeToBuf(&buffer, (void *)&paramsCount, T_INT))
+                addCodeToBuf(&buffer, (void *)&i, T_INT))
             {
-                paramsCount--;
+                continue;
             }
             else
             {
@@ -471,7 +472,7 @@ char *replace_special_characters(const char *input)
         const char *replacement = NULL;
         size_t replacement_len = 0;
 
-        switch (input[i])
+        switch (input[i+1])
         {
         case ' ':
             replacement = "\\032";
@@ -572,4 +573,8 @@ bool endGen()
 
 bool returnMainGen() {
     return addCodeToBuf(&buffer, "\nEXIT int@0", T_OTHERS);
+}
+
+main () {
+    
 }
