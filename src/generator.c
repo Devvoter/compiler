@@ -29,7 +29,7 @@ bool startGen()
     CodeStack_Init(&ifStack);
     CodeStack_Init(&whileStack);
     CodeStack_Init(&whileIsNullableStack);
-    return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME", T_OTHERS));
+    return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nJUMP $$main$$", T_OTHERS));
 }
 
 
@@ -46,7 +46,7 @@ void disposeGen(bool done)
 
 bool startMainGen()
 {
-    return addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$\nDEFVAR LF@$stri2int_string$\nDEFVAR LF@$stri2int_int$\nDEFVAR LF@$tmp_num$\nDEFVAR LF@$tmp_num2$", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nLABEL $$main$$\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$\nDEFVAR LF@$stri2int_string$\nDEFVAR LF@$stri2int_int$\nDEFVAR LF@$tmp_num$\nDEFVAR LF@$tmp_num2$", T_OTHERS);
 }
 
 
@@ -582,7 +582,3 @@ bool returnMainGen() {
     return addCodeToBuf(&buffer, "\nEXIT int@0", T_OTHERS);
 }
 
-void main () {
-    printf("%a", -3.0);
-    return;
-}
