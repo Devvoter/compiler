@@ -645,22 +645,19 @@ Token parse_variable_definition() {
     else {
         if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
             // Když se typy neshodují: Ověřit, zda je možná implicitní konverze
-            // Možné jen když známe hodnotu výrazu
-            if(exprData.isConstExpr) {
-                if(exprType == T_I32_VAR && (newNode->varData->dataType == T_F64_ID || newNode->varData->dataType == T_F64_NULLABLE)) {
-                    if(newNode->varData->isConst) { // Uložení hodnoty do konstantní proměnné
-                        newNode->varData->value.u8->data = exprData.value.u8->data;
-                        newNode->varData->isConstExpr = true;
-                    }
+            if(exprType == T_I32_VAR && (newNode->varData->dataType == T_F64_ID || newNode->varData->dataType == T_F64_NULLABLE)) {
+                if(exprData.isConstExpr && newNode->varData->isConst) { // Uložení hodnoty do konstantní proměnné
+                    newNode->varData->value.u8->data = exprData.value.u8->data;
+                    newNode->varData->isConstExpr = true;
                 }
-                else if(exprType == T_F64_VAR && (newNode->varData->dataType == T_I32_ID || newNode->varData->dataType == T_I32_NULLABLE)
-                                              && zero_decimal(exprData.value.u8->data)) { // Ověření, zda je desetinná část nulová
-                    if(newNode->varData->isConst) { // Uložení hodnoty do konstantní proměnné
-                        newNode->varData->value.u8->data = exprData.value.u8->data;
-                        newNode->varData->isConstExpr = true;
-                    }
+            }
+            else if(exprData.isConstExpr && exprType == T_F64_VAR && zero_decimal(exprData.value.u8->data)  // Ověření, zda je desetinná část nulová
+                    && (newNode->varData->dataType == T_I32_ID || newNode->varData->dataType == T_I32_NULLABLE)) {
+
+                if(newNode->varData->isConst) { // Uložení hodnoty do konstantní proměnné
+                    newNode->varData->value.u8->data = exprData.value.u8->data;
+                    newNode->varData->isConstExpr = true;
                 }
-                else exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
             }
             else exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
@@ -742,26 +739,22 @@ Token parse_assignment_or_function_call() {
         TokenType exprType = exprData.dataType;               // Parsování výrazu na pravé straně přiřazení
         if (!semcheck_compare_dtypes(search_symbol(&symtable, id)->varData->dataType, exprType)) {
             // Když se typy neshodují: Ověřit, zda je možná implicitní konverze
-            // Možné jen když známe hodnotu výrazu
-            if(exprData.isConstExpr) {
-                if(exprType == T_I32_ID && (destVar->varData->dataType == T_F64_ID || 
-                                            destVar->varData->dataType == T_F64_VAR || // Odvozený dt
-                                            destVar->varData->dataType == T_F64_NULLABLE)) {
-                    if(destVar->varData->isConst) {
-                        destVar->varData->value.u8->data = exprData.value.u8->data;
-                        destVar->varData->isConstExpr = true;
-                    }
+            if(exprType == T_I32_ID && (destVar->varData->dataType == T_F64_ID || 
+                                        destVar->varData->dataType == T_F64_VAR || // Odvozený dt
+                                        destVar->varData->dataType == T_F64_NULLABLE)) {
+                if(exprData.isConstExpr && destVar->varData->isConst) {
+                    destVar->varData->value.u8->data = exprData.value.u8->data;
+                    destVar->varData->isConstExpr = true;
                 }
-                else if(exprType == T_F64_VAR && (destVar->varData->dataType == T_I32_ID ||
-                                                  destVar->varData->dataType == T_I32_VAR || // Odvozený dt
-                                                  destVar->varData->dataType == T_I32_NULLABLE)
-                                              && zero_decimal(exprData.value.u8->data)) {    // Ověření, zda je desetinná část nulová
-                    if(destVar->varData->isConst) {
-                        destVar->varData->value.u8->data = exprData.value.u8->data;
-                        destVar->varData->isConstExpr = true;
-                    }
+            }
+            else if(exprData.isConstExpr && exprType == T_F64_VAR && zero_decimal(exprData.value.u8->data) // Ověření, zda je desetinná část nulová
+                                         && (destVar->varData->dataType == T_I32_ID ||
+                                             destVar->varData->dataType == T_I32_VAR || // Odvozený dt
+                                             destVar->varData->dataType == T_I32_NULLABLE)) {
+                if(destVar->varData->isConst) {
+                    destVar->varData->value.u8->data = exprData.value.u8->data;
+                    destVar->varData->isConstExpr = true;
                 }
-                else exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
             }
             else exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
         }
