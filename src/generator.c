@@ -353,14 +353,13 @@ bool endCondWhileGen(bool isNullable, char *ID)
 {
     if (isNullable)
     {
-        if (addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&
+        if (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nPUSHS LF@$tmp$\nPUSHS LF@$tmp$", T_OTHERS) &&
+            addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&
             addCodeToBuf(&buffer, "\nJUMPIFEQS $$while$", T_OTHERS) &&
             addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&
             addCodeToBuf(&buffer, "$end", T_OTHERS) &&
 
-            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) && // ID = hodnota vyrazu
-            addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&
-            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) &&
+            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) &&  //ID = hodnota vyrazu
             addCodeToBuf(&buffer, (void *)&whileCounter, T_INT))
         {
             return CodeStack_Push(whileIsNullableStack, (void *)ID, T_WHILE_IS_NULLABLE);
