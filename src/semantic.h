@@ -134,14 +134,10 @@ bool semcheck_compare_dtypes(TokenType expected, TokenType assigned) {
  * @return True když je desetinná část čísla nulová, jinak false
  */
 bool zero_decimal(char *string) {
-    char *decPoint = strchr(string, '.'); // ukazatel na desetinnou tečku v řetězci
-    if(decPoint == NULL) return true;
-    decPoint++;
-    while (*decPoint != '\0') {
-        if(*decPoint != '0') return false;
-        decPoint++;
-    }
-    return true;
+    char *err;
+    double dnum = strtod(string, &err);
+    if(dnum == (long)dnum) return true; // Asi nie najlepsia presnost...
+    else return false;
 }
 
 /* Konec souboru semantic.h */
