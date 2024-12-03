@@ -29,7 +29,7 @@ bool startGen()
     CodeStack_Init(&ifStack);
     CodeStack_Init(&whileStack);
     CodeStack_Init(&whileIsNullableStack);
-    return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nJUMP $$main$$", T_OTHERS));
+    return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nJUMP $$main$$", T_OTHERS, false));
 }
 
 
@@ -46,13 +46,13 @@ void disposeGen(bool done)
 
 bool startMainGen()
 {
-    return addCodeToBuf(&buffer, "\nLABEL $$main$$\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$\nDEFVAR LF@$stri2int_string$\nDEFVAR LF@$stri2int_int$\nDEFVAR LF@$tmp_num$\nDEFVAR LF@$tmp_num2$", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nLABEL $$main$$\nCREATEFRAME\nPUSHFRAME\nDEFVAR LF@$tmp$\nDEFVAR LF@$str_strlen$\nDEFVAR LF@$concat_string1$\nDEFVAR LF@$concat_string2$\nDEFVAR LF@$stri2int_string$\nDEFVAR LF@$stri2int_int$\nDEFVAR LF@$tmp_num$\nDEFVAR LF@$tmp_num2$", T_OTHERS, false);
 }
 
 
 bool endMainGen()
 {
-    return addCodeToBuf(&buffer, "\nEXIT int@0\nPOPFRAME", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nEXIT int@0\nPOPFRAME", T_OTHERS, false);
 }
 
 
@@ -61,67 +61,66 @@ bool defVarGen(char *ID)
     char *storedID = storeChar(ID);
     if (storedID == NULL)
         return false;
-    return (addCodeToBuf(&buffer, "\nDEFVAR ", T_OTHERS) && addCodeToBuf(&buffer, "LF@", T_OTHERS) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER));
+    if (CodeStack_IsEmpty(whileStack)) {
+        return (addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS, false) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER, false));
+    } else {
+        return (addVarBeforeWhile(&buffer, "\nDEFVAR LF@", T_OTHERS) && addVarBeforeWhile(&buffer, storedID, T_STRING_FROM_PARSER));
+    }
+    
 }
 
 
 bool writeStandFuncGen()
 {
-    return addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nWRITE LF@$tmp$", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nWRITE LF@$tmp$", T_OTHERS, false);
 }
 
 
 bool readstrStandFuncGen() {
-    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ string", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ string", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool readi32StandFuncGen() {
-    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ int", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ int", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool readf64StandFuncGen() {
-    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ float", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    return (addCodeToBuf(&buffer, "\nREAD LF@$tmp$ float", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
 }
-
-
-// bool stringStandFuncGen()
-// {
-//     //TODO ?
-// }
 
 
 bool lengthStandFuncGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$str_strlen$\nSTRLEN LF@$tmp$ LF@$str_strlen$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$str_strlen$\nSTRLEN LF@$tmp$ LF@$str_strlen$", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool concatStandFuncGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$concat_string2$\nPOPS LF@$concat_string1$\nCONCAT LF@$tmp$ LF@$concat_string1$ LF@$concat_string2$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$concat_string2$\nPOPS LF@$concat_string1$\nCONCAT LF@$tmp$ LF@$concat_string1$ LF@$concat_string2$", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool ordStandFuncGen()
 {
-  return (addCodeToBuf(&buffer, "\nPOPS LF@$stri2int_int$\nPOPS LF@$stri2int_string$\nSTRI2INT LF@$tmp$ LF@$stri2int_string$ LF@$stri2int_int$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+  return (addCodeToBuf(&buffer, "\nPOPS LF@$stri2int_int$\nPOPS LF@$stri2int_string$\nSTRI2INT LF@$tmp$ LF@$stri2int_string$ LF@$stri2int_int$", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool chrStandFuncGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2CHAR LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2CHAR LF@$tmp$ LF@$tmp_num$", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
 }
 
 
 bool i2fStandFuncGen(bool previous)
 {
     if (previous) {
-        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num2$\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID) && pushOnStackGen("$tmp_num2$", T_ID));
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num2$\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID) && pushOnStackGen("$tmp_num2$", T_ID));
     } else {
-        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nINT2FLOAT LF@$tmp$ LF@$tmp_num$", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
     }
     
 }
@@ -130,66 +129,66 @@ bool i2fStandFuncGen(bool previous)
 bool f2iStandFuncGen(bool previous)
 {
     if (previous) {
-        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num2$\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID) && pushOnStackGen("$tmp_num2$", T_ID));
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num2$\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID) && pushOnStackGen("$tmp_num2$", T_ID));
     } else {
-        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS) && pushOnStackGen("$tmp$", T_ID));
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp_num$\nFLOAT2INT LF@$tmp$ LF@$tmp_num$", T_OTHERS, false) && pushOnStackGen("$tmp$", T_ID));
     }
 }
 
 
 bool substringStandFuncGen()
 {
-    return addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@string\nDEFVAR TF@startChar\nDEFVAR TF@endChar\nPOPS TF@endChar\nPOPS TF@startChar\nPOPS TF@string\nCALL $$ifj_substring$$\nPUSHS TF@$$$retval", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@string\nDEFVAR TF@startChar\nDEFVAR TF@endChar\nPOPS TF@endChar\nPOPS TF@startChar\nPOPS TF@string\nCALL $$ifj_substring$$\nPUSHS TF@$$$retval", T_OTHERS, false);
 }
 
 
 bool substringGen()
 {
-    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_substring$$\nPUSHFRAME\nDEFVAR LF@$$$retval\nMOVE LF@$$$retval string@\nPUSHS bool@true\nPUSHS int@0\nPUSHS LF@startChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS int@0\nPUSHS LF@endChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@startChar\nPUSHS LF@endChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@startChar\nDEFVAR LF@length\nSTRLEN LF@length LF@string\nPUSHS LF@length\nLTS\nJUMPIFNEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@endChar\nPUSHS LF@length\nGTS\nJUMPIFEQS $$notOk$$\nDEFVAR LF@tmp\nJUMP $$startCopy$$\nLABEL $$startWhile$$\nADD LF@startChar LF@startChar int@1\nJUMPIFEQ $$finishWhile$$ LF@startChar LF@endChar\nLABEL $$startCopy$$\nGETCHAR LF@tmp LF@string LF@startChar\nCONCAT LF@$$$retval LF@$$$retval LF@tmp\nJUMP $$startWhile$$\nJUMP $$end$$\nLABEL $$notOk$$\nMOVE LF@$$$retval nil@nil\nLABEL $$finishWhile$$\nPUSHS LF@$$$retval\nPOPFRAME\nRETURN", T_OTHERS));
+    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_substring$$\nPUSHFRAME\nDEFVAR LF@$$$retval\nMOVE LF@$$$retval string@\nPUSHS bool@true\nPUSHS int@0\nPUSHS LF@startChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS int@0\nPUSHS LF@endChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@startChar\nPUSHS LF@endChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@startChar\nDEFVAR LF@length\nSTRLEN LF@length LF@string\nPUSHS LF@length\nLTS\nJUMPIFNEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@endChar\nPUSHS LF@length\nGTS\nJUMPIFEQS $$notOk$$\nDEFVAR LF@tmp\nJUMP $$startCopy$$\nLABEL $$startWhile$$\nADD LF@startChar LF@startChar int@1\nJUMPIFEQ $$finishWhile$$ LF@startChar LF@endChar\nLABEL $$startCopy$$\nGETCHAR LF@tmp LF@string LF@startChar\nCONCAT LF@$$$retval LF@$$$retval LF@tmp\nJUMP $$startWhile$$\nJUMP $$end$$\nLABEL $$notOk$$\nMOVE LF@$$$retval nil@nil\nLABEL $$finishWhile$$\nPUSHS LF@$$$retval\nPOPFRAME\nRETURN", T_OTHERS, false));
 }
 
 
 bool strcmpFuncGen()
 {
-    return addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@string1\nDEFVAR TF@string2\nPOPS TF@string2\nPOPS TF@string1\nCALL $$ifj_strcmp$$", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@string1\nDEFVAR TF@string2\nPOPS TF@string2\nPOPS TF@string1\nCALL $$ifj_strcmp$$", T_OTHERS, false);
 }
 
 
 bool strcmpGen() {
-    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_strcmp$$\nPUSHFRAME\nPUSHS LF@string1\nPUSHS LF@string2\nEQS\nPUSHS bool@true\nJUMPIFEQS $$success$$\nPUSHS LF@string1\nPUSHS LF@string2\nLTS\nPUSHS bool@true\nJUMPIFEQS $$less$$\nPUSHS LF@string1\nPUSHS LF@string2\nGTS\nPUSHS bool@true\nJUMPIFEQS $$greater$$\nLABEL $$success$$\nPUSHS int@0\nJUMP $$finishStrcmp$$\nLABEL $$less$$\nPUSHS int@-1\nJUMP $$finishStrcmp$$\nLABEL $$greater$$\nPUSHS int@1\nJUMP $$finishStrcmp$$\nLABEL $$finishStrcmp$$\nPOPFRAME\nRETURN", T_OTHERS));
+    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_strcmp$$\nPUSHFRAME\nPUSHS LF@string1\nPUSHS LF@string2\nEQS\nPUSHS bool@true\nJUMPIFEQS $$success$$\nPUSHS LF@string1\nPUSHS LF@string2\nLTS\nPUSHS bool@true\nJUMPIFEQS $$less$$\nPUSHS LF@string1\nPUSHS LF@string2\nGTS\nPUSHS bool@true\nJUMPIFEQS $$greater$$\nLABEL $$success$$\nPUSHS int@0\nJUMP $$finishStrcmp$$\nLABEL $$less$$\nPUSHS int@-1\nJUMP $$finishStrcmp$$\nLABEL $$greater$$\nPUSHS int@1\nJUMP $$finishStrcmp$$\nLABEL $$finishStrcmp$$\nPOPFRAME\nRETURN", T_OTHERS, false));
 }
 
 
 bool pushOnStackGen(char *param, TokenType t)
 {
-    if (addCodeToBuf(&buffer, "\nPUSHS ", T_OTHERS))
+    if (addCodeToBuf(&buffer, "\nPUSHS ", T_OTHERS, false))
     {
         if (t == T_NULL)
         {
-            return addCodeToBuf(&buffer, "nil@nil", T_OTHERS);
+            return addCodeToBuf(&buffer, "nil@nil", T_OTHERS, false);
         }
         if (t == T_STRING_TYPE || t == T_STRING_TYPE_EMPTY) {
             char *str = replace_special_characters(param);
-            return (addCodeToBuf(&buffer, "string@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, str, T_STRING_FROM_PARSER));
+            return (addCodeToBuf(&buffer, "string@", T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, str, T_STRING_FROM_PARSER, false));
         }
         char *storedparam = storeChar(param);
         if (storedparam == NULL)
             return false;
         if (t == T_ID)
         {
-            return (addCodeToBuf(&buffer, "LF@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
+            return (addCodeToBuf(&buffer, "LF@", T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER, false));
         }
         else if (t == T_I32_ID || t == T_I32_VAR)
         {
-            return (addCodeToBuf(&buffer, "int@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER));
+            return (addCodeToBuf(&buffer, "int@", T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, storedparam, T_STRING_FROM_PARSER, false));
         }
         else if (t == T_F64_ID || t == T_F64_VAR)
         {
-            return (addCodeToBuf(&buffer, "float@", T_OTHERS) &&
-                    addCodeToBuf(&buffer, storedparam, T_FLOAT));
+            return (addCodeToBuf(&buffer, "float@", T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, storedparam, T_FLOAT, false));
         }
     }
     return false;
@@ -200,50 +199,50 @@ bool makeOperationStackGen(TokenType t, bool idiv)
 {
     if (t == T_ADD)
     {
-        return addCodeToBuf(&buffer, "\nADDS", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nADDS", T_OTHERS, false);
     }
     else if (t == T_SUB)
     {
-        return addCodeToBuf(&buffer, "\nSUBS", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nSUBS", T_OTHERS, false);
     }
     else if (t == T_MUL)
     {
-        return addCodeToBuf(&buffer, "\nMULS", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nMULS", T_OTHERS, false);
     }
     else if (t == T_DIV)
     {
         if (idiv)
         {
-            return addCodeToBuf(&buffer, "\nIDIVS", T_OTHERS);
+            return addCodeToBuf(&buffer, "\nIDIVS", T_OTHERS, false);
         }
         else
         {
-            return addCodeToBuf(&buffer, "\nDIVS", T_OTHERS);
+            return addCodeToBuf(&buffer, "\nDIVS", T_OTHERS, false);
         }
     }
     else if (t == T_LESS_THAN)
     {
-        return addCodeToBuf(&buffer, "\nLTS", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nLTS", T_OTHERS, false);
     }
     else if (t == T_GREATER_THAN)
     {
-        return addCodeToBuf(&buffer, "\nGTS", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nGTS", T_OTHERS, false);
     }
     else if (t == T_LESS_OR_EQUAL)
     {
-        return addCodeToBuf(&buffer, "\nGTS\nNOTS", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nGTS\nNOTS", T_OTHERS, false);
     }
     else if (t == T_GREATER_OR_EQUAL)
     {
-        return addCodeToBuf(&buffer, "\nLTS\nNOTS", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nLTS\nNOTS", T_OTHERS, false);
     }
     else if (t == T_EQUALS) 
     {
-        return addCodeToBuf(&buffer, "\nEQS", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nEQS", T_OTHERS, false);
     }
     else if (t == T_NOT_EQUALS) 
     {
-        return addCodeToBuf(&buffer, "\nEQS\nNOT", T_OTHERS);
+        return addCodeToBuf(&buffer, "\nEQS\nNOT", T_OTHERS, false);
     } 
     else return false;
 }
@@ -253,13 +252,13 @@ bool endExpAssignGen(char *ID)
 {
     if (strcmp(ID, "_") == 0)   
     {
-        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$", T_OTHERS));
+        return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$", T_OTHERS, false));
     }
     char *storedID = storeChar(ID);
     if (storedID == NULL)
         return false;
-    return (addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) &&
-            addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER));
+    return (addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER, false));
 }
 
 
@@ -273,22 +272,22 @@ bool startIfGen(bool withNull, char *ID)
             char *storedID = storeChar(ID);
             if (storedID == NULL)
                 return false;
-            return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nPUSHS LF@$tmp$\nPUSHS LF@$tmp$", T_OTHERS) &&
-                    addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&   // push na zasobnik null hodnoty
-                    addCodeToBuf(&buffer, "\nJUMPIFEQS $$if$", T_OTHERS) && // porovname null s vysledkem vyrazu a udelame skok
-                    addCodeToBuf(&buffer, (void *)&ifCounter, T_INT) &&
-                    addCodeToBuf(&buffer, "$else", T_OTHERS) &&
-                    addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) && // v pripade ne NULL definujeme promennou
-                    addCodeToBuf(&buffer, storedID, T_OTHERS) &&
-                    addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS) && // a popneme hodnotu vyrazu do promenne
-                    addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER));
+            return (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nPUSHS LF@$tmp$\nPUSHS LF@$tmp$", T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS, false) &&   // push na zasobnik null hodnoty
+                    addCodeToBuf(&buffer, "\nJUMPIFEQS $$if$", T_OTHERS, false) && // porovname null s vysledkem vyrazu a udelame skok
+                    addCodeToBuf(&buffer, (void *)&ifCounter, T_INT, false) &&
+                    addCodeToBuf(&buffer, "$else", T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS, false) && // v pripade ne NULL definujeme promennou
+                    addCodeToBuf(&buffer, storedID, T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, "\nPOPS LF@", T_OTHERS, false) && // a popneme hodnotu vyrazu do promenne
+                    addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER, false));
         }
         else
         {
-            return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS) &&
-                    addCodeToBuf(&buffer, "\nJUMPIFNEQS $$if$", T_OTHERS) &&
-                    addCodeToBuf(&buffer, (void *)&ifCounter, T_INT) &&
-                    addCodeToBuf(&buffer, "$else", T_OTHERS));
+            return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, "\nJUMPIFNEQS $$if$", T_OTHERS, false) &&
+                    addCodeToBuf(&buffer, (void *)&ifCounter, T_INT, false) &&
+                    addCodeToBuf(&buffer, "$else", T_OTHERS, false));
         }
     }
     return false;
@@ -297,12 +296,12 @@ bool startIfGen(bool withNull, char *ID)
 
 bool startElseGen()
 {
-    return (addCodeToBuf(&buffer, "\nJUMP $$if$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT) &&
-            addCodeToBuf(&buffer, "$end", T_OTHERS) &&
-            addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT) &&
-            addCodeToBuf(&buffer, "$else", T_OTHERS));
+    return (addCodeToBuf(&buffer, "\nJUMP $$if$", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT, false) &&
+            addCodeToBuf(&buffer, "$end", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT,false) &&
+            addCodeToBuf(&buffer, "$else", T_OTHERS, false));
 }
 
 
@@ -310,9 +309,9 @@ bool endIfElseGen(bool withElse)
 {
     if (withElse)
     {
-        if (addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT) &&
-            addCodeToBuf(&buffer, "$end", T_OTHERS))
+        if (addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT, false) &&
+            addCodeToBuf(&buffer, "$end", T_OTHERS, false))
         {
             CodeStack_Pop(ifStack);
             return true;
@@ -322,9 +321,9 @@ bool endIfElseGen(bool withElse)
     }
     else
     {
-        if (addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT) &&
-            addCodeToBuf(&buffer, "$else", T_OTHERS))
+        if (addCodeToBuf(&buffer, "\nLABEL $$if$", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, (void *)CodeStack_Top(ifStack)->data, T_INT, false) &&
+            addCodeToBuf(&buffer, "$else", T_OTHERS, false))
         {
             CodeStack_Pop(ifStack);
             return true;
@@ -340,10 +339,10 @@ bool startWhileGen()
     whileCounter++;
     if (CodeStack_Push(whileStack, (void *)&whileCounter, T_COUNTER))
     {
-        return (addCodeToBuf(&buffer, "\nDEFVAR LF@$$while$isNullable$", T_OTHERS) && // definovani pomocne promenne
-                addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&                // pro pocitani s IsNullable
-                addCodeToBuf(&buffer, "\nLABEL $$while$", T_OTHERS) &&
-                addCodeToBuf(&buffer, (void *)&whileCounter, T_INT));
+        return (addCodeToBuf(&buffer, "\nDEFVAR LF@$$while$isNullable$", T_OTHERS, false) && // definovani pomocne promenne
+                addCodeToBuf(&buffer, (void *)&whileCounter, T_INT, false) &&                // pro pocitani s IsNullable
+                addCodeToBuf(&buffer, "\nLABEL $$while$", T_OTHERS, true) &&
+                addCodeToBuf(&buffer, (void *)&whileCounter, T_INT, false));
     }
     return false;
 }
@@ -353,24 +352,24 @@ bool endCondWhileGen(bool isNullable, char *ID)
 {
     if (isNullable)
     {
-        if (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nPUSHS LF@$tmp$\nPUSHS LF@$tmp$", T_OTHERS) &&
-            addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&
-            addCodeToBuf(&buffer, "\nJUMPIFEQS $$while$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&
-            addCodeToBuf(&buffer, "$end", T_OTHERS) &&
+        if (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nPUSHS LF@$tmp$\nPUSHS LF@$tmp$", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, "\nJUMPIFEQS $$while$", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, (void *)&whileCounter, T_INT, false) &&
+            addCodeToBuf(&buffer, "$end", T_OTHERS, false) &&
 
-            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) &&
-            addCodeToBuf(&buffer, (void *)&whileCounter, T_INT))
+            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, (void *)&whileCounter, T_INT, false))
         {
             return CodeStack_Push(whileIsNullableStack, (void *)ID, T_WHILE_IS_NULLABLE);
         }
     }
     else
     {
-        return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS) &&
-                addCodeToBuf(&buffer, "\nJUMPIFNEQS $$while$", T_OTHERS) &&
-                addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&
-                addCodeToBuf(&buffer, "$end", T_OTHERS));
+        return (addCodeToBuf(&buffer, "\nPUSHS bool@true", T_OTHERS, false) &&
+                addCodeToBuf(&buffer, "\nJUMPIFNEQS $$while$", T_OTHERS, false) &&
+                addCodeToBuf(&buffer, (void *)&whileCounter, T_INT, false) &&
+                addCodeToBuf(&buffer, "$end", T_OTHERS, false));
     }
     return false;
 }
@@ -378,11 +377,11 @@ bool endCondWhileGen(bool isNullable, char *ID)
 
 bool endWhileGen()
 {
-    if (addCodeToBuf(&buffer, "\nJUMP $$while$", T_OTHERS) &&
-        addCodeToBuf(&buffer, (void *)CodeStack_Top(whileStack)->data, T_INT) &&
-        addCodeToBuf(&buffer, "\nLABEL $$while$", T_OTHERS) &&
-        addCodeToBuf(&buffer, (void *)CodeStack_Top(whileStack)->data, T_INT) &&
-        addCodeToBuf(&buffer, "$end", T_OTHERS))
+    if (addCodeToBuf(&buffer, "\nJUMP $$while$", T_OTHERS, false) &&
+        addCodeToBuf(&buffer, (void *)CodeStack_Top(whileStack)->data, T_INT, false) &&
+        addCodeToBuf(&buffer, "\nLABEL $$while$", T_OTHERS, false) &&
+        addCodeToBuf(&buffer, (void *)CodeStack_Top(whileStack)->data, T_INT, false) &&
+        addCodeToBuf(&buffer, "$end", T_OTHERS, false))
     {
         CodeStack_Pop(whileStack);
         CodeStack_Pop(whileIsNullableStack);
@@ -396,14 +395,14 @@ bool endWhileGen()
 bool callFuncGen(char *name, int paramsCount)
 {
     bool paramsWritten = true;
-    if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$\nDEFVAR TF@$concat_string1$\nDEFVAR TF@$concat_string2$\nDEFVAR TF@$stri2int_string$\nDEFVAR TF@$stri2int_int$\nDEFVAR TF@$tmp_num$\nDEFVAR TF@$tmp_num2$", T_OTHERS))
+    if (addCodeToBuf(&buffer, "\nCREATEFRAME\nDEFVAR TF@$tmp$\nDEFVAR TF@$str_strlen$\nDEFVAR TF@$concat_string1$\nDEFVAR TF@$concat_string2$\nDEFVAR TF@$stri2int_string$\nDEFVAR TF@$stri2int_int$\nDEFVAR TF@$tmp_num$\nDEFVAR TF@$tmp_num2$", T_OTHERS, false))
     {
         for (int i = 1; i <= paramsCount; i++)
         {
-            if (addCodeToBuf(&buffer, "\nDEFVAR TF@$$$param", T_OTHERS) &&
-                addCodeToBuf(&buffer, (void *)&i, T_INT) &&
-                addCodeToBuf(&buffer, "\nPOPS TF@$$$param", T_OTHERS) &&
-                addCodeToBuf(&buffer, (void *)&i, T_INT))
+            if (addCodeToBuf(&buffer, "\nDEFVAR TF@$$$param", T_OTHERS, false) &&
+                addCodeToBuf(&buffer, (void *)&i, T_INT, false) &&
+                addCodeToBuf(&buffer, "\nPOPS TF@$$$param", T_OTHERS, false) &&
+                addCodeToBuf(&buffer, (void *)&i, T_INT, false))
             {
                 continue;
             }
@@ -416,8 +415,8 @@ bool callFuncGen(char *name, int paramsCount)
         char *storedname = storeChar(name);
         if (storedname == NULL)
             return false;
-        if (addCodeToBuf(&buffer, "\nCALL $$$", T_OTHERS) &&
-            addCodeToBuf(&buffer, storedname, T_STRING_FROM_PARSER))
+        if (addCodeToBuf(&buffer, "\nCALL $$$", T_OTHERS, false) &&
+            addCodeToBuf(&buffer, storedname, T_STRING_FROM_PARSER, false))
         {
             return paramsWritten;
         }
@@ -431,17 +430,17 @@ bool funcStartGen(char *name, ParamList *l)
     char *storedname = storeChar(name);
     if (storedname == NULL)
         return false;
-    if (addCodeToBuf(&buffer, "\nLABEL $$$", T_OTHERS) &&
-        addCodeToBuf(&buffer, storedname, T_STRING_FROM_PARSER) &&
-        addCodeToBuf(&buffer, "\nPUSHFRAME", T_OTHERS))
+    if (addCodeToBuf(&buffer, "\nLABEL $$$", T_OTHERS, false) &&
+        addCodeToBuf(&buffer, storedname, T_STRING_FROM_PARSER, false) &&
+        addCodeToBuf(&buffer, "\nPUSHFRAME", T_OTHERS, false))
     {
         l->activeElement = l->firstElement;
         int paramCount = 0;
         while (l->activeElement != NULL) {
             char *param = storeChar(l->activeElement->name);
             paramCount++;
-            if (addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS) && addCodeToBuf(&buffer, param, T_OTHERS) && addCodeToBuf(&buffer, "\nMOVE LF@", T_OTHERS) &&
-                addCodeToBuf(&buffer, param, T_STRING_FROM_PARSER) && addCodeToBuf(&buffer, " LF@$$$param", T_OTHERS) && addCodeToBuf(&buffer, (void *)&paramCount, T_INT)) {
+            if (addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS, false) && addCodeToBuf(&buffer, param, T_OTHERS, false) && addCodeToBuf(&buffer, "\nMOVE LF@", T_OTHERS, false) &&
+                addCodeToBuf(&buffer, param, T_STRING_FROM_PARSER, false) && addCodeToBuf(&buffer, " LF@$$$param", T_OTHERS, false) && addCodeToBuf(&buffer, (void *)&paramCount, T_INT, false)) {
                     List_Next(l);
                     continue;
             } else {
@@ -456,7 +455,7 @@ bool funcStartGen(char *name, ParamList *l)
 
 bool funcEndGen()
 {
-    return (addCodeToBuf(&buffer, "\nPOPFRAME\nRETURN", T_OTHERS));
+    return (addCodeToBuf(&buffer, "\nPOPFRAME\nRETURN", T_OTHERS, false));
 }
 
 char *replace_special_characters(const char *input)
@@ -586,10 +585,10 @@ char *storeChar(char *ID)
 
 bool endGen()
 {
-    return (substringGen() && strcmpGen() && addCodeToBuf(&buffer, "\nCLEARS\nPOPFRAME\n", T_OTHERS));
+    return (substringGen() && strcmpGen() && addCodeToBuf(&buffer, "\nCLEARS\nPOPFRAME\n", T_OTHERS, false));
 }
 
 bool returnMainGen() {
-    return addCodeToBuf(&buffer, "\nEXIT int@0", T_OTHERS);
+    return addCodeToBuf(&buffer, "\nEXIT int@0", T_OTHERS, false);
 }
 

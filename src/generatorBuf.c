@@ -26,8 +26,9 @@ bool bufInit(codeBuf **buffer)
         return false;
     }
     firstElem->code = ".IFJcode24";
-    firstElem->t = T_OTHERS;
+    firstElem->print_t = T_OTHERS;
     firstElem->next = NULL;
+    firstElem->previous = NULL;
     (*buffer)->first = firstElem;
     (*buffer)->active = firstElem;
     return true;
@@ -36,10 +37,10 @@ bool bufInit(codeBuf **buffer)
 void bufPrint(codeBuf **buffer) {
     (*buffer)->active = (*buffer)->first;
         while ((*buffer)->active != NULL) {
-            if ((*buffer)->active->t == T_FLOAT) {
+            if ((*buffer)->active->print_t == T_FLOAT) {
                 double f = atof((*buffer)->active->code);
                 fprintf(stdout, "%a", f);
-            } else if ((*buffer)->active->t == T_INT) {
+            } else if ((*buffer)->active->print_t == T_INT) {
                 fprintf(stdout, "%d", *(int*)(*buffer)->active->code);
             } else {
                 fprintf(stdout, "%s", (char*)(*buffer)->active->code);
@@ -58,7 +59,7 @@ void bufDestroy(codeBuf *buffer)
     {
         codeBufElemPtr tmp = elem;
         elem = elem->next;
-        if (tmp->t == T_STRING || tmp->t == T_INT || tmp->t == T_STRING_FROM_PARSER || tmp->t == T_FLOAT) {
+        if (tmp->print_t == T_STRING || tmp->print_t == T_INT || tmp->print_t == T_STRING_FROM_PARSER || tmp->print_t == T_FLOAT) {
             free(tmp->code);
         }
         free(tmp);
@@ -66,13 +67,13 @@ void bufDestroy(codeBuf *buffer)
     free(buffer);
 }
 
-bool addCodeToBuf(codeBuf **buffer, void *str, PRINT_TYPE t) {
+bool addCodeToBuf(codeBuf **buffer, void *str, PRINT_TYPE print_t, bool while_t) {
     codeBufElemPtr elem = malloc(sizeof(struct codeBufElem));
     if (elem == NULL)
     {
         return false;
     }
-    if (t == T_INT) {
+    if (print_t == T_INT) {
         elem->code = malloc(sizeof(int));
         if (elem->code == NULL) {
             return false;
@@ -81,10 +82,40 @@ bool addCodeToBuf(codeBuf **buffer, void *str, PRINT_TYPE t) {
     } else {
         elem->code = str;
     }
-    elem->t = t;
+    elem->print_t = print_t;
+    elem->while_t = while_t;
+    elem->next = NULL;
+    elem->previous = (*buffer)->active;
     (*buffer)->active->next = elem;
     (*buffer)->active = elem;
-    elem->next = NULL;
     return true;
 }
+
+bool addVarBeforeWhile(codeBuf **buffer, void *str, PRINT_TYPE print_t) {
+    codeBufElemPtr foundWhile = (*buffer)->active;
+    //najdeme kod se zacatkem aktualniho while
+    while (foundWhile != NULL) {
+        if (foundWhile->while_t == true) {
+            break;
+        } else {
+            foundWhile = foundWhile->previous;
+        }
+    }
+    if (foundWhile == NULL) {
+        return false;
+    }
+    codeBufElemPtr elem = malloc(sizeof(struct codeBufElem));
+    if (elem == NULL)
+    {
+        return false;
+    }
+    elem->code = str;
+    elem->print_t = print_t;
+    elem->while_t = false;
+    elem->next = foundWhile;
+    elem->previous = foundWhile->previous;
+    foundWhile->previous->next = elem;
+    foundWhile->previous = elem;
+}
+
 
