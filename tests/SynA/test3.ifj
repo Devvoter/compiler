@@ -21,4 +21,5 @@ pub fn main() void {
     const me = ifj.readf64();
     const please = ifj.readstr(); 
     ifj.write("i32:");ifj.write(kill);  ifj.write("str: "); ifj.write(please);  ifj.write("f64: "); ifj.write(me);
+    ifj.write(null);
 }

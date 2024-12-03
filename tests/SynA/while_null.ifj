@@ -1,0 +1,9 @@
+const ifj = @import("ifj24.zig");
+
+pub fn main() void {
+    var a : ?i32 = ifj.readi32();
+    while (a) |a_bez_null| {
+        ifj.write("a = "); ifj.write(a_bez_null); ifj.write("\n");
+        a = ifj.readi32();
+    }
+}
