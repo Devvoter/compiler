@@ -492,6 +492,18 @@ char *replace_special_characters(const char *input)
             replacement = "\\010";
             replacement_len = 4;
             break;
+        case '\t':
+            replacement = "\\009";
+            replacement_len = 4;
+            break;
+        case '\r':
+            replacement = "\\013";
+            replacement_len = 4;
+            break;
+        case '"':
+            replacement = "\\034";
+            replacement_len = 4;
+            break;
         case '#':
             replacement = "\\035";
             replacement_len = 4;
