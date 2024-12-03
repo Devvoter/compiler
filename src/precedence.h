@@ -224,14 +224,12 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                 }
                 else {
                     reducedTop.type = idTS->varData->dataType;
-<<<<<<< HEAD
                     if (!pushOnStackGen(expr.data.u8->data, T_ID)) {
                         exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
-=======
                     //pushOnStackGen(expr.data.u8, variable_t);
                     if(idTS->varData->isConstExpr && idTS->varData->isConst) {
                         reducedTop.isLiteral = true;
->>>>>>> expr_assignment
+
                     }
                 }
                 if (reducedTop.type == T_VOID) {

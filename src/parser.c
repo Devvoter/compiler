@@ -621,14 +621,12 @@ Token parse_variable_definition() {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
     }
     newNode->id = id.data.u8->data;
-<<<<<<< HEAD
+
     newNode->varData->isUsed = false;
     if (!defVarGen(newNode->id)) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
-=======
->>>>>>> expr_assignment
     Token token = getCurrentToken();
     if (token.type != T_COLON && token.type != T_ASSIGN) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -661,13 +659,13 @@ Token parse_variable_definition() {
     //     }
     //     return getCurrentToken();   // Vrátíme token pro další zpracování
     // }
-<<<<<<< HEAD
+
     TokenType exprType = expression().dataType;                   // Parsování výrazu na pravé straně přiřazení
     endExpAssignGen(newNode->id);
-=======
+
     tExprVal exprData = expression();                             // Parsování výrazu na pravé straně přiřazení
     TokenType exprType = exprData.dataType;                   
->>>>>>> expr_assignment
+
     if (exprType == T_NULL) {
         if (autoType) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_DERIVATION);
