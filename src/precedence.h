@@ -226,10 +226,6 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                     reducedTop.type = idTS->varData->dataType;
                     if (!pushOnStackGen(expr.data.u8->data, T_ID)) {
                         exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
-                    //pushOnStackGen(expr.data.u8, variable_t);
-                    if(idTS->varData->isConstExpr && idTS->varData->isConst) {
-                        reducedTop.isLiteral = true;
-
                     }
                 }
                 if (reducedTop.type == T_VOID) {
@@ -237,15 +233,9 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                 }
                 if (reducedTop.type == T_I32_ID) {
                     reducedTop.type = T_I32_VAR;
-                    if(reducedTop.isLiteral) {
-                        expr.data.u8->data = idTS->varData->value.u8->data;
-                    }
                 }
                 else if (reducedTop.type == T_F64_ID) {
                     reducedTop.type = T_F64_VAR;
-                    if(reducedTop.isLiteral) {
-                        expr.data.u8->data = idTS->varData->value.u8->data;
-                    }
                 }
             }
             else if (tokenTop->token.type == T_I32_VAR) {
