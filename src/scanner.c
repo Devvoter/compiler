@@ -700,6 +700,8 @@ Token getNextToken(ListOfTokens *list){
                 if (c == '"') // mame prazdy retezec ""
                 {
                    newToken.type = T_STRING_TYPE_EMPTY;
+                   loadSymbol(&newToken, '\0', &init_count);
+                   init_count = 0;
                    insert_in_list_of_tokens(list, newToken);
                    return newToken;
                 }
