@@ -637,36 +637,20 @@ Token parse_variable_definition() {
     }
     else if (autoType) {
         newNode->varData->dataType = exprType;
-        if(exprData.isConstExpr && newNode->varData->isConst) {
-            newNode->varData->isConstExpr = true;
-            newNode->varData->value.u8->data = exprData.value.u8->data;
-        }
     }
     else {
         if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
             // Když se typy neshodují: Ověřit, zda je možná implicitní konverze
-            if(exprType == T_I32_VAR && (newNode->varData->dataType == T_F64_ID || newNode->varData->dataType == T_F64_NULLABLE)) {
-                if(exprData.isConstExpr && newNode->varData->isConst) { // Uložení hodnoty do konstantní proměnné
-                    newNode->varData->value.u8->data = exprData.value.u8->data;
-                    newNode->varData->isConstExpr = true;
-                }
+            bool convertable = false;
+            if(exprData.dataType == T_I32_VAR && (newNode->varData->dataType == T_F64_ID || newNode->varData->dataType == T_F64_NULLABLE)) {
+                convertable = true;
             }
-            else if(exprData.isConstExpr && exprType == T_F64_VAR && zero_decimal(exprData.value.u8->data)  // Ověření, zda je desetinná část nulová
-                    && (newNode->varData->dataType == T_I32_ID || newNode->varData->dataType == T_I32_NULLABLE)) {
-
-                if(newNode->varData->isConst) { // Uložení hodnoty do konstantní proměnné
-                    newNode->varData->value.u8->data = exprData.value.u8->data;
-                    newNode->varData->isConstExpr = true;
-                }
+            else if(exprData.dataType == T_F64_VAR && exprData.zeroDecimal && (newNode->varData->dataType == T_I32_ID || newNode->varData->dataType == T_I32_NULLABLE)) {
+                convertable = true;
             }
-            else exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-        }
-        else {
-            if(exprData.isConstExpr && newNode->varData->isConst) { // Uložení hodnoty výrazu
-                newNode->varData->isConstExpr = true;
-                newNode->varData->value.u8->data = exprData.value.u8->data;
+            if(!convertable) {
+                exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
             }
-
         }
     }
     // else if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
@@ -739,29 +723,15 @@ Token parse_assignment_or_function_call() {
         TokenType exprType = exprData.dataType;               // Parsování výrazu na pravé straně přiřazení
         if (!semcheck_compare_dtypes(search_symbol(&symtable, id)->varData->dataType, exprType)) {
             // Když se typy neshodují: Ověřit, zda je možná implicitní konverze
-            if(exprType == T_I32_ID && (destVar->varData->dataType == T_F64_ID || 
-                                        destVar->varData->dataType == T_F64_VAR || // Odvozený dt
-                                        destVar->varData->dataType == T_F64_NULLABLE)) {
-                if(exprData.isConstExpr && destVar->varData->isConst) {
-                    destVar->varData->value.u8->data = exprData.value.u8->data;
-                    destVar->varData->isConstExpr = true;
-                }
+            bool convertable = false;
+            if(exprData.dataType == T_I32_VAR && (destVar->varData->dataType == T_F64_ID || destVar->varData->dataType == T_F64_NULLABLE || destVar->varData->dataType == T_F64_VAR)) {
+                convertable = true;
             }
-            else if(exprData.isConstExpr && exprType == T_F64_VAR && zero_decimal(exprData.value.u8->data) // Ověření, zda je desetinná část nulová
-                                         && (destVar->varData->dataType == T_I32_ID ||
-                                             destVar->varData->dataType == T_I32_VAR || // Odvozený dt
-                                             destVar->varData->dataType == T_I32_NULLABLE)) {
-                if(destVar->varData->isConst) {
-                    destVar->varData->value.u8->data = exprData.value.u8->data;
-                    destVar->varData->isConstExpr = true;
-                }
+            else if(exprData.dataType == T_F64_VAR && exprData.zeroDecimal && (destVar->varData->dataType == T_I32_ID || destVar->varData->dataType == T_I32_NULLABLE)) {
+                convertable = true;
             }
-            else exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-        }
-        else {
-            if(exprData.isConstExpr && destVar->varData->isConst) { // Uložení hodnoty konstantního výrazu
-                destVar->varData->isConstExpr = true;
-                destVar->varData->value.u8->data = exprData.value.u8->data;
+            if(!convertable) {
+                exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
             }
         }
         if (CurrentToken.type != T_SEMICOLON) {
@@ -1084,11 +1054,10 @@ tExprVal expression() {
                 if(checkExprEnd(&stack)) {
                     tExprVal result;
                     result.dataType = S_Top(&stack)->type;
-                    if(S_Top(&stack)->isLiteral){
-                        result.isConstExpr = true;
-                        result.value.u8->data = S_Top(&stack)->token.data.u8->data;
+                    if(S_Top(&stack)->isLiteral) {
+                        result.zeroDecimal = zero_decimal(S_Top(&stack)->token.data.u8->data);
                     }
-                    else result.isConstExpr = false;
+                    else result.zeroDecimal = false;
                     return result;
                 }
             }
@@ -1139,10 +1108,9 @@ tExprVal expression() {
     tExprVal result;
     result.dataType = S_Top(&stack)->type;
     if(S_Top(&stack)->isLiteral) {
-        result.isConstExpr = true;
-        result.value.u8->data = S_Top(&stack)->token.data.u8->data;
+        result.zeroDecimal = zero_decimal(S_Top(&stack)->token.data.u8->data);
     }
-    else result.isConstExpr = false;
+    else result.zeroDecimal = false;
     return result;
 }
 

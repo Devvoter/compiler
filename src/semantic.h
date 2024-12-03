@@ -13,6 +13,7 @@
 #include "symtable.h"
 #include "scanner.h"
 #include <stdbool.h>
+#include <string.h>
 
 extern Token CurrentToken;
 extern tFrameStack symtable;
