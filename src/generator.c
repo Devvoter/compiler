@@ -145,7 +145,7 @@ bool substringStandFuncGen()
 
 bool substringGen()
 {
-    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_substring$$\nPUSHFRAME\nDEFVAR LF@$$$retval\nMOVE LF@$$$retval string@\nPUSHS bool@true\nPUSHS int@0\nPUSHS LF@startChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS int@0\nPUSHS LF@endChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@startChar\nPUSHS LF@endChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@startChar\nDEFVAR LF@length\nSTRLEN LF@length LF@string\nPUSHS LF@length\nLTS\nJUMPIFNEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@endChar\nPUSHS LF@length\nGTS\nJUMPIFEQS $$notOk$$\nDEFVAR LF@tmp\nJUMP $$startCopy$$\nLABEL $$startWhile$$\nADD LF@startChar LF@startChar int@1\nJUMPIFEQ $$finishWhile$$ LF@startChar LF@endChar\nLABEL $$startCopy$$\nGETCHAR LF@tmp LF@string LF@startChar\nCONCAT LF@$$$retval LF@$$$retval LF@tmp\nJUMP $$startWhile$$\nJUMP $$end$$\nLABEL $$notOk$$\nMOVE LF@$$$retval nil@nil\nLABEL $$finishWhile$$\nPOPFRAME\nRETURN", T_OTHERS));
+    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_substring$$\nPUSHFRAME\nDEFVAR LF@$$$retval\nMOVE LF@$$$retval string@\nPUSHS bool@true\nPUSHS int@0\nPUSHS LF@startChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS int@0\nPUSHS LF@endChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@startChar\nPUSHS LF@endChar\nGTS\nJUMPIFEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@startChar\nDEFVAR LF@length\nSTRLEN LF@length LF@string\nPUSHS LF@length\nLTS\nJUMPIFNEQS $$notOk$$\nPUSHS bool@true\nPUSHS LF@endChar\nPUSHS LF@length\nGTS\nJUMPIFEQS $$notOk$$\nDEFVAR LF@tmp\nJUMP $$startCopy$$\nLABEL $$startWhile$$\nADD LF@startChar LF@startChar int@1\nJUMPIFEQ $$finishWhile$$ LF@startChar LF@endChar\nLABEL $$startCopy$$\nGETCHAR LF@tmp LF@string LF@startChar\nCONCAT LF@$$$retval LF@$$$retval LF@tmp\nJUMP $$startWhile$$\nJUMP $$end$$\nLABEL $$notOk$$\nMOVE LF@$$$retval nil@nil\nLABEL $$finishWhile$$\nPUSHS LF@$$$retval\nPOPFRAME\nRETURN", T_OTHERS));
 }
 
 
@@ -156,7 +156,7 @@ bool strcmpFuncGen()
 
 
 bool strcmpGen() {
-    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_strcmp$$\nPUSHFRAME\nDEFVAR LF@$$$retval\nPUSHS LF@string1\nPUSHS LF@string2\nEQS\nPUSHS bool@true\nJUMPIFEQS $$success$$\nPUSHS LF@string1\nPUSHS LF@string2\nLTS\nPUSHS bool@true\nJUMPIFEQS $$less$$\nPUSHS LF@string1\nPUSHS LF@string2\nGTS\nPUSHS bool@true\nJUMPIFEQS $$greater$$\nLABEL $$success$$\nMOVE LF@$$$retval int@0\nJUMP $$finishStrcmp$$\nLABEL $$less$$\nMOVE LF@$$$retval int@-1\nJUMP $$finishStrcmp$$\nLABEL $$greater$$\nMOVE LF@$$$retval int@1\nJUMP $$finishStrcmp$$\nLABEL $$finishStrcmp$$\nPOPFRAME\nRETURN", T_OTHERS));
+    return (addCodeToBuf(&buffer, "\nLABEL $$ifj_strcmp$$\nPUSHFRAME\nPUSHS LF@string1\nPUSHS LF@string2\nEQS\nPUSHS bool@true\nJUMPIFEQS $$success$$\nPUSHS LF@string1\nPUSHS LF@string2\nLTS\nPUSHS bool@true\nJUMPIFEQS $$less$$\nPUSHS LF@string1\nPUSHS LF@string2\nGTS\nPUSHS bool@true\nJUMPIFEQS $$greater$$\nLABEL $$success$$\nPUSHS int@0\nJUMP $$finishStrcmp$$\nLABEL $$less$$\nPUSHS int@-1\nJUMP $$finishStrcmp$$\nLABEL $$greater$$\nPUSHS int@1\nJUMP $$finishStrcmp$$\nLABEL $$finishStrcmp$$\nPOPFRAME\nRETURN", T_OTHERS));
 }
 
 
@@ -353,13 +353,14 @@ bool endCondWhileGen(bool isNullable, char *ID)
 {
     if (isNullable)
     {
-        if (addCodeToBuf(&buffer, "\nPOPS LF@$tmp$\nPUSHS LF@$tmp$\nPUSHS LF@$tmp$", T_OTHERS) &&
-            addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&
+        if (addCodeToBuf(&buffer, "\nPUSHS nil@nil", T_OTHERS) &&
             addCodeToBuf(&buffer, "\nJUMPIFEQS $$while$", T_OTHERS) &&
             addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&
             addCodeToBuf(&buffer, "$end", T_OTHERS) &&
 
-            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) &&  //ID = hodnota vyrazu
+            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) && // ID = hodnota vyrazu
+            addCodeToBuf(&buffer, (void *)&whileCounter, T_INT) &&
+            addCodeToBuf(&buffer, "\nPOPS LF@$$while$isNullable$", T_OTHERS) &&
             addCodeToBuf(&buffer, (void *)&whileCounter, T_INT))
         {
             return CodeStack_Push(whileIsNullableStack, (void *)ID, T_WHILE_IS_NULLABLE);
