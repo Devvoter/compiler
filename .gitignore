@@ -6,3 +6,9 @@ tests/LA/obj
 test/test/obj
 test/test/test_stack
 tests/LA/test_scanner
+tests/SynA/*.txt
+tests/SynA/*.md
+tests/SynA/ic24int
+tests/SynA/test
+tests/SynA/ifj24_compiler
+tests/SynA/README

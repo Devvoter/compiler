@@ -95,10 +95,16 @@ TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, Precede
         // mužeme udělat implicitní konverzi literálu nebo konstanty typu i32 na f64
         if (operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && (operand1->isLiteral || search_symbol(symtable, operand1->token.data.u8->data)->varData->isConst)) {
             operand1->type = T_F64_VAR;
+            if (!i2fStandFuncGen(false)) {
+                exitWithError(&operand1->token, ERR_INTERNAL_COMPILER);
+            }
             return T_COMPARASION;
         }
         else if (operand1->type == T_F64_VAR && operand2->type == T_I32_VAR && (operand2->isLiteral || search_symbol(symtable, operand2->token.data.u8->data)->varData->isConst)) {
             operand2->type = T_F64_VAR;
+            if (!i2fStandFuncGen(true)) {
+                exitWithError(&operand1->token, ERR_INTERNAL_COMPILER);
+            }
             return T_COMPARASION;
         }
         // jinak pokud jsou oba operandy stejného typu, jsou kompatibilní a typ výrazu je T_COMPARASION
@@ -111,9 +117,19 @@ TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, Precede
     }
     else if (operation == T_ADD || operation == T_SUB || operation == T_MUL) {
         // mužeme udělat implicitní konverzi literálu typu i32 na f64
-        if ((operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && operand1->isLiteral) ||
-            (operand2->type == T_F64_VAR && operand2->type == T_I32_VAR && operand2->isLiteral)) {
-            return T_F64_VAR; 
+        if (operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && operand1->isLiteral){
+            operand1->type = T_F64_VAR;
+            if (!i2fStandFuncGen(false)) {
+                exitWithError(&operand1->token, ERR_INTERNAL_COMPILER);
+            }
+            return T_F64_VAR;
+        }
+        else if (operand1->type == T_F64_VAR && operand2->type == T_I32_VAR && operand2->isLiteral) {
+            operand2->type = T_F64_VAR;
+            if (!i2fStandFuncGen(true)) {
+                exitWithError(&operand1->token, ERR_INTERNAL_COMPILER);
+            }
+            return T_F64_VAR;
         }
         // jinak pokud jsou oba operandy stejného typu, jsou kompatibilní a typ výrazu je operand1->type
         else if (!semcheck_compare_dtypes(operand1->type, operand2->type)) {
@@ -144,10 +160,16 @@ TokenType typeConversion(TokenType operation, PrecedenceToken *operand1, Precede
         // mužeme udělat implicitní konverzi literálu nebo konstanty typu i32 na f64
         if (operand1->type == T_I32_VAR && operand2->type == T_F64_VAR && (operand1->isLiteral || search_symbol(symtable, operand1->token.data.u8->data)->varData->isConst)) {
             operand1->type = T_F64_VAR;
+            if (!i2fStandFuncGen(false)) {
+                exitWithError(&operand1->token, ERR_INTERNAL_COMPILER);
+            }
             return T_COMPARASION;
         }
         else if (operand1->type == T_F64_VAR && operand2->type == T_I32_VAR && (operand2->isLiteral || search_symbol(symtable, operand2->token.data.u8->data)->varData->isConst)) {
             operand2->type = T_F64_VAR;
+            if (!i2fStandFuncGen(true)) {
+                exitWithError(&operand1->token, ERR_INTERNAL_COMPILER);
+            }
             return T_COMPARASION;
         }
         // jinak pokud jsou oba operandy stejného typu, jsou kompatibilní a typ výrazu je T_COMPARASION
@@ -247,6 +269,7 @@ void ruleReduce(Stack *stack, tFrameStack *symtable) {
                 // }
                 reducedTop.type = T_STRING_TYPE;
                 reducedTop.isLiteral = false;
+                expr.data.u8 = tokenTop->token.data.u8;
                 if (!pushOnStackGen(expr.data.u8->data, T_STRING_TYPE)) {
                     exitWithError(&tokenTop->token, ERR_INTERNAL_COMPILER);
                 }

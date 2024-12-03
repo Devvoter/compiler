@@ -37,9 +37,9 @@ pub fn main() void {
     //var _ = 5;
     _ = ifj.i2f(x);
     
-    // while (y) |id_bez_null| {
-    //     x = id_bez_null - 1;
-    // }
+    while (y) |id_bez_null| {
+        x = id_bez_null - 1;
+    }
 
     x = parameterTest(1*x+x+x+x-write(), 1.0, ifj.concat(ifj.string("ahoj"), string,));
 

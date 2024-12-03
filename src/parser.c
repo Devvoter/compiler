@@ -698,6 +698,11 @@ Token parse_return() {
             exitWithError(&CurrentToken, ERR_SEM_RETURN_EXPRESSION);
         }
         symtable.current->funDecl->funData->hasReturned = true;
+        if (strcmp(symtable.current->funDecl->id, "main") == 0) {
+            if (!returnMainGen()) {
+                exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
+            }
+        }
         return getCurrentToken();   // Vrátíme token pro další zpracování
     }
     else {
@@ -746,6 +751,9 @@ Token parse_assignment_or_function_call() {
         TokenType exprType = expression().dataType;               // Parsování výrazu na pravé straně přiřazení
         if (!semcheck_compare_dtypes(search_symbol(&symtable, id)->varData->dataType, exprType)) {
             exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+        }
+        if (!endExpAssignGen(id)) {
+            exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
         if (CurrentToken.type != T_SEMICOLON) {
             exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -799,7 +807,7 @@ char *parse_standard_function_call() {
         strcmp(token.data.u8->data, "strcmp") == 0 ||
         strcmp(token.data.u8->data, "ord") == 0 ||
         strcmp(token.data.u8->data, "chr") == 0)) {
-        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+        exitWithError(&CurrentToken, ERR_SEM_UNDEFINED_FUNC_VAR);
     }
     if (getCurrentToken().type != T_OPEN_PARENTHESES) {
         exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
@@ -986,10 +994,8 @@ void parse_function_call(char *id) {
     int currentArgument = 0;
     int paramCnt = search_symbol(&symtable, id)->funData->paramCnt;
     if (strcmp(id, "ifj.write") == 0) {
-        TokenType exprType = expression().dataType;
-        if (exprType == T_NULL) {
-            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
-        }
+        //TokenType exprType = expression().dataType;
+        expression();
         if (!writeStandFuncGen()) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
@@ -1079,12 +1085,12 @@ void parse_function_call(char *id) {
         }
     }
     else if (strcmp(id, "ifj.i2f") == 0) {
-        if (!i2fStandFuncGen()) {
+        if (!i2fStandFuncGen(false)) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
     }
     else if (strcmp(id, "ifj.f2i") == 0) {
-        if (!f2iStandFuncGen()) {
+        if (!f2iStandFuncGen(false)) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
     }
@@ -1104,7 +1110,7 @@ void parse_function_call(char *id) {
         }
     }
     else {
-        if(!callFuncGen(id, currentArgument+1)) {
+        if(!callFuncGen(id, currentArgument)) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
         }
     }

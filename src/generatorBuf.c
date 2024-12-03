@@ -116,6 +116,7 @@ bool addVarBeforeWhile(codeBuf **buffer, void *str, PRINT_TYPE print_t) {
     elem->previous = foundWhile->previous;
     foundWhile->previous->next = elem;
     foundWhile->previous = elem;
+    return true;
 }
 
 
