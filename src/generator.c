@@ -37,9 +37,12 @@ void disposeGen(bool done)
 {
     if (done)
         bufPrint(&buffer);
-    CodeStack_destroy(ifStack);
-    CodeStack_destroy(whileStack);
-    CodeStack_destroy(whileIsNullableStack);
+    if (ifStack != NULL) 
+        CodeStack_destroy(ifStack);
+    if (whileStack != NULL)
+        CodeStack_destroy(whileStack);
+    if (whileIsNullableStack != NULL)
+        CodeStack_destroy(whileIsNullableStack);
     bufDestroy(buffer);
 }
 
