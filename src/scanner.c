@@ -729,6 +729,16 @@ Token getNextToken(ListOfTokens *list){
                 else{ // narazili jsme se na nejaky symbol, coz retezec nezacina spetnyma lomitkama
                     for (int i = counter_space; i > 0; i--) loadSymbol(&newToken, ' ', &init_count); // pridame mezery do retezce pokud byly pred symbolem 
                     start = false; // nastavim flag aby jsme uz tady nezasli
+                    if (c == '"')
+                    {
+                        loadSymbol(&newToken, '\0', &init_count);
+                        init_count = 0;
+                        newToken.type = T_STRING_TYPE;
+                        insert_in_list_of_tokens(list, newToken);
+                        return newToken;
+
+                    }
+                    
                     loadSymbol(&newToken, c, &init_count);
                     // pokracuju v dalsi iterace
                 }
