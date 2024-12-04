@@ -88,7 +88,7 @@ int printTokenType(Token newToken) {
             printf("Token type: T_AT,                 line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
             break;
         case T_STRING_TYPE:
-            printf("Token type: T_STRING_TYPE,        line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+            printf("Token type: T_STRING_TYPE,        line:%ld, value:\n%s\n", newToken.line+1, newToken.data.u8->data);
             break;
         case T_STRING_TYPE_EMPTY:
             printf("Token type: T_STRING_TYPE_EMPTY,  line:%ld\n", newToken.line+1);
@@ -254,7 +254,7 @@ int print_list_of_tokens(ListOfTokens * list){
                 //     printf("Token type: T_STRING_TYPE,        line:%ld, value: NULL\n", newToken.line+1);
                 //     break;
                 // }
-                printf("Token type: T_STRING_TYPE,        line:%ld, value: %s\n", newToken.line+1, newToken.data.u8->data);
+                printf("Token type: T_STRING_TYPE,        line:%ld, value:\n%s\n", newToken.line+1, newToken.data.u8->data);
                 break;
             case T_STRING_TYPE_EMPTY:
                 printf("Token type: T_STRING_TYPE_EMPTY,  line:%ld\n", newToken.line+1);
