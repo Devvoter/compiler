@@ -662,7 +662,8 @@ Token parse_variable_definition() {
     //     }
     //     return getCurrentToken();   // Vrátíme token pro další zpracování
     // }
-    TokenType exprType = expression().dataType;                   // Parsování výrazu na pravé straně přiřazení
+    tExprVal exprData = expression();  
+    TokenType exprType = exprData.dataType;                   // Parsování výrazu na pravé straně přiřazení
     if (exprType == T_STRING_TYPE || exprType == T_STRING_TYPE_EMPTY) {
         exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
     }
@@ -682,7 +683,17 @@ Token parse_variable_definition() {
     }
     else {
         if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
-            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+            // Když se typy neshodují: Ověřit, zda je možná implicitní konverze
+            bool convertable = false;
+            if(exprData.dataType == T_I32_VAR && (newNode->varData->dataType == T_F64_ID || newNode->varData->dataType == T_F64_NULLABLE)) {
+                convertable = true;
+            }
+            else if(exprData.dataType == T_F64_VAR && exprData.zeroDecimal && (newNode->varData->dataType == T_I32_ID || newNode->varData->dataType == T_I32_NULLABLE)) {
+                convertable = true;
+            }
+            if(!convertable) {
+                exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+            }
         }
     }
     // else if (!semcheck_compare_dtypes(newNode->varData->dataType, exprType)) {
@@ -755,9 +766,21 @@ Token parse_assignment_or_function_call() {
     }
     if (token.type == T_ASSIGN) {
         getCurrentToken();
-        TokenType exprType = expression().dataType;               // Parsování výrazu na pravé straně přiřazení
+        tSymTabNode *destVar = search_symbol(&symtable, id);
+        tExprVal exprData = expression();
+        TokenType exprType = exprData.dataType;               // Parsování výrazu na pravé straně přiřazení
         if (!semcheck_compare_dtypes(search_symbol(&symtable, id)->varData->dataType, exprType)) {
-            exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+            // Když se typy neshodují: Ověřit, zda je možná implicitní konverze
+            bool convertable = false;
+            if(exprData.dataType == T_I32_VAR && (destVar->varData->dataType == T_F64_ID || destVar->varData->dataType == T_F64_NULLABLE || destVar->varData->dataType == T_F64_VAR)) {
+                convertable = true;
+            }
+            else if(exprData.dataType == T_F64_VAR && exprData.zeroDecimal && (destVar->varData->dataType == T_I32_ID || destVar->varData->dataType == T_I32_NULLABLE)) {
+                convertable = true;
+            }
+            if(!convertable) {
+                exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+            }
         }
         if (!endExpAssignGen(id)) {
             exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
@@ -1177,7 +1200,10 @@ tExprVal expression() {
                 if(checkExprEnd(&stack)) {
                     tExprVal result;
                     result.dataType = S_Top(&stack)->type;
-                    result.isConstExpr = S_Top(&stack)->isLiteral;
+                    if(S_Top(&stack)->isLiteral) {
+                        result.zeroDecimal = zero_decimal(S_Top(&stack)->token.data.u8->data);
+                    }
+                    else result.zeroDecimal = false;
                     return result;
                 }
             }
@@ -1227,7 +1253,10 @@ tExprVal expression() {
     }
     tExprVal result;
     result.dataType = S_Top(&stack)->type;
-    result.isConstExpr = S_Top(&stack)->isLiteral;
+    if(S_Top(&stack)->isLiteral) {
+        result.zeroDecimal = zero_decimal(S_Top(&stack)->token.data.u8->data);
+    }
+    else result.zeroDecimal = false;
     return result;
 }
 

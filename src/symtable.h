@@ -26,8 +26,6 @@ typedef struct var{
     TokenType dataType;
     bool isConst;
     bool isUsed;       // nevyuziti promenne je chyba
-    bool isConstExpr;
-    TokenValue value;
 } tVar;
 
 /**

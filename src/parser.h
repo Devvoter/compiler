@@ -12,8 +12,7 @@
 
 typedef struct expressionValue{
     TokenType dataType;
-    bool isConstExpr;
-    TokenValue value;
+    bool zeroDecimal;
 }tExprVal;
 
 /**
