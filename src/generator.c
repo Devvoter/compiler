@@ -260,7 +260,7 @@ bool makeOperationStackGen(TokenType t, bool idiv)
     }
     else if (t == T_NOT_EQUALS) 
     {
-        return addCodeToBuf(&buffer, "\nEQS\nNOT", T_OTHERS, false);
+        return addCodeToBuf(&buffer, "\nEQS\nNOTS", T_OTHERS, false);
     } 
     else return false;
 }
