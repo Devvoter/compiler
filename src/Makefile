@@ -6,9 +6,9 @@ CFLAGS = -std=c11
 TARGET = ifj24_compiler
 
 # Seznam zdrojových a hlavičkových souborů
-SRC = buffer.c error.c parser.c scanner.c stack.c symtable.c codeStack.c list.c generatorBuf.c generator.c
+SRC = buffer.c error.c parser.c scanner.c stack.c symtable.c codeStack.c list.c generatorBuf.c generator.c genVarList.c
 OBJ = $(SRC:.c=.o)
-HEADERS = buffer.h error.h parser.h scanner.h stack.h symtable.h codeStack.h list.h generatorBuf.h generator.h precedence_token.h semantic.h precedence.h 
+HEADERS = buffer.h error.h parser.h scanner.h stack.h symtable.h codeStack.h list.h generatorBuf.h generator.h precedence_token.h semantic.h precedence.h genVarList.h
 
 # Výchozí cíl - kompilace celého projektu
 all: $(TARGET)
@@ -30,7 +30,7 @@ rebuild: clean all
 
 # Vytvoření archivu pro odevzdání
 zip:
-	zip xpylypd00.zip rozdeleni buffer.c buffer.h error.c error.h generator.c generator.h parser.c parser.h scanner.c scanner.h stack.c stack.h precedence.h symtable.c symtable.h Makefile dokumentace.pdf
+	zip xpylypd00.zip rozdeleni buffer.c buffer.h error.c error.h generator.c generator.h parser.c parser.h scanner.c scanner.h stack.c stack.h precedence.h symtable.c symtable.h genVarList.h genVarList.c Makefile dokumentace.pdf
 
 # Vytvoření archivu pro pokusné odevzdání
 pokusne:
