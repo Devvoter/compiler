@@ -6,6 +6,8 @@
  * @date 04.12.2024
  */
 
+#include <stdbool.h>
+
 /**
  * @brief struktura elementu pro ukladani definovane promenne
  */
