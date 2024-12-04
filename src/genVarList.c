@@ -52,6 +52,7 @@ bool isInVarList(varList** l, char *varName) {
         varListElemPtr tmp = (*l)->first;
         while (tmp != NULL) {
             if (strcmp(tmp->varName, varName) != 0) {
+                tmp = tmp->next;
                 continue;                              //pokud stringy nemaji stejny pocet znaku
             }
             bool theSame = true;
@@ -59,6 +60,7 @@ bool isInVarList(varList** l, char *varName) {
             int i = 0;
             while (tmp->varName[i] != '\0') {
                 if (tmp->varName[i] == varName[i]) {
+                    i++;
                     continue;
                 } else {
                     lastChar = false;
