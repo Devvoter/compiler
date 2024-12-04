@@ -30,7 +30,7 @@ rebuild: clean all
 
 # Vytvoření archivu pro odevzdání
 zip:
-	zip xpylypd00.zip rozdeleni rozsireni buffer.c buffer.h codeStack.c codeStack.h error.c error.h generator.c generator.h generatorBuf.h generatorBuf.c list.c list.h Makefile parser.c parser.h precedence_token.h precedence.h scanner.h scanner.c semantic.h stack.h stack.c symtable.c symtable.h genVarList.h genVarList.h dokumentace.pdf
+	zip xpylypd00.zip rozdeleni rozsireni buffer.c buffer.h codeStack.c codeStack.h error.c error.h generator.c generator.h generatorBuf.h generatorBuf.c list.c list.h Makefile parser.c parser.h precedence_token.h precedence.h scanner.h scanner.c semantic.h stack.h stack.c symtable.c symtable.h genVarList.h genVarList.c dokumentace.pdf
 
 # Vytvoření archivu pro pokusné odevzdání
 pokusne:
