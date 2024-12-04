@@ -12,3 +12,4 @@ tests/SynA/ic24int
 tests/SynA/test
 tests/SynA/ifj24_compiler
 tests/SynA/README
+tests/SynA/*.ifj

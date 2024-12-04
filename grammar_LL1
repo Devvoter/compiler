@@ -96,3 +96,39 @@ LOGICAL_OPERATOR ::= "=="
                    | ">" 
                    | "<=" 
                    | ">="
+
+
+1. <prog> -> const ifj = @ import ( "ifj24.zig" ) ; <code>
+2. <code> -> var <variable_definition> <code>
+3. <code> -> const <variable_definition> <code>
+4. <code> -> id <assignment_or_function_call> <code>
+5. <code> -> if ( <expression> ) <id_without_null> { <code> } <else>
+6. <code> -> while ( <expression> ) <id_without_null> { <code> }
+7. <code> -> pub fn id ( <list_of_parameters> ) <function_return_type> { <code> }
+8. <code> -> ifj <standard_function_call> ; <code>
+9. <code> -> ε 
+10. <variable_definition> -> id <variable_type> = <expression> ;
+11. <variable_type> -> : <data_type>
+12. <variable_type> -> ε
+13. <assignment_or_function_call> -> = <expression> ;
+14. <assignment_or_function_call> -> ( <arguments> ) ;
+15. <arguments> -> <expression> <arguments_tail>
+16. <arguments> -> ε 
+17. <arguments_tail> -> , <params>
+18. <arguments_tail> -> ε 
+19. <id_without_null> -> | id |
+20. <else> -> else { <code> }
+21. <else> -> ε 
+22. <list_of_parameters> -> id : <data_type> <list_of_arguments_tail>
+23. <list_of_parameters> -> ε
+24. <list_of_parameters_tail> -> , <list_of_arguments>
+25. <list_of_parameters_tail> -> ε
+26. <standard_function_call> -> . id ( <params> )
+27. <data_type> -> i32
+28. <data_type> -> ?i32
+29. <data_type> -> f64
+30. <data_type> -> ?f64
+31. <data_type> -> []u8
+32. <data_type> -> ?[]u8
+33. <function_return_type> -> <data_type>
+34. <function_return_type> -> void
