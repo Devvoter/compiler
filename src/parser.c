@@ -156,7 +156,7 @@ void addStandardFunctionsToTS() {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
     node->id = "ifj.substring";
-    node->funData->retType = T_U8_ID;
+    node->funData->retType = T_U8_NULLABLE;
     node->funData->paramCnt = 3;
     node->funData->paramTypes = malloc(3 * sizeof(int));
     if (node->funData->paramTypes == NULL) {
@@ -221,6 +221,10 @@ void addStandardFunctionsToTS() {
 }
 
 void global_symtable() {
+    if (parse_prolog() != 0) {
+        fprintf(stderr, "Syntax error: invalid prologue\n");
+        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+    }
     addStandardFunctionsToTS();
     Token token = getNextToken(&LIST);
     bool mainPresent = false;
@@ -326,12 +330,11 @@ void global_symtable() {
     }
 }
 
-void syntax_analysis() {
-    if (parse_prolog() != 0) {
-        fprintf(stderr, "Syntax error: invalid prologue\n");
-        exitWithError(&CurrentToken, ERR_SYNTAX_ANALYSIS);
+void syntaxAnalysis() {
+    for (int i = 0; i < 9; i++) {
+        getCurrentToken(); //preskocime prolog
     }
-
+    //getCurrentToken();
     Token token = code(getCurrentToken());
     if (token.type != T_EOF) {
         exitWithError(&token, ERR_SYNTAX_ANALYSIS);
@@ -339,29 +342,29 @@ void syntax_analysis() {
 }
 
 int parse_prolog() {
-    if (getCurrentToken().type != T_CONST) {
+    if (getNextToken(&LIST).type != T_CONST) {
         return 1;
     }
-    if (getCurrentToken().type != T_IFJ) {
+    if (getNextToken(&LIST).type != T_IFJ) {
         return 1;
     }
-    if (getCurrentToken().type != T_ASSIGN) {
+    if (getNextToken(&LIST).type != T_ASSIGN) {
         return 1;
     }
-    if (getCurrentToken().type != T_AT) {
+    if (getNextToken(&LIST).type != T_AT) {
         return 1;
     }
-    if (getCurrentToken().type != T_IMPORT) {
+    if (getNextToken(&LIST).type != T_IMPORT) {
         return 1;
     }
-    if (getCurrentToken().type != T_OPEN_PARENTHESES) {
+    if (getNextToken(&LIST).type != T_OPEN_PARENTHESES) {
         return 1;
     }
-    Token token = getCurrentToken();
+    Token token = getNextToken(&LIST);
     if (token.type != T_STRING_TYPE || (strcmp(token.data.u8->data, "ifj24.zig") != 0)) {
         return 1;
     }
-    if (getCurrentToken().type != T_CLOSE_PARENTHESES || getCurrentToken().type != T_SEMICOLON) {
+    if (getNextToken(&LIST).type != T_CLOSE_PARENTHESES || getNextToken(&LIST).type != T_SEMICOLON) {
         return 1;
     }
     return 0;
@@ -660,6 +663,9 @@ Token parse_variable_definition() {
     //     return getCurrentToken();   // Vrátíme token pro další zpracování
     // }
     TokenType exprType = expression().dataType;                   // Parsování výrazu na pravé straně přiřazení
+    if (exprType == T_STRING_TYPE || exprType == T_STRING_TYPE_EMPTY) {
+        exitWithError(&CurrentToken, ERR_SEM_TYPE_COMPATIBILITY);
+    }
     endExpAssignGen(newNode->id);
     if (exprType == T_NULL) {
         if (autoType) {
@@ -1238,13 +1244,14 @@ int main() {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
 
-    syntax_analysis();  // Spustí se syntaktická analýza
+    syntaxAnalysis();  // Spustí se syntaktická analýza
 
     if (!endGen()) {
         exitWithError(&CurrentToken, ERR_INTERNAL_COMPILER);
     }
     disposeGen(true);
 
+    //dispose_frame_stack(&symtable);
     free_list_of_tokens(&LIST);
     return 0;
 }
