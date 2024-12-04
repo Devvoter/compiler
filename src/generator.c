@@ -9,6 +9,7 @@
 #include "generator.h"
 #include "generatorBuf.h"
 #include "codeStack.h"
+#include "genVarList.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +22,8 @@ int whileCounter;
 Stack *whileStack;
 Stack *ifStack;
 Stack *whileIsNullableStack;
+varList *varl;
+
 
 bool startGen()
 {
@@ -29,7 +32,7 @@ bool startGen()
     CodeStack_Init(&ifStack);
     CodeStack_Init(&whileStack);
     CodeStack_Init(&whileIsNullableStack);
-    return (bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nJUMP $$main$$", T_OTHERS, false));
+    return (varListInit(&varl) && bufInit(&buffer) && addCodeToBuf(&buffer, "\nCREATEFRAME\nPUSHFRAME\nJUMP $$main$$", T_OTHERS, false));
 }
 
 
@@ -43,6 +46,9 @@ void disposeGen(bool done)
         CodeStack_destroy(whileStack);
     if (whileIsNullableStack != NULL)
         CodeStack_destroy(whileIsNullableStack);
+    if (varl != NULL) {
+        destroyVarList(varl);
+    }
     bufDestroy(buffer);
 }
 
@@ -61,14 +67,23 @@ bool endMainGen()
 
 bool defVarGen(char *ID)
 {
-    char *storedID = storeChar(ID);
-    if (storedID == NULL)
-        return false;
-    if (CodeStack_IsEmpty(whileStack)) {
-        return (addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS, false) && addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER, false));
+    if (isInVarList(&varl, ID)) {
+        return true;
     } else {
-        return (addVarBeforeWhile(&buffer, "\nDEFVAR LF@", T_OTHERS) && addVarBeforeWhile(&buffer, storedID, T_STRING_FROM_PARSER));
+        char *storedID = storeChar(ID);
+        if (storedID == NULL)
+            return false;
+        if (CodeStack_IsEmpty(whileStack)) {
+            return (varListInsert(&varl, storedID) && 
+                    addCodeToBuf(&buffer, "\nDEFVAR LF@", T_OTHERS, false) && 
+                    addCodeToBuf(&buffer, storedID, T_STRING_FROM_PARSER, false));
+        } else {
+            return (varListInsert(&varl, storedID) && 
+                    addVarBeforeWhile(&buffer, "\nDEFVAR LF@", T_OTHERS) && 
+                    addVarBeforeWhile(&buffer, storedID, T_STRING_FROM_PARSER));
+        }
     }
+    
     
 }
 
@@ -552,6 +567,9 @@ char *storeChar(char *ID)
     {
         int length = strlen(ID);
         char *ch = malloc(length + 1);
+        if (ch == NULL) {
+            return false;
+        }
         strcpy(ch, ID);
         return ch;
     }
